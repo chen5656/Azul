@@ -204,7 +204,6 @@ class PlayerBoard:
 
     def calculate_piece_score(self, row: int, col: int) -> int:
         """计算新放置的棋子的得分"""
-        total_score = 0
         piece = self.scoring_area[row][col]
         if not piece:
             return 0
@@ -239,13 +238,18 @@ class PlayerBoard:
             else:
                 break
         
-        # 计算分数
+        total_score = 0
+        # 计算水平连线分数（长度≥2才计分）
         if len(horizontal_line) >= 2:
             total_score += len(horizontal_line)
+            
+        # 计算垂直连线分数（长度≥2才计分）
         if len(vertical_line) >= 2:
             total_score += len(vertical_line)
-        if total_score == 0:  # 如果没有形成任何连线
-            total_score = 1   # 单个棋子得1分
+            
+        # 如果没有形成任何连线，得1分
+        if total_score == 0:
+            total_score = 1
             
         return total_score
 
@@ -255,7 +259,7 @@ class PlayerBoard:
             return []
             
         score_positions = []  # [(row, col, score), ...]
-        # 找到对应颜色的位置
+        # 找到对应颜色的位置并逐个处理棋子
         for piece in self.prep_area[row]:
             target_col = None
             for i in range(5):
@@ -265,10 +269,9 @@ class PlayerBoard:
             if target_col is not None:
                 # 先放置棋子
                 self.scoring_area[row][target_col] = piece
-                # 计算这颗棋子的得分
+                # 立即计算这颗棋子的得分
                 score = self.calculate_piece_score(row, target_col)
-                if score > 0:
-                    score_positions.append((row, target_col, score))
+                score_positions.append((row, target_col, score))
         
         # 清空准备区这一行
         self.prep_area[row] = [None] * len(self.prep_area[row])
@@ -308,6 +311,8 @@ class Game:
         self.animation_timer = 0  # 用于控制动画时间
         self.score_animations = []  # 存储分数动画信息
         
+        self.round_count = 1
+        
         self.initialize_pieces()
         
         # 修改按钮位置到圆盘下方
@@ -333,7 +338,8 @@ class Game:
     def start_new_round(self):
         """开始新回合"""
         # 将先手棋子放入待定区
-        self.waiting_area.append(self.first_piece)
+        if self.first_piece not in self.waiting_area:
+            self.waiting_area.append(self.first_piece)
         
         # 清空所有圆盘
         for disk in self.disks:
@@ -341,20 +347,27 @@ class Game:
         
         # 检查棋子池是否完全空了
         if not self.piece_pool:
+            self.show_error_message("Using pieces from waste pool!")
+            pygame.time.wait(1000)  # 让玩家看到提示
             self.piece_pool.extend(self.waste_pool)
             self.waste_pool.clear()
             random.shuffle(self.piece_pool)
         
         # 分配棋子到圆盘（有多少放多少）
         for disk in self.disks:
-            for _ in range(4):  # 尝试在每个圆盘放4个
-                if self.piece_pool:  # 只在还有棋子时继续放置
+            for _ in range(4):
+                if self.piece_pool:
                     disk.append(self.piece_pool.pop())
                 else:
                     break
         
-        # 重置先手玩家决定状态
+        # 如果所有圆盘都空了，说明没有足够的棋子开始新回合
+        if all(not disk for disk in self.disks):
+            self.show_error_message("Not enough pieces to start new round!")
+            pygame.time.wait(1000)
+        
         self.first_player_decided = False
+        self.round_count += 1
         
     def get_disk_pieces(self, pos) -> Tuple[List[Piece], int]:
         """获取点击位置所在圆盘的所有同色棋子"""
@@ -402,14 +415,89 @@ class Game:
         current_time = pygame.time.get_ticks()
         font = pygame.font.Font(None, 36)
         
-        # 绘制所有活跃的分数动画
         for anim in self.score_animations[:]:
             if current_time - anim['start_time'] < 1000:  # 显示1秒
-                score_text = font.render(f"+{anim['score']}", True, (0, 255, 0))
-                self.screen.blit(score_text, (anim['x'], anim['y']))
+                # 计算动画效果
+                age = current_time - anim['start_time']
+                alpha = 255 * (1 - age / 1000)  # 逐渐消失
+                y_offset = -20 * (age / 1000)  # 向上飘动
+                
+                # 创建文本
+                if anim['score'] > 0:
+                    text = f"+{anim['score']}"
+                    color = (0, 255, 0)  # 绿色表示得分
+                else:
+                    text = str(anim['score'])
+                    color = (255, 0, 0)  # 红色表示扣分
+                
+                # 渲染文本
+                text_surface = font.render(text, True, color)
+                text_surface.set_alpha(int(alpha))
+                
+                # 计算位置
+                x = anim['x']
+                y = anim['y'] + y_offset
+                
+                self.screen.blit(text_surface, (x, y))
             else:
                 self.score_animations.remove(anim)
     
+    def draw_hints(self):
+        """绘制操作提示"""
+        if self.state != GameState.RUNNING:
+            return
+            
+        font = pygame.font.Font(None, 24)
+        hints = []
+        
+        if not self.selected_color:
+            hints.append("Click on disk or waiting area to select pieces")
+        else:
+            hints.append("Click on preparation area to place pieces")
+            hints.append("Click on penalty area to discard pieces")
+            
+        y = 400  # 提示文字的起始y坐标
+        for hint in hints:
+            text_surface = font.render(hint, True, BLACK)
+            text_rect = text_surface.get_rect(left=600, top=y)
+            self.screen.blit(text_surface, text_rect)
+            y += 25
+            
+    def draw_game_state(self):
+        """绘制游戏状态信息"""
+        font = pygame.font.Font(None, 36)
+        info_texts = []
+        
+        # 基本状态信息
+        if self.state == GameState.INIT:
+            info_texts.append(("Click 'Start Game' to begin", BLACK))
+        elif self.state == GameState.RUNNING:
+            info_texts.append((f"Current Player: Player {self.current_player}", BLACK))
+            if self.selected_color:
+                info_texts.append(("Place pieces in your board", (0, 100, 0)))
+            else:
+                info_texts.append(("Select pieces from disk or waiting area", (0, 0, 100)))
+        elif self.state == GameState.SCORING:
+            info_texts.append(("Scoring in progress...", BLACK))
+        else:
+            info_texts.append(("Game Over", BLACK))
+        
+        # 显示剩余棋子信息
+        info_texts.append((f"Pieces in pool: {len(self.piece_pool)}", GRAY))
+        info_texts.append((f"Pieces in waste: {len(self.waste_pool)}", GRAY))
+        
+        # 绘制回合信息
+        if self.state != GameState.INIT:
+            info_texts.append((f"Round: {self.round_count}", BLACK))
+        
+        # 绘制所有信息
+        y = 360
+        for text, color in info_texts:
+            text_surface = font.render(text, True, color)
+            text_rect = text_surface.get_rect(left=600, top=y)
+            self.screen.blit(text_surface, text_rect)
+            y += 30
+
     def draw(self):
         self.screen.fill(BACKGROUND)
         
@@ -454,15 +542,17 @@ class Game:
         self.start_button.draw(self.screen)
         self.restart_button.draw(self.screen)
         
-        # 显示当前玩家 - 移动到按钮旁边
-        if self.state == GameState.RUNNING:
-            font = pygame.font.Font(None, 36)
-            current_player_text = font.render(f"Current Player: Player {self.current_player}", True, BLACK)
-            text_rect = current_player_text.get_rect(left=600, centery=360)  # 按钮下方
-            self.screen.blit(current_player_text, text_rect)
+        # 添加游戏状态提示
+        self.draw_game_state()
         
         # 绘制分数动画
         self.draw_score_animations()
+        
+        # 添加提示的绘制
+        self.draw_hints()
+        
+        # 添加错误消息的绘制
+        self.draw_error_message()
         
         pygame.display.flip()
     
@@ -495,6 +585,7 @@ class Game:
 
     def check_game_end(self) -> bool:
         """检查游戏是否结束"""
+        # 游戏结束条件：任意玩家的结算区有一整行都有棋子
         return (self.player1_board.has_complete_row() or 
                 self.player2_board.has_complete_row())
     
@@ -535,6 +626,24 @@ class Game:
         self.screen.blit(text_surface, text_rect)
         self.screen.blit(score1_surface, score1_rect)
         self.screen.blit(score2_surface, score2_rect)
+        
+        # 添加更多游戏统计信息
+        stats_font = pygame.font.Font(None, 24)
+        stats_texts = [
+            f"Total Rounds: {self.round_count}",
+            f"Player 1 Penalties: {sum(1 for p in self.player1_board.penalty_area if p)}",
+            f"Player 2 Penalties: {sum(1 for p in self.player2_board.penalty_area if p)}",
+            f"Remaining Pieces: {len(self.piece_pool)}",
+            "Click anywhere to start new game"
+        ]
+        
+        y = score2_rect.bottom + 20
+        for text in stats_texts:
+            text_surface = stats_font.render(text, True, BLACK)
+            text_rect = text_surface.get_rect(centerx=WINDOW_WIDTH//2, top=y)
+            self.screen.blit(text_surface, text_rect)
+            y += 25
+        
         pygame.display.flip()
         
         # 等待点击继续
@@ -551,30 +660,46 @@ class Game:
         self.__init__()
 
     def calculate_scores(self):
-        """计算所有分数并进入下一回合"""
         self.state = GameState.SCORING
+        game_will_end = False  # 添加标记，记录是否需要结束游戏
         
         for board in [self.player1_board, self.player2_board]:
-            # 结算准备区，一行一行处理
-            for row in range(5):
-                score_positions = board.score_row(row)
-                # 显示每个位置的得分动画
-                for row_pos, col_pos, score in score_positions:
-                    self.score_animations.append({
-                        'score': score,
-                        'x': board.x + 200 + col_pos * PIECE_SIZE,
-                        'y': board.y + row_pos * PIECE_SIZE,
-                        'start_time': pygame.time.get_ticks()
-                    })
-                    board.score += score
-                    
-                    # 等待动画显示
-                    start_time = pygame.time.get_ticks()
-                    while pygame.time.get_ticks() - start_time < 500:
-                        self.draw()
-                        pygame.event.pump()
+            self.show_error_message(f"Scoring {board.player_name}'s board...")
+            pygame.time.wait(1000)
             
-            # 计算扣分区的分数并移入废棋堆
+            # 先处理准备区
+            for row in range(5):
+                if all(piece for piece in board.prep_area[row]):
+                    self.show_error_message(f"Processing row {row + 1}")
+                    pygame.time.wait(500)
+                    
+                    score_positions = board.score_row(row)
+                    for row_pos, col_pos, score in score_positions:
+                        # 显示每个位置的得分动画
+                        self.score_animations.append({
+                            'score': score,
+                            'x': board.x + 200 + col_pos * PIECE_SIZE,
+                            'y': board.y + row_pos * PIECE_SIZE,
+                            'start_time': pygame.time.get_ticks()
+                        })
+                        board.score += score
+                        
+                        # 等待动画显示
+                        start_time = pygame.time.get_ticks()
+                        while pygame.time.get_ticks() - start_time < 500:
+                            self.draw()
+                            pygame.event.pump()
+                        
+                        # 每放置一个棋子就检查是否有完整的一行
+                        if board.has_complete_row():
+                            game_will_end = True
+                            self.show_error_message(f"{board.player_name} completed a row!")
+                            pygame.time.wait(1000)
+            
+            # 再处理扣分区
+            self.show_error_message(f"Processing penalty area")
+            pygame.time.wait(500)
+            # 计算扣分区的分数
             for i, piece in enumerate(board.penalty_area):
                 if piece:
                     penalty_score = board.penalty_values[i]
@@ -593,21 +718,39 @@ class Game:
                     while pygame.time.get_ticks() - start_time < 300:
                         self.draw()
                         pygame.event.pump()
-            
-            # 等待所有动画完成
-            while self.score_animations:
-                self.draw()
-                pygame.event.pump()
         
-        # 在结算完成后检查游戏是否结束
-        if self.check_game_end():
+        # 等待所有动画完成
+        while self.score_animations:
+            self.draw()
+            pygame.event.pump()
+        
+        # 在所有结算完成后再结束游戏
+        if game_will_end:
             self.state = GameState.END
             self.show_game_result()
         else:
-            # 继续游戏
             self.state = GameState.RUNNING
             self.start_new_round()
         
+    def show_error_message(self, message: str):
+        """显示错误消息"""
+        self.error_message = {
+            'text': message,
+            'start_time': pygame.time.get_ticks()
+        }
+        
+    def draw_error_message(self):
+        """绘制错误消息"""
+        if hasattr(self, 'error_message'):
+            current_time = pygame.time.get_ticks()
+            if current_time - self.error_message['start_time'] < 2000:  # 显示2秒
+                font = pygame.font.Font(None, 36)
+                text_surface = font.render(self.error_message['text'], True, (255, 0, 0))
+                text_rect = text_surface.get_rect(centerx=WINDOW_WIDTH//2, top=10)
+                self.screen.blit(text_surface, text_rect)
+            else:
+                del self.error_message
+                
     def handle_click(self, pos):
         """处理鼠标点击事件"""
         if self.start_button.is_clicked(pos):
@@ -624,11 +767,32 @@ class Game:
             
         current_board = self.player1_board if self.current_player == 1 else self.player2_board
         
-        # 如果已经选中了棋子，处理放置逻辑
+        # 尝试选择新的棋子（即使已经选择了其他棋子）
+        # 从圆盘选择
+        pieces, disk_index = self.get_disk_pieces(pos)
+        if pieces:
+            self.clear_selection()
+            self.selected_disk_index = disk_index
+            self.selected_color = pieces[0].color
+            for piece in pieces:
+                piece.selected = True
+            return
+        
+        # 从待定区选择
+        pieces = self.get_waiting_area_pieces(pos)
+        if pieces:
+            self.clear_selection()
+            self.selected_color = pieces[0].color
+            for piece in pieces:
+                piece.selected = True
+            return
+        
+        # 如果已经选中了棋子，且点击的不是新的棋子，则处理放置逻辑
         if self.selected_color:
             # 检查是否点击了当前玩家的有效区域
             if not self.is_valid_board_area(pos, self.current_player):
-                return  # 无效点击，直接返回
+                self.show_error_message("Invalid area!")
+                return
             
             # 获取选中的棋子
             selected_pieces = []
@@ -645,7 +809,7 @@ class Game:
             is_first_waiting_area_placement = (
                 not self.first_player_decided and 
                 self.first_piece in self.waiting_area and 
-                self.selected_disk_index == -1
+                self.selected_disk_index == -1  # 确保是从待定区选的
             )
             
             # 获取点击位置
@@ -667,7 +831,13 @@ class Game:
                             break
                 placement_successful = True
                 
-            elif row != -1 and current_board.can_place_pieces(row, self.selected_color):
+            elif row != -1:  # 如果点击了准备区
+                if not current_board.can_place_pieces(row, self.selected_color):
+                    if any(piece for piece in current_board.prep_area[row] if piece and piece.color != self.selected_color):
+                        self.show_error_message("This row already has different color pieces!")
+                    elif any(piece for piece in current_board.scoring_area[row] if piece and piece.color == self.selected_color):
+                        self.show_error_message("This color already exists in scoring area!")
+                    return
                 # 放入准备区
                 overflow_pieces = current_board.place_pieces(selected_pieces, row)
                 # 处理溢出的棋子
@@ -682,21 +852,21 @@ class Game:
                 # 从原位置移除棋子
                 if self.selected_disk_index != -1:
                     disk = self.disks[self.selected_disk_index]
-                    # 将剩余棋子移到待定区
                     remaining_pieces = [p for p in disk if p.color != self.selected_color]
                     self.waiting_area.extend(remaining_pieces)
                     self.disks[self.selected_disk_index].clear()
                 else:
+                    # 如果是从待定区选择的，并且是第一次选择
+                    if not self.first_player_decided and self.first_piece in self.waiting_area:
+                        self.first_player_decided = True
+                        # 将先手棋子放入当前玩家的扣分区
+                        for j in range(7):
+                            if not current_board.penalty_area[j]:
+                                current_board.penalty_area[j] = self.first_piece
+                                self.waiting_area.remove(self.first_piece)
+                                break
+                    # 移除选中的棋子
                     self.waiting_area = [p for p in self.waiting_area if p.color != self.selected_color or p.is_first]
-                
-                # 处理先手棋子
-                if is_first_waiting_area_placement:
-                    self.first_player_decided = True
-                    for j in range(7):
-                        if not current_board.penalty_area[j]:
-                            current_board.penalty_area[j] = self.first_piece
-                            self.waiting_area.remove(self.first_piece)
-                            break
                 
                 # 检查是否需要结算
                 if not self.waiting_area and all(not disk for disk in self.disks):
@@ -707,26 +877,6 @@ class Game:
             
             # 清除选择状态
             self.clear_selection()
-            return
-        
-        # 尝试选择新的棋子
-        # 从圆盘选择
-        pieces, disk_index = self.get_disk_pieces(pos)
-        if pieces:
-            self.clear_selection()
-            self.selected_disk_index = disk_index
-            self.selected_color = pieces[0].color
-            for piece in pieces:
-                piece.selected = True
-            return
-        
-        # 从待定区选择
-        pieces = self.get_waiting_area_pieces(pos)
-        if pieces:
-            self.clear_selection()
-            self.selected_color = pieces[0].color
-            for piece in pieces:
-                piece.selected = True
             return
     
     def run(self):
