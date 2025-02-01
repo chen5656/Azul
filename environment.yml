@@ -1,0 +1,9 @@
+name: tile_game
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.9
+  - pygame=2.5.0
+  - pip
+  - numpy 
