@@ -301,18 +301,13 @@ class PlayerBoard:
         
         返回:
             List[Tuple[int, int, int]]: 得分列表，每个元素是(行号, 列号, 分数)的元组
-        
-        计分规则:
-            1. 每个新放置的棋子都要计算分数
-            2. 如果棋子能形成水平或垂直连线（长度≥2），每条线得分等于线的长度
-            3. 如果棋子没有形成任何连线，得1分
-            4. 每个位置只计算一次分数
         """
         score_positions = []  # 最终的得分列表
         scored_positions = set()  # 记录已经计算过分数的位置
         
         # 对每个新放置的棋子
         for _, col in moves:
+            # 如果这个位置已经计算过分数，跳过
             if (row, col) in scored_positions:
                 continue
             
@@ -320,42 +315,35 @@ class PlayerBoard:
             horizontal_line = []
             for c in range(5):
                 if self.scoring_area[row][c]:
-                    horizontal_line.append((row, c))
-                else:
-                    if len(horizontal_line) >= 2:
-                        # 这条线上的所有位置都标记为已计分
-                        scored_positions.update(horizontal_line)
-                        # 每个位置都记录相同的分数（线的长度）
-                        for pos in horizontal_line:
-                            score_positions.append((pos[0], pos[1], len(horizontal_line)))
-                    horizontal_line = []
-            # 检查最后一段
-            if len(horizontal_line) >= 2:
-                scored_positions.update(horizontal_line)
-                for pos in horizontal_line:
-                    score_positions.append((pos[0], pos[1], len(horizontal_line)))
+                    horizontal_line.append(c)
             
             # 检查垂直连线
             vertical_line = []
             for r in range(5):
                 if self.scoring_area[r][col]:
-                    vertical_line.append((r, col))
-                else:
-                    if len(vertical_line) >= 2:
-                        scored_positions.update(vertical_line)
-                        for pos in vertical_line:
-                            score_positions.append((pos[0], pos[1], len(vertical_line)))
-                    vertical_line = []
-            # 检查最后一段
+                    vertical_line.append(r)
+            
+            # 计算分数
+            score = 0
+            has_line = False
+            
+            # 如果形成水平连线（长度≥2）
+            if len(horizontal_line) >= 2 and col in horizontal_line:
+                score += len(horizontal_line)
+                has_line = True
+            
+            # 如果形成垂直连线（长度≥2）
             if len(vertical_line) >= 2:
-                scored_positions.update(vertical_line)
-                for pos in vertical_line:
-                    score_positions.append((pos[0], pos[1], len(vertical_line)))
-        
-        # 对于没有参与任何连线的新棋子，给1分
-        for _, col in moves:
-            if (row, col) not in scored_positions:
-                score_positions.append((row, col, 1))
+                score += len(vertical_line)
+                has_line = True
+            
+            # 如果没有形成任何连线，得1分
+            if not has_line:
+                score = 1
+            
+            # 记录这个位置已经计算过分数
+            scored_positions.add((row, col))
+            score_positions.append((row, col, score))
         
         return score_positions
 
