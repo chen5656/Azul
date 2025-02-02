@@ -239,16 +239,20 @@ class PlayerBoard:
                 break
         
         total_score = 0
+        has_line = False
+        
         # 计算水平连线分数（长度≥2才计分）
         if len(horizontal_line) >= 2:
             total_score += len(horizontal_line)
+            has_line = True
             
         # 计算垂直连线分数（长度≥2才计分）
         if len(vertical_line) >= 2:
             total_score += len(vertical_line)
+            has_line = True
             
-        # 如果没有形成任何连线，得1分
-        if total_score == 0:
+        # 只有在没有形成任何连线时才得1分
+        if not has_line:
             total_score = 1
             
         return total_score
@@ -258,8 +262,8 @@ class PlayerBoard:
         if not all(piece for piece in self.prep_area[row]):  # 如果这一行没满
             return []
             
-        score_positions = []  # [(row, col, score), ...]
-        # 找到对应颜色的位置并逐个处理棋子
+        # 先记录所有要移动的棋子和位置
+        moves = []  # [(piece, target_col), ...]
         for piece in self.prep_area[row]:
             target_col = None
             for i in range(5):
@@ -267,11 +271,14 @@ class PlayerBoard:
                     target_col = i
                     break
             if target_col is not None:
-                # 先放置棋子
-                self.scoring_area[row][target_col] = piece
-                # 立即计算这颗棋子的得分
-                score = self.calculate_piece_score(row, target_col)
-                score_positions.append((row, target_col, score))
+                moves.append((piece, target_col))
+        
+        # 一次性移动所有棋子
+        for piece, target_col in moves:
+            self.scoring_area[row][target_col] = piece
+        
+        # 计算分数
+        score_positions = self.calculate_line_scores(row, moves)
         
         # 清空准备区这一行
         self.prep_area[row] = [None] * len(self.prep_area[row])
@@ -283,6 +290,74 @@ class PlayerBoard:
             if all(self.scoring_area[row]):  # 如果这一行的所有位置都有棋子
                 return True
         return False
+
+    def calculate_line_scores(self, row: int, moves: List[Tuple[Piece, int]]) -> List[Tuple[int, int, int]]:
+        """
+        计算新放置的棋子形成的连线得分
+        
+        参数:
+            row (int): 当前处理的行号（0-4）
+            moves (List[Tuple[Piece, int]]): 新放置的棋子列表，每个元素是(棋子, 目标列)的元组
+        
+        返回:
+            List[Tuple[int, int, int]]: 得分列表，每个元素是(行号, 列号, 分数)的元组
+        
+        计分规则:
+            1. 每个新放置的棋子都要计算分数
+            2. 如果棋子能形成水平或垂直连线（长度≥2），每条线得分等于线的长度
+            3. 如果棋子没有形成任何连线，得1分
+            4. 每个位置只计算一次分数
+        """
+        score_positions = []  # 最终的得分列表
+        scored_positions = set()  # 记录已经计算过分数的位置
+        
+        # 对每个新放置的棋子
+        for _, col in moves:
+            if (row, col) in scored_positions:
+                continue
+            
+            # 检查水平连线
+            horizontal_line = []
+            for c in range(5):
+                if self.scoring_area[row][c]:
+                    horizontal_line.append((row, c))
+                else:
+                    if len(horizontal_line) >= 2:
+                        # 这条线上的所有位置都标记为已计分
+                        scored_positions.update(horizontal_line)
+                        # 每个位置都记录相同的分数（线的长度）
+                        for pos in horizontal_line:
+                            score_positions.append((pos[0], pos[1], len(horizontal_line)))
+                    horizontal_line = []
+            # 检查最后一段
+            if len(horizontal_line) >= 2:
+                scored_positions.update(horizontal_line)
+                for pos in horizontal_line:
+                    score_positions.append((pos[0], pos[1], len(horizontal_line)))
+            
+            # 检查垂直连线
+            vertical_line = []
+            for r in range(5):
+                if self.scoring_area[r][col]:
+                    vertical_line.append((r, col))
+                else:
+                    if len(vertical_line) >= 2:
+                        scored_positions.update(vertical_line)
+                        for pos in vertical_line:
+                            score_positions.append((pos[0], pos[1], len(vertical_line)))
+                    vertical_line = []
+            # 检查最后一段
+            if len(vertical_line) >= 2:
+                scored_positions.update(vertical_line)
+                for pos in vertical_line:
+                    score_positions.append((pos[0], pos[1], len(vertical_line)))
+        
+        # 对于没有参与任何连线的新棋子，给1分
+        for _, col in moves:
+            if (row, col) not in scored_positions:
+                score_positions.append((row, col, 1))
+        
+        return score_positions
 
 class Game:
     def __init__(self):
@@ -664,6 +739,7 @@ class Game:
         game_will_end = False  # 添加标记，记录是否需要结束游戏
         
         for board in [self.player1_board, self.player2_board]:
+            print(f"\n开始计算 {board.player_name} 的分数")
             self.show_error_message(f"Scoring {board.player_name}'s board...")
             pygame.time.wait(1000)
             
@@ -674,6 +750,7 @@ class Game:
                     pygame.time.wait(500)
                     
                     score_positions = board.score_row(row)
+                    debug_print_score(row, score_positions)
                     for row_pos, col_pos, score in score_positions:
                         # 显示每个位置的得分动画
                         self.score_animations.append({
@@ -892,6 +969,27 @@ class Game:
             self.draw()
             
         pygame.quit()
+
+def debug_print_score(row: int, score_positions: List[Tuple[int, int, int]]):
+    """漂亮地打印分数信息"""
+    print("\n" + "="*50)
+    print(f"处理第 {row + 1} 行的得分情况:")
+    print("="*50)
+    
+    if not score_positions:
+        print("没有得分位置")
+        return
+        
+    print(f"总共 {len(score_positions)} 个得分位置:")
+    for i, (row_pos, col_pos, score) in enumerate(score_positions, 1):
+        print(f"位置 {i}:")
+        print(f"  - 行: {row_pos + 1}")
+        print(f"  - 列: {col_pos + 1}")
+        print(f"  - 分数: {score}")
+    print("-"*50)
+    total_score = sum(score for _, _, score in score_positions)
+    print(f"这一行总得分: {total_score}")
+    print("="*50 + "\n")
 
 if __name__ == "__main__":
     game = Game()
