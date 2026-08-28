@@ -329,17 +329,18 @@ commands:
 def make_agent(name: str, rng: random.Random):
     """Returns a callable (game) -> Action.
 
-    Only the random baseline exists in Phase 1; the Phase 3 agents plug in here
-    without touching the rest of the CLI.
+    `ai.make_agent` owns the level roster; levels not yet implemented fall back
+    to the random baseline (see docs/plans/03-ai.md).
     """
-    if name == "random":
-        return lambda game: rng.choice(game.legal_actions())
     try:
-        from ai import make_agent as make_ai_agent  # type: ignore
-    except ImportError as exc:  # pragma: no cover - Phase 3
-        raise SystemExit(f"unknown agent '{name}' (AI agents land in Phase 3)") from exc
-    agent = make_ai_agent(name)
-    return lambda game: agent.choose(game.state, game.legal_actions(), rng)
+        from ai import make_agent as make_ai_agent
+    except ImportError as exc:  # pragma: no cover - ai package is always present
+        raise SystemExit(f"unknown agent '{name}': the ai package is unavailable") from exc
+    try:
+        agent = make_ai_agent(name, seed=rng.randrange(2**31))
+    except ValueError as exc:
+        raise SystemExit(str(exc)) from exc
+    return lambda game: agent.choose(game.state, game.current)
 
 
 # ---------------------------------------------------------------- modes

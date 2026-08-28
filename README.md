@@ -3,8 +3,9 @@
 A tile-drafting board game: rules engine, AI opponents, and a web client.
 Two players, five colors, a 5×5 grid to fill and a penalty row to avoid.
 
-Current status: **Phase 1 complete** — the rules engine and a playable terminal
-client. See [PLAN.md](PLAN.md) for the roadmap and [docs/plans/](docs/plans/)
+Current status: **Phase 2 complete** — the rules engine, a playable terminal
+client, and a browser-playable vertical slice (FastAPI + React) against a
+random opponent. See [PLAN.md](PLAN.md) for the roadmap and [docs/plans/](docs/plans/)
 for per-module designs.
 
 ## Play it now
@@ -56,6 +57,25 @@ Other modes:
 .venv/bin/python -m scripts.cli --replay game.json
 ```
 
+## Play it in the browser
+
+Two terminals:
+
+```bash
+cd backend && .venv/bin/pip install -e ".[server,dev]"
+.venv/bin/python -m uvicorn app.main:app --port 8000
+```
+
+```bash
+cd frontend && npm install && npm run dev   # http://localhost:5173
+```
+
+Pick a mode, press 开始, then click a color group and click a highlighted row.
+Legality is decided entirely by the server: the client only highlights the
+`legal_actions` set it is sent. The game lives on the server, so refreshing the
+page resumes exactly where you were. The wire format is in
+[docs/protocol.md](docs/protocol.md).
+
 ## Rules
 
 Each round every display is filled with 4 tiles from the bag. On your turn you
@@ -78,9 +98,14 @@ Full specification, including every edge case: [docs/plans/01-engine.md](docs/pl
 ```
 backend/
   engine/    rules engine — pure Python, no dependencies
+  ai/        agents; Level 0 (random) today, Levels 1-3 in Phase 3
+  app/       FastAPI server: REST lifecycle + one WebSocket per game
   scripts/   cli.py (terminal client), later benchmark.py and replay.py
   tests/
-docs/plans/  per-module design documents
+frontend/    Vite + React + TypeScript client
+docs/
+  plans/     per-module design documents
+  protocol.md  wire format, generated from app/schemas.py
 ```
 
 ## Tests
@@ -89,7 +114,10 @@ docs/plans/  per-module design documents
 cd backend && .venv/bin/python -m pytest --cov=engine
 ```
 
-93 tests, 99% engine coverage. They cover every edge case listed in the engine
+103 tests, 99% engine coverage. They cover every edge case listed in the engine
 plan, plus a fuzz pass that plays random games while asserting the invariants
 (tiles are conserved, scores never go negative, no color repeats on a grid row
-or column, exactly one first-player token exists).
+or column, exactly one first-player token exists). The server tests play a
+whole PvE game over a real WebSocket, check that illegal actions change
+nothing, that two sockets see identical broadcasts, and that the exported log
+replays to the same final state.

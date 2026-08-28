@@ -154,4 +154,10 @@ def test_save_produces_a_replayable_record(tmp_path):
 
 def test_make_agent_rejects_unknown_names():
     with pytest.raises(SystemExit):
-        cli.make_agent("mcts", random.Random(0))
+        cli.make_agent("oracle", random.Random(0))
+
+
+def test_make_agent_accepts_every_declared_level():
+    for level in ("random", "greedy", "minimax", "mcts"):
+        agent = cli.make_agent(level, random.Random(0))
+        assert callable(agent)

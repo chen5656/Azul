@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/main.tsx","./src/components/displayarea.tsx","./src/components/playerboard.tsx","./src/components/setupscreen.tsx","./src/components/tile.tsx","./src/components/topbar.tsx","./src/hooks/usegame.ts","./src/types/game.ts"],"version":"5.9.3"}
