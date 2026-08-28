@@ -9,3 +9,5 @@ node_modules/
 dist/
 *.json.log
 .DS_Store
+
+*.tsbuildinfo
