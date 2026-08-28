@@ -1,0 +1,5471 @@
+{
+ "vectors": [
+  {
+   "name": "basic_draft",
+   "note": "taking from a display moves the other colors to the center",
+   "initial_state": {
+    "displays": [
+     {
+      "blue": 2,
+      "yellow": 2
+     },
+     {
+      "red": 4
+     },
+     {},
+     {},
+     {}
+    ],
+    "center": {},
+    "center_has_token": true,
+    "bag": {
+     "blue": 0,
+     "yellow": 0,
+     "red": 0,
+     "black": 0,
+     "white": 0
+    },
+    "discard": {
+     "blue": 0,
+     "yellow": 0,
+     "red": 0,
+     "black": 0,
+     "white": 0
+    },
+    "players": [
+     {
+      "staging_colors": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "staging_counts": [
+       0,
+       0,
+       0,
+       0,
+       0
+      ],
+      "grid": [
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ]
+      ],
+      "penalty_tiles": [],
+      "penalty_overflow": 0,
+      "score": 0,
+      "has_first_token": false
+     },
+     {
+      "staging_colors": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "staging_counts": [
+       0,
+       0,
+       0,
+       0,
+       0
+      ],
+      "grid": [
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ]
+      ],
+      "penalty_tiles": [],
+      "penalty_overflow": 0,
+      "score": 0,
+      "has_first_token": false
+     }
+    ],
+    "current": 0,
+    "first_player": 0,
+    "round_num": 1,
+    "phase": "drafting"
+   },
+   "steps": [
+    {
+     "action_id": 1,
+     "expected_state": {
+      "displays": [
+       {},
+       {
+        "red": 4
+       },
+       {},
+       {},
+       {}
+      ],
+      "center": {
+       "yellow": 2
+      },
+      "center_has_token": true,
+      "bag": {
+       "blue": 0,
+       "yellow": 0,
+       "red": 0,
+       "black": 0,
+       "white": 0
+      },
+      "discard": {
+       "blue": 0,
+       "yellow": 0,
+       "red": 0,
+       "black": 0,
+       "white": 0
+      },
+      "players": [
+       {
+        "staging_colors": [
+         null,
+         "blue",
+         null,
+         null,
+         null
+        ],
+        "staging_counts": [
+         0,
+         2,
+         0,
+         0,
+         0
+        ],
+        "grid": [
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ]
+        ],
+        "penalty_tiles": [],
+        "penalty_overflow": 0,
+        "score": 0,
+        "has_first_token": false
+       },
+       {
+        "staging_colors": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ],
+        "staging_counts": [
+         0,
+         0,
+         0,
+         0,
+         0
+        ],
+        "grid": [
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ]
+        ],
+        "penalty_tiles": [],
+        "penalty_overflow": 0,
+        "score": 0,
+        "has_first_token": false
+       }
+      ],
+      "current": 1,
+      "first_player": 0,
+      "round_num": 1,
+      "phase": "drafting"
+     },
+     "expected_events": [
+      {
+       "player": 0,
+       "source": 0,
+       "color": "blue",
+       "count": 2,
+       "dest": 1,
+       "placed": 2,
+       "overflow": 0,
+       "to_discard": 0,
+       "took_first_token": false,
+       "kind": "draft"
+      }
+     ]
+    },
+    {
+     "action_id": 44,
+     "expected_state": {
+      "displays": [
+       {},
+       {},
+       {},
+       {},
+       {}
+      ],
+      "center": {
+       "yellow": 2
+      },
+      "center_has_token": true,
+      "bag": {
+       "blue": 0,
+       "yellow": 0,
+       "red": 0,
+       "black": 0,
+       "white": 0
+      },
+      "discard": {
+       "blue": 0,
+       "yellow": 0,
+       "red": 0,
+       "black": 0,
+       "white": 0
+      },
+      "players": [
+       {
+        "staging_colors": [
+         null,
+         "blue",
+         null,
+         null,
+         null
+        ],
+        "staging_counts": [
+         0,
+         2,
+         0,
+         0,
+         0
+        ],
+        "grid": [
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ]
+        ],
+        "penalty_tiles": [],
+        "penalty_overflow": 0,
+        "score": 0,
+        "has_first_token": false
+       },
+       {
+        "staging_colors": [
+         null,
+         null,
+         "red",
+         null,
+         null
+        ],
+        "staging_counts": [
+         0,
+         0,
+         3,
+         0,
+         0
+        ],
+        "grid": [
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ]
+        ],
+        "penalty_tiles": [
+         "red"
+        ],
+        "penalty_overflow": 0,
+        "score": 0,
+        "has_first_token": false
+       }
+      ],
+      "current": 0,
+      "first_player": 0,
+      "round_num": 1,
+      "phase": "drafting"
+     },
+     "expected_events": [
+      {
+       "player": 1,
+       "source": 1,
+       "color": "red",
+       "count": 4,
+       "dest": 2,
+       "placed": 3,
+       "overflow": 1,
+       "to_discard": 0,
+       "took_first_token": false,
+       "kind": "draft"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "center_and_token",
+   "note": "first taker from the center gets the token and a penalty slot",
+   "initial_state": {
+    "displays": [
+     {
+      "blue": 1,
+      "yellow": 3
+     },
+     {},
+     {},
+     {},
+     {}
+    ],
+    "center": {},
+    "center_has_token": true,
+    "bag": {
+     "blue": 0,
+     "yellow": 0,
+     "red": 0,
+     "black": 0,
+     "white": 0
+    },
+    "discard": {
+     "blue": 0,
+     "yellow": 0,
+     "red": 0,
+     "black": 0,
+     "white": 0
+    },
+    "players": [
+     {
+      "staging_colors": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "staging_counts": [
+       0,
+       0,
+       0,
+       0,
+       0
+      ],
+      "grid": [
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ]
+      ],
+      "penalty_tiles": [],
+      "penalty_overflow": 0,
+      "score": 0,
+      "has_first_token": false
+     },
+     {
+      "staging_colors": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "staging_counts": [
+       0,
+       0,
+       0,
+       0,
+       0
+      ],
+      "grid": [
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ]
+      ],
+      "penalty_tiles": [],
+      "penalty_overflow": 0,
+      "score": 0,
+      "has_first_token": false
+     }
+    ],
+    "current": 0,
+    "first_player": 0,
+    "round_num": 1,
+    "phase": "drafting"
+   },
+   "steps": [
+    {
+     "action_id": 0,
+     "expected_state": {
+      "displays": [
+       {},
+       {},
+       {},
+       {},
+       {}
+      ],
+      "center": {
+       "yellow": 3
+      },
+      "center_has_token": true,
+      "bag": {
+       "blue": 0,
+       "yellow": 0,
+       "red": 0,
+       "black": 0,
+       "white": 0
+      },
+      "discard": {
+       "blue": 0,
+       "yellow": 0,
+       "red": 0,
+       "black": 0,
+       "white": 0
+      },
+      "players": [
+       {
+        "staging_colors": [
+         "blue",
+         null,
+         null,
+         null,
+         null
+        ],
+        "staging_counts": [
+         1,
+         0,
+         0,
+         0,
+         0
+        ],
+        "grid": [
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ]
+        ],
+        "penalty_tiles": [],
+        "penalty_overflow": 0,
+        "score": 0,
+        "has_first_token": false
+       },
+       {
+        "staging_colors": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ],
+        "staging_counts": [
+         0,
+         0,
+         0,
+         0,
+         0
+        ],
+        "grid": [
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ]
+        ],
+        "penalty_tiles": [],
+        "penalty_overflow": 0,
+        "score": 0,
+        "has_first_token": false
+       }
+      ],
+      "current": 1,
+      "first_player": 0,
+      "round_num": 1,
+      "phase": "drafting"
+     },
+     "expected_events": [
+      {
+       "player": 0,
+       "source": 0,
+       "color": "blue",
+       "count": 1,
+       "dest": 0,
+       "placed": 1,
+       "overflow": 0,
+       "to_discard": 0,
+       "took_first_token": false,
+       "kind": "draft"
+      }
+     ]
+    },
+    {
+     "action_id": 158,
+     "expected_state": {
+      "displays": [
+       {},
+       {},
+       {},
+       {},
+       {}
+      ],
+      "center": {},
+      "center_has_token": false,
+      "bag": {
+       "blue": 0,
+       "yellow": 0,
+       "red": 0,
+       "black": 0,
+       "white": 0
+      },
+      "discard": {
+       "blue": 0,
+       "yellow": 2,
+       "red": 0,
+       "black": 0,
+       "white": 0
+      },
+      "players": [
+       {
+        "staging_colors": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ],
+        "staging_counts": [
+         0,
+         0,
+         0,
+         0,
+         0
+        ],
+        "grid": [
+         [
+          true,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ]
+        ],
+        "penalty_tiles": [],
+        "penalty_overflow": 0,
+        "score": 1,
+        "has_first_token": false
+       },
+       {
+        "staging_colors": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ],
+        "staging_counts": [
+         0,
+         0,
+         0,
+         0,
+         0
+        ],
+        "grid": [
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          true,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ]
+        ],
+        "penalty_tiles": [],
+        "penalty_overflow": 0,
+        "score": 0,
+        "has_first_token": true
+       }
+      ],
+      "current": 0,
+      "first_player": 0,
+      "round_num": 1,
+      "phase": "drafting"
+     },
+     "expected_events": [
+      {
+       "player": 1,
+       "source": 5,
+       "color": "yellow",
+       "count": 3,
+       "dest": 2,
+       "placed": 3,
+       "overflow": 0,
+       "to_discard": 0,
+       "took_first_token": true,
+       "kind": "draft"
+      },
+      {
+       "player": 0,
+       "row": 0,
+       "col": 0,
+       "color": "blue",
+       "points": 1,
+       "horizontal": 1,
+       "vertical": 1,
+       "kind": "tile_scored"
+      },
+      {
+       "player": 1,
+       "row": 2,
+       "col": 3,
+       "color": "yellow",
+       "points": 1,
+       "horizontal": 1,
+       "vertical": 1,
+       "kind": "tile_scored"
+      },
+      {
+       "player": 1,
+       "tiles": 1,
+       "points": -1,
+       "score_after": 0,
+       "kind": "penalty"
+      },
+      {
+       "round_num": 1,
+       "scores": [
+        1,
+        0
+       ],
+       "kind": "round_end"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "staging_color_lock",
+   "note": "a staging row accepts only its own color, up to capacity",
+   "initial_state": {
+    "displays": [
+     {
+      "blue": 4
+     },
+     {
+      "yellow": 4
+     },
+     {},
+     {},
+     {}
+    ],
+    "center": {},
+    "center_has_token": true,
+    "bag": {
+     "blue": 0,
+     "yellow": 0,
+     "red": 0,
+     "black": 0,
+     "white": 0
+    },
+    "discard": {
+     "blue": 0,
+     "yellow": 0,
+     "red": 0,
+     "black": 0,
+     "white": 0
+    },
+    "players": [
+     {
+      "staging_colors": [
+       null,
+       null,
+       null,
+       "blue",
+       null
+      ],
+      "staging_counts": [
+       0,
+       0,
+       0,
+       1,
+       0
+      ],
+      "grid": [
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ]
+      ],
+      "penalty_tiles": [],
+      "penalty_overflow": 0,
+      "score": 0,
+      "has_first_token": false
+     },
+     {
+      "staging_colors": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "staging_counts": [
+       0,
+       0,
+       0,
+       0,
+       0
+      ],
+      "grid": [
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ]
+      ],
+      "penalty_tiles": [],
+      "penalty_overflow": 0,
+      "score": 0,
+      "has_first_token": false
+     }
+    ],
+    "current": 0,
+    "first_player": 0,
+    "round_num": 1,
+    "phase": "drafting"
+   },
+   "steps": [
+    {
+     "action_id": 3,
+     "expected_state": {
+      "displays": [
+       {},
+       {
+        "yellow": 4
+       },
+       {},
+       {},
+       {}
+      ],
+      "center": {},
+      "center_has_token": true,
+      "bag": {
+       "blue": 0,
+       "yellow": 0,
+       "red": 0,
+       "black": 0,
+       "white": 0
+      },
+      "discard": {
+       "blue": 0,
+       "yellow": 0,
+       "red": 0,
+       "black": 0,
+       "white": 0
+      },
+      "players": [
+       {
+        "staging_colors": [
+         null,
+         null,
+         null,
+         "blue",
+         null
+        ],
+        "staging_counts": [
+         0,
+         0,
+         0,
+         4,
+         0
+        ],
+        "grid": [
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ]
+        ],
+        "penalty_tiles": [
+         "blue"
+        ],
+        "penalty_overflow": 0,
+        "score": 0,
+        "has_first_token": false
+       },
+       {
+        "staging_colors": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ],
+        "staging_counts": [
+         0,
+         0,
+         0,
+         0,
+         0
+        ],
+        "grid": [
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ]
+        ],
+        "penalty_tiles": [],
+        "penalty_overflow": 0,
+        "score": 0,
+        "has_first_token": false
+       }
+      ],
+      "current": 1,
+      "first_player": 0,
+      "round_num": 1,
+      "phase": "drafting"
+     },
+     "expected_events": [
+      {
+       "player": 0,
+       "source": 0,
+       "color": "blue",
+       "count": 4,
+       "dest": 3,
+       "placed": 3,
+       "overflow": 1,
+       "to_discard": 0,
+       "took_first_token": false,
+       "kind": "draft"
+      }
+     ]
+    },
+    {
+     "action_id": 40,
+     "expected_state": {
+      "displays": [
+       {},
+       {},
+       {},
+       {},
+       {}
+      ],
+      "center": {},
+      "center_has_token": true,
+      "bag": {
+       "blue": 0,
+       "yellow": 0,
+       "red": 0,
+       "black": 0,
+       "white": 0
+      },
+      "discard": {
+       "blue": 4,
+       "yellow": 0,
+       "red": 0,
+       "black": 0,
+       "white": 0
+      },
+      "players": [
+       {
+        "staging_colors": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ],
+        "staging_counts": [
+         0,
+         0,
+         0,
+         0,
+         0
+        ],
+        "grid": [
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          true,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ]
+        ],
+        "penalty_tiles": [],
+        "penalty_overflow": 0,
+        "score": 0,
+        "has_first_token": false
+       },
+       {
+        "staging_colors": [
+         null,
+         null,
+         null,
+         null,
+         "yellow"
+        ],
+        "staging_counts": [
+         0,
+         0,
+         0,
+         0,
+         4
+        ],
+        "grid": [
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ]
+        ],
+        "penalty_tiles": [],
+        "penalty_overflow": 0,
+        "score": 0,
+        "has_first_token": false
+       }
+      ],
+      "current": 0,
+      "first_player": 0,
+      "round_num": 1,
+      "phase": "drafting"
+     },
+     "expected_events": [
+      {
+       "player": 1,
+       "source": 1,
+       "color": "yellow",
+       "count": 4,
+       "dest": 4,
+       "placed": 4,
+       "overflow": 0,
+       "to_discard": 0,
+       "took_first_token": false,
+       "kind": "draft"
+      },
+      {
+       "player": 0,
+       "row": 3,
+       "col": 3,
+       "color": "blue",
+       "points": 1,
+       "horizontal": 1,
+       "vertical": 1,
+       "kind": "tile_scored"
+      },
+      {
+       "player": 0,
+       "tiles": 1,
+       "points": -1,
+       "score_after": 0,
+       "kind": "penalty"
+      },
+      {
+       "round_num": 1,
+       "scores": [
+        0,
+        0
+       ],
+       "kind": "round_end"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "penalty_overflow",
+   "note": "tiles past the end of a full penalty row go straight to the discard",
+   "initial_state": {
+    "displays": [
+     {
+      "blue": 4
+     },
+     {
+      "yellow": 4
+     },
+     {},
+     {},
+     {}
+    ],
+    "center": {},
+    "center_has_token": true,
+    "bag": {
+     "blue": 0,
+     "yellow": 0,
+     "red": 0,
+     "black": 0,
+     "white": 0
+    },
+    "discard": {
+     "blue": 0,
+     "yellow": 0,
+     "red": 0,
+     "black": 0,
+     "white": 0
+    },
+    "players": [
+     {
+      "staging_colors": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "staging_counts": [
+       0,
+       0,
+       0,
+       0,
+       0
+      ],
+      "grid": [
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ]
+      ],
+      "penalty_tiles": [
+       "yellow",
+       "yellow",
+       "yellow",
+       "yellow",
+       "yellow"
+      ],
+      "penalty_overflow": 0,
+      "score": 0,
+      "has_first_token": false
+     },
+     {
+      "staging_colors": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "staging_counts": [
+       0,
+       0,
+       0,
+       0,
+       0
+      ],
+      "grid": [
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ]
+      ],
+      "penalty_tiles": [],
+      "penalty_overflow": 0,
+      "score": 0,
+      "has_first_token": false
+     }
+    ],
+    "current": 0,
+    "first_player": 0,
+    "round_num": 1,
+    "phase": "drafting"
+   },
+   "steps": [
+    {
+     "action_id": 5,
+     "expected_state": {
+      "displays": [
+       {},
+       {
+        "yellow": 4
+       },
+       {},
+       {},
+       {}
+      ],
+      "center": {},
+      "center_has_token": true,
+      "bag": {
+       "blue": 0,
+       "yellow": 0,
+       "red": 0,
+       "black": 0,
+       "white": 0
+      },
+      "discard": {
+       "blue": 2,
+       "yellow": 0,
+       "red": 0,
+       "black": 0,
+       "white": 0
+      },
+      "players": [
+       {
+        "staging_colors": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ],
+        "staging_counts": [
+         0,
+         0,
+         0,
+         0,
+         0
+        ],
+        "grid": [
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ]
+        ],
+        "penalty_tiles": [
+         "yellow",
+         "yellow",
+         "yellow",
+         "yellow",
+         "yellow",
+         "blue",
+         "blue"
+        ],
+        "penalty_overflow": 2,
+        "score": 0,
+        "has_first_token": false
+       },
+       {
+        "staging_colors": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ],
+        "staging_counts": [
+         0,
+         0,
+         0,
+         0,
+         0
+        ],
+        "grid": [
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ]
+        ],
+        "penalty_tiles": [],
+        "penalty_overflow": 0,
+        "score": 0,
+        "has_first_token": false
+       }
+      ],
+      "current": 1,
+      "first_player": 0,
+      "round_num": 1,
+      "phase": "drafting"
+     },
+     "expected_events": [
+      {
+       "player": 0,
+       "source": 0,
+       "color": "blue",
+       "count": 4,
+       "dest": 5,
+       "placed": 0,
+       "overflow": 2,
+       "to_discard": 2,
+       "took_first_token": false,
+       "kind": "draft"
+      }
+     ]
+    },
+    {
+     "action_id": 41,
+     "expected_state": {
+      "displays": [
+       {},
+       {},
+       {},
+       {},
+       {}
+      ],
+      "center": {},
+      "center_has_token": true,
+      "bag": {
+       "blue": 0,
+       "yellow": 0,
+       "red": 0,
+       "black": 0,
+       "white": 0
+      },
+      "discard": {
+       "blue": 4,
+       "yellow": 9,
+       "red": 0,
+       "black": 0,
+       "white": 0
+      },
+      "players": [
+       {
+        "staging_colors": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ],
+        "staging_counts": [
+         0,
+         0,
+         0,
+         0,
+         0
+        ],
+        "grid": [
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ]
+        ],
+        "penalty_tiles": [],
+        "penalty_overflow": 0,
+        "score": 0,
+        "has_first_token": false
+       },
+       {
+        "staging_colors": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ],
+        "staging_counts": [
+         0,
+         0,
+         0,
+         0,
+         0
+        ],
+        "grid": [
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ]
+        ],
+        "penalty_tiles": [],
+        "penalty_overflow": 0,
+        "score": 0,
+        "has_first_token": false
+       }
+      ],
+      "current": 0,
+      "first_player": 0,
+      "round_num": 1,
+      "phase": "drafting"
+     },
+     "expected_events": [
+      {
+       "player": 1,
+       "source": 1,
+       "color": "yellow",
+       "count": 4,
+       "dest": 5,
+       "placed": 0,
+       "overflow": 4,
+       "to_discard": 0,
+       "took_first_token": false,
+       "kind": "draft"
+      },
+      {
+       "player": 0,
+       "tiles": 7,
+       "points": -14,
+       "score_after": 0,
+       "kind": "penalty"
+      },
+      {
+       "player": 1,
+       "tiles": 4,
+       "points": -6,
+       "score_after": 0,
+       "kind": "penalty"
+      },
+      {
+       "round_num": 1,
+       "scores": [
+        0,
+        0
+       ],
+       "kind": "round_end"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "row_overflow_into_penalty",
+   "note": "row 0 holds one tile; the remaining three fall to the penalty row",
+   "initial_state": {
+    "displays": [
+     {
+      "blue": 4
+     },
+     {
+      "yellow": 4
+     },
+     {},
+     {},
+     {}
+    ],
+    "center": {},
+    "center_has_token": true,
+    "bag": {
+     "blue": 0,
+     "yellow": 0,
+     "red": 0,
+     "black": 0,
+     "white": 0
+    },
+    "discard": {
+     "blue": 0,
+     "yellow": 0,
+     "red": 0,
+     "black": 0,
+     "white": 0
+    },
+    "players": [
+     {
+      "staging_colors": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "staging_counts": [
+       0,
+       0,
+       0,
+       0,
+       0
+      ],
+      "grid": [
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ]
+      ],
+      "penalty_tiles": [],
+      "penalty_overflow": 0,
+      "score": 0,
+      "has_first_token": false
+     },
+     {
+      "staging_colors": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "staging_counts": [
+       0,
+       0,
+       0,
+       0,
+       0
+      ],
+      "grid": [
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ]
+      ],
+      "penalty_tiles": [],
+      "penalty_overflow": 0,
+      "score": 0,
+      "has_first_token": false
+     }
+    ],
+    "current": 0,
+    "first_player": 0,
+    "round_num": 1,
+    "phase": "drafting"
+   },
+   "steps": [
+    {
+     "action_id": 0,
+     "expected_state": {
+      "displays": [
+       {},
+       {
+        "yellow": 4
+       },
+       {},
+       {},
+       {}
+      ],
+      "center": {},
+      "center_has_token": true,
+      "bag": {
+       "blue": 0,
+       "yellow": 0,
+       "red": 0,
+       "black": 0,
+       "white": 0
+      },
+      "discard": {
+       "blue": 0,
+       "yellow": 0,
+       "red": 0,
+       "black": 0,
+       "white": 0
+      },
+      "players": [
+       {
+        "staging_colors": [
+         "blue",
+         null,
+         null,
+         null,
+         null
+        ],
+        "staging_counts": [
+         1,
+         0,
+         0,
+         0,
+         0
+        ],
+        "grid": [
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ]
+        ],
+        "penalty_tiles": [
+         "blue",
+         "blue",
+         "blue"
+        ],
+        "penalty_overflow": 0,
+        "score": 0,
+        "has_first_token": false
+       },
+       {
+        "staging_colors": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ],
+        "staging_counts": [
+         0,
+         0,
+         0,
+         0,
+         0
+        ],
+        "grid": [
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ]
+        ],
+        "penalty_tiles": [],
+        "penalty_overflow": 0,
+        "score": 0,
+        "has_first_token": false
+       }
+      ],
+      "current": 1,
+      "first_player": 0,
+      "round_num": 1,
+      "phase": "drafting"
+     },
+     "expected_events": [
+      {
+       "player": 0,
+       "source": 0,
+       "color": "blue",
+       "count": 4,
+       "dest": 0,
+       "placed": 1,
+       "overflow": 3,
+       "to_discard": 0,
+       "took_first_token": false,
+       "kind": "draft"
+      }
+     ]
+    },
+    {
+     "action_id": 36,
+     "expected_state": {
+      "displays": [
+       {},
+       {},
+       {},
+       {},
+       {}
+      ],
+      "center": {},
+      "center_has_token": true,
+      "bag": {
+       "blue": 0,
+       "yellow": 0,
+       "red": 0,
+       "black": 0,
+       "white": 0
+      },
+      "discard": {
+       "blue": 3,
+       "yellow": 3,
+       "red": 0,
+       "black": 0,
+       "white": 0
+      },
+      "players": [
+       {
+        "staging_colors": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ],
+        "staging_counts": [
+         0,
+         0,
+         0,
+         0,
+         0
+        ],
+        "grid": [
+         [
+          true,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ]
+        ],
+        "penalty_tiles": [],
+        "penalty_overflow": 0,
+        "score": 0,
+        "has_first_token": false
+       },
+       {
+        "staging_colors": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ],
+        "staging_counts": [
+         0,
+         0,
+         0,
+         0,
+         0
+        ],
+        "grid": [
+         [
+          false,
+          true,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ]
+        ],
+        "penalty_tiles": [],
+        "penalty_overflow": 0,
+        "score": 0,
+        "has_first_token": false
+       }
+      ],
+      "current": 0,
+      "first_player": 0,
+      "round_num": 1,
+      "phase": "drafting"
+     },
+     "expected_events": [
+      {
+       "player": 1,
+       "source": 1,
+       "color": "yellow",
+       "count": 4,
+       "dest": 0,
+       "placed": 1,
+       "overflow": 3,
+       "to_discard": 0,
+       "took_first_token": false,
+       "kind": "draft"
+      },
+      {
+       "player": 0,
+       "row": 0,
+       "col": 0,
+       "color": "blue",
+       "points": 1,
+       "horizontal": 1,
+       "vertical": 1,
+       "kind": "tile_scored"
+      },
+      {
+       "player": 0,
+       "tiles": 3,
+       "points": -4,
+       "score_after": 0,
+       "kind": "penalty"
+      },
+      {
+       "player": 1,
+       "row": 0,
+       "col": 1,
+       "color": "yellow",
+       "points": 1,
+       "horizontal": 1,
+       "vertical": 1,
+       "kind": "tile_scored"
+      },
+      {
+       "player": 1,
+       "tiles": 3,
+       "points": -4,
+       "score_after": 0,
+       "kind": "penalty"
+      },
+      {
+       "round_num": 1,
+       "scores": [
+        0,
+        0
+       ],
+       "kind": "round_end"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "settle_and_score",
+   "note": "completed staging rows move to the grid and score on settle",
+   "initial_state": {
+    "displays": [
+     {
+      "blue": 1
+     },
+     {
+      "yellow": 1
+     },
+     {},
+     {},
+     {}
+    ],
+    "center": {},
+    "center_has_token": true,
+    "bag": {
+     "blue": 0,
+     "yellow": 0,
+     "red": 0,
+     "black": 0,
+     "white": 0
+    },
+    "discard": {
+     "blue": 0,
+     "yellow": 0,
+     "red": 0,
+     "black": 0,
+     "white": 0
+    },
+    "players": [
+     {
+      "staging_colors": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "staging_counts": [
+       0,
+       0,
+       0,
+       0,
+       0
+      ],
+      "grid": [
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ]
+      ],
+      "penalty_tiles": [],
+      "penalty_overflow": 0,
+      "score": 0,
+      "has_first_token": false
+     },
+     {
+      "staging_colors": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "staging_counts": [
+       0,
+       0,
+       0,
+       0,
+       0
+      ],
+      "grid": [
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ]
+      ],
+      "penalty_tiles": [],
+      "penalty_overflow": 0,
+      "score": 0,
+      "has_first_token": false
+     }
+    ],
+    "current": 0,
+    "first_player": 0,
+    "round_num": 1,
+    "phase": "drafting"
+   },
+   "steps": [
+    {
+     "action_id": 0,
+     "expected_state": {
+      "displays": [
+       {},
+       {
+        "yellow": 1
+       },
+       {},
+       {},
+       {}
+      ],
+      "center": {},
+      "center_has_token": true,
+      "bag": {
+       "blue": 0,
+       "yellow": 0,
+       "red": 0,
+       "black": 0,
+       "white": 0
+      },
+      "discard": {
+       "blue": 0,
+       "yellow": 0,
+       "red": 0,
+       "black": 0,
+       "white": 0
+      },
+      "players": [
+       {
+        "staging_colors": [
+         "blue",
+         null,
+         null,
+         null,
+         null
+        ],
+        "staging_counts": [
+         1,
+         0,
+         0,
+         0,
+         0
+        ],
+        "grid": [
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ]
+        ],
+        "penalty_tiles": [],
+        "penalty_overflow": 0,
+        "score": 0,
+        "has_first_token": false
+       },
+       {
+        "staging_colors": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ],
+        "staging_counts": [
+         0,
+         0,
+         0,
+         0,
+         0
+        ],
+        "grid": [
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ]
+        ],
+        "penalty_tiles": [],
+        "penalty_overflow": 0,
+        "score": 0,
+        "has_first_token": false
+       }
+      ],
+      "current": 1,
+      "first_player": 0,
+      "round_num": 1,
+      "phase": "drafting"
+     },
+     "expected_events": [
+      {
+       "player": 0,
+       "source": 0,
+       "color": "blue",
+       "count": 1,
+       "dest": 0,
+       "placed": 1,
+       "overflow": 0,
+       "to_discard": 0,
+       "took_first_token": false,
+       "kind": "draft"
+      }
+     ]
+    },
+    {
+     "action_id": 36,
+     "expected_state": {
+      "displays": [
+       {},
+       {},
+       {},
+       {},
+       {}
+      ],
+      "center": {},
+      "center_has_token": true,
+      "bag": {
+       "blue": 0,
+       "yellow": 0,
+       "red": 0,
+       "black": 0,
+       "white": 0
+      },
+      "discard": {
+       "blue": 0,
+       "yellow": 0,
+       "red": 0,
+       "black": 0,
+       "white": 0
+      },
+      "players": [
+       {
+        "staging_colors": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ],
+        "staging_counts": [
+         0,
+         0,
+         0,
+         0,
+         0
+        ],
+        "grid": [
+         [
+          true,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ]
+        ],
+        "penalty_tiles": [],
+        "penalty_overflow": 0,
+        "score": 1,
+        "has_first_token": false
+       },
+       {
+        "staging_colors": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ],
+        "staging_counts": [
+         0,
+         0,
+         0,
+         0,
+         0
+        ],
+        "grid": [
+         [
+          false,
+          true,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ]
+        ],
+        "penalty_tiles": [],
+        "penalty_overflow": 0,
+        "score": 1,
+        "has_first_token": false
+       }
+      ],
+      "current": 0,
+      "first_player": 0,
+      "round_num": 1,
+      "phase": "drafting"
+     },
+     "expected_events": [
+      {
+       "player": 1,
+       "source": 1,
+       "color": "yellow",
+       "count": 1,
+       "dest": 0,
+       "placed": 1,
+       "overflow": 0,
+       "to_discard": 0,
+       "took_first_token": false,
+       "kind": "draft"
+      },
+      {
+       "player": 0,
+       "row": 0,
+       "col": 0,
+       "color": "blue",
+       "points": 1,
+       "horizontal": 1,
+       "vertical": 1,
+       "kind": "tile_scored"
+      },
+      {
+       "player": 1,
+       "row": 0,
+       "col": 1,
+       "color": "yellow",
+       "points": 1,
+       "horizontal": 1,
+       "vertical": 1,
+       "kind": "tile_scored"
+      },
+      {
+       "round_num": 1,
+       "scores": [
+        1,
+        1
+       ],
+       "kind": "round_end"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "adjacency_scoring",
+   "note": "a tile adjacent to an existing run scores the whole run",
+   "initial_state": {
+    "displays": [
+     {
+      "blue": 1
+     },
+     {},
+     {},
+     {},
+     {}
+    ],
+    "center": {},
+    "center_has_token": true,
+    "bag": {
+     "blue": 0,
+     "yellow": 0,
+     "red": 0,
+     "black": 0,
+     "white": 0
+    },
+    "discard": {
+     "blue": 0,
+     "yellow": 0,
+     "red": 0,
+     "black": 0,
+     "white": 0
+    },
+    "players": [
+     {
+      "staging_colors": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "staging_counts": [
+       0,
+       0,
+       0,
+       0,
+       0
+      ],
+      "grid": [
+       [
+        false,
+        true,
+        true,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ]
+      ],
+      "penalty_tiles": [],
+      "penalty_overflow": 0,
+      "score": 0,
+      "has_first_token": false
+     },
+     {
+      "staging_colors": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "staging_counts": [
+       0,
+       0,
+       0,
+       0,
+       0
+      ],
+      "grid": [
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ]
+      ],
+      "penalty_tiles": [],
+      "penalty_overflow": 0,
+      "score": 0,
+      "has_first_token": false
+     }
+    ],
+    "current": 0,
+    "first_player": 0,
+    "round_num": 1,
+    "phase": "drafting"
+   },
+   "steps": [
+    {
+     "action_id": 0,
+     "expected_state": {
+      "displays": [
+       {},
+       {},
+       {},
+       {},
+       {}
+      ],
+      "center": {},
+      "center_has_token": true,
+      "bag": {
+       "blue": 0,
+       "yellow": 0,
+       "red": 0,
+       "black": 0,
+       "white": 0
+      },
+      "discard": {
+       "blue": 0,
+       "yellow": 0,
+       "red": 0,
+       "black": 0,
+       "white": 0
+      },
+      "players": [
+       {
+        "staging_colors": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ],
+        "staging_counts": [
+         0,
+         0,
+         0,
+         0,
+         0
+        ],
+        "grid": [
+         [
+          true,
+          true,
+          true,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ]
+        ],
+        "penalty_tiles": [],
+        "penalty_overflow": 0,
+        "score": 3,
+        "has_first_token": false
+       },
+       {
+        "staging_colors": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ],
+        "staging_counts": [
+         0,
+         0,
+         0,
+         0,
+         0
+        ],
+        "grid": [
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ]
+        ],
+        "penalty_tiles": [],
+        "penalty_overflow": 0,
+        "score": 0,
+        "has_first_token": false
+       }
+      ],
+      "current": 1,
+      "first_player": 0,
+      "round_num": 1,
+      "phase": "drafting"
+     },
+     "expected_events": [
+      {
+       "player": 0,
+       "source": 0,
+       "color": "blue",
+       "count": 1,
+       "dest": 0,
+       "placed": 1,
+       "overflow": 0,
+       "to_discard": 0,
+       "took_first_token": false,
+       "kind": "draft"
+      },
+      {
+       "player": 0,
+       "row": 0,
+       "col": 0,
+       "color": "blue",
+       "points": 3,
+       "horizontal": 3,
+       "vertical": 1,
+       "kind": "tile_scored"
+      },
+      {
+       "round_num": 1,
+       "scores": [
+        3,
+        0
+       ],
+       "kind": "round_end"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "game_end_bonuses",
+   "note": "a complete grid row ends the game and triggers row/column/color bonuses",
+   "initial_state": {
+    "displays": [
+     {
+      "blue": 1
+     },
+     {},
+     {},
+     {},
+     {}
+    ],
+    "center": {},
+    "center_has_token": true,
+    "bag": {
+     "blue": 0,
+     "yellow": 0,
+     "red": 0,
+     "black": 0,
+     "white": 0
+    },
+    "discard": {
+     "blue": 0,
+     "yellow": 0,
+     "red": 0,
+     "black": 0,
+     "white": 0
+    },
+    "players": [
+     {
+      "staging_colors": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "staging_counts": [
+       0,
+       0,
+       0,
+       0,
+       0
+      ],
+      "grid": [
+       [
+        false,
+        true,
+        true,
+        true,
+        true
+       ],
+       [
+        true,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        true,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        true,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        true,
+        false,
+        false,
+        false,
+        false
+       ]
+      ],
+      "penalty_tiles": [],
+      "penalty_overflow": 0,
+      "score": 0,
+      "has_first_token": false
+     },
+     {
+      "staging_colors": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "staging_counts": [
+       0,
+       0,
+       0,
+       0,
+       0
+      ],
+      "grid": [
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ]
+      ],
+      "penalty_tiles": [],
+      "penalty_overflow": 0,
+      "score": 0,
+      "has_first_token": false
+     }
+    ],
+    "current": 0,
+    "first_player": 0,
+    "round_num": 1,
+    "phase": "drafting"
+   },
+   "steps": [
+    {
+     "action_id": 0,
+     "expected_state": {
+      "displays": [
+       {},
+       {},
+       {},
+       {},
+       {}
+      ],
+      "center": {},
+      "center_has_token": true,
+      "bag": {
+       "blue": 0,
+       "yellow": 0,
+       "red": 0,
+       "black": 0,
+       "white": 0
+      },
+      "discard": {
+       "blue": 0,
+       "yellow": 0,
+       "red": 0,
+       "black": 0,
+       "white": 0
+      },
+      "players": [
+       {
+        "staging_colors": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ],
+        "staging_counts": [
+         0,
+         0,
+         0,
+         0,
+         0
+        ],
+        "grid": [
+         [
+          true,
+          true,
+          true,
+          true,
+          true
+         ],
+         [
+          true,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          true,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          true,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          true,
+          false,
+          false,
+          false,
+          false
+         ]
+        ],
+        "penalty_tiles": [],
+        "penalty_overflow": 0,
+        "score": 19,
+        "has_first_token": false
+       },
+       {
+        "staging_colors": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ],
+        "staging_counts": [
+         0,
+         0,
+         0,
+         0,
+         0
+        ],
+        "grid": [
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ]
+        ],
+        "penalty_tiles": [],
+        "penalty_overflow": 0,
+        "score": 0,
+        "has_first_token": false
+       }
+      ],
+      "current": 1,
+      "first_player": 0,
+      "round_num": 1,
+      "phase": "game_over"
+     },
+     "expected_events": [
+      {
+       "player": 0,
+       "source": 0,
+       "color": "blue",
+       "count": 1,
+       "dest": 0,
+       "placed": 1,
+       "overflow": 0,
+       "to_discard": 0,
+       "took_first_token": false,
+       "kind": "draft"
+      },
+      {
+       "player": 0,
+       "row": 0,
+       "col": 0,
+       "color": "blue",
+       "points": 10,
+       "horizontal": 5,
+       "vertical": 5,
+       "kind": "tile_scored"
+      },
+      {
+       "round_num": 1,
+       "scores": [
+        10,
+        0
+       ],
+       "kind": "round_end"
+      },
+      {
+       "player": 0,
+       "rows": 1,
+       "columns": 1,
+       "colors": 0,
+       "points": 9,
+       "kind": "bonus"
+      },
+      {
+       "player": 1,
+       "rows": 0,
+       "columns": 0,
+       "colors": 0,
+       "points": 0,
+       "kind": "bonus"
+      },
+      {
+       "scores": [
+        19,
+        0
+       ],
+       "winner": 0,
+       "draw": false,
+       "kind": "game_end"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "tie_break_complete_rows",
+   "note": "winner decision when scores are close and row counts differ",
+   "initial_state": {
+    "displays": [
+     {
+      "blue": 1
+     },
+     {},
+     {},
+     {},
+     {}
+    ],
+    "center": {},
+    "center_has_token": true,
+    "bag": {
+     "blue": 0,
+     "yellow": 0,
+     "red": 0,
+     "black": 0,
+     "white": 0
+    },
+    "discard": {
+     "blue": 0,
+     "yellow": 0,
+     "red": 0,
+     "black": 0,
+     "white": 0
+    },
+    "players": [
+     {
+      "staging_colors": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "staging_counts": [
+       0,
+       0,
+       0,
+       0,
+       0
+      ],
+      "grid": [
+       [
+        false,
+        true,
+        true,
+        true,
+        true
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ]
+      ],
+      "penalty_tiles": [],
+      "penalty_overflow": 0,
+      "score": 10,
+      "has_first_token": false
+     },
+     {
+      "staging_colors": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "staging_counts": [
+       0,
+       0,
+       0,
+       0,
+       0
+      ],
+      "grid": [
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ]
+      ],
+      "penalty_tiles": [],
+      "penalty_overflow": 0,
+      "score": 11,
+      "has_first_token": false
+     }
+    ],
+    "current": 0,
+    "first_player": 0,
+    "round_num": 1,
+    "phase": "drafting"
+   },
+   "steps": [
+    {
+     "action_id": 0,
+     "expected_state": {
+      "displays": [
+       {},
+       {},
+       {},
+       {},
+       {}
+      ],
+      "center": {},
+      "center_has_token": true,
+      "bag": {
+       "blue": 0,
+       "yellow": 0,
+       "red": 0,
+       "black": 0,
+       "white": 0
+      },
+      "discard": {
+       "blue": 0,
+       "yellow": 0,
+       "red": 0,
+       "black": 0,
+       "white": 0
+      },
+      "players": [
+       {
+        "staging_colors": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ],
+        "staging_counts": [
+         0,
+         0,
+         0,
+         0,
+         0
+        ],
+        "grid": [
+         [
+          true,
+          true,
+          true,
+          true,
+          true
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ]
+        ],
+        "penalty_tiles": [],
+        "penalty_overflow": 0,
+        "score": 17,
+        "has_first_token": false
+       },
+       {
+        "staging_colors": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ],
+        "staging_counts": [
+         0,
+         0,
+         0,
+         0,
+         0
+        ],
+        "grid": [
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ]
+        ],
+        "penalty_tiles": [],
+        "penalty_overflow": 0,
+        "score": 11,
+        "has_first_token": false
+       }
+      ],
+      "current": 1,
+      "first_player": 0,
+      "round_num": 1,
+      "phase": "game_over"
+     },
+     "expected_events": [
+      {
+       "player": 0,
+       "source": 0,
+       "color": "blue",
+       "count": 1,
+       "dest": 0,
+       "placed": 1,
+       "overflow": 0,
+       "to_discard": 0,
+       "took_first_token": false,
+       "kind": "draft"
+      },
+      {
+       "player": 0,
+       "row": 0,
+       "col": 0,
+       "color": "blue",
+       "points": 5,
+       "horizontal": 5,
+       "vertical": 1,
+       "kind": "tile_scored"
+      },
+      {
+       "round_num": 1,
+       "scores": [
+        15,
+        11
+       ],
+       "kind": "round_end"
+      },
+      {
+       "player": 0,
+       "rows": 1,
+       "columns": 0,
+       "colors": 0,
+       "points": 2,
+       "kind": "bonus"
+      },
+      {
+       "player": 1,
+       "rows": 0,
+       "columns": 0,
+       "colors": 0,
+       "points": 0,
+       "kind": "bonus"
+      },
+      {
+       "scores": [
+        17,
+        11
+       ],
+       "winner": 0,
+       "draw": false,
+       "kind": "game_end"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "discard_accounting",
+   "note": "settling a completed row returns capacity-1 tiles to the discard",
+   "initial_state": {
+    "displays": [
+     {
+      "blue": 3
+     },
+     {
+      "yellow": 3
+     },
+     {},
+     {},
+     {}
+    ],
+    "center": {},
+    "center_has_token": true,
+    "bag": {
+     "blue": 0,
+     "yellow": 0,
+     "red": 0,
+     "black": 0,
+     "white": 0
+    },
+    "discard": {
+     "blue": 3,
+     "yellow": 3,
+     "red": 3,
+     "black": 3,
+     "white": 3
+    },
+    "players": [
+     {
+      "staging_colors": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "staging_counts": [
+       0,
+       0,
+       0,
+       0,
+       0
+      ],
+      "grid": [
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ]
+      ],
+      "penalty_tiles": [],
+      "penalty_overflow": 0,
+      "score": 0,
+      "has_first_token": false
+     },
+     {
+      "staging_colors": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "staging_counts": [
+       0,
+       0,
+       0,
+       0,
+       0
+      ],
+      "grid": [
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ]
+      ],
+      "penalty_tiles": [],
+      "penalty_overflow": 0,
+      "score": 0,
+      "has_first_token": false
+     }
+    ],
+    "current": 0,
+    "first_player": 0,
+    "round_num": 1,
+    "phase": "drafting"
+   },
+   "steps": [
+    {
+     "action_id": 2,
+     "expected_state": {
+      "displays": [
+       {},
+       {
+        "yellow": 3
+       },
+       {},
+       {},
+       {}
+      ],
+      "center": {},
+      "center_has_token": true,
+      "bag": {
+       "blue": 0,
+       "yellow": 0,
+       "red": 0,
+       "black": 0,
+       "white": 0
+      },
+      "discard": {
+       "blue": 3,
+       "yellow": 3,
+       "red": 3,
+       "black": 3,
+       "white": 3
+      },
+      "players": [
+       {
+        "staging_colors": [
+         null,
+         null,
+         "blue",
+         null,
+         null
+        ],
+        "staging_counts": [
+         0,
+         0,
+         3,
+         0,
+         0
+        ],
+        "grid": [
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ]
+        ],
+        "penalty_tiles": [],
+        "penalty_overflow": 0,
+        "score": 0,
+        "has_first_token": false
+       },
+       {
+        "staging_colors": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ],
+        "staging_counts": [
+         0,
+         0,
+         0,
+         0,
+         0
+        ],
+        "grid": [
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ]
+        ],
+        "penalty_tiles": [],
+        "penalty_overflow": 0,
+        "score": 0,
+        "has_first_token": false
+       }
+      ],
+      "current": 1,
+      "first_player": 0,
+      "round_num": 1,
+      "phase": "drafting"
+     },
+     "expected_events": [
+      {
+       "player": 0,
+       "source": 0,
+       "color": "blue",
+       "count": 3,
+       "dest": 2,
+       "placed": 3,
+       "overflow": 0,
+       "to_discard": 0,
+       "took_first_token": false,
+       "kind": "draft"
+      }
+     ]
+    },
+    {
+     "action_id": 38,
+     "expected_state": {
+      "displays": [
+       {},
+       {},
+       {},
+       {},
+       {}
+      ],
+      "center": {},
+      "center_has_token": true,
+      "bag": {
+       "blue": 0,
+       "yellow": 0,
+       "red": 0,
+       "black": 0,
+       "white": 0
+      },
+      "discard": {
+       "blue": 5,
+       "yellow": 5,
+       "red": 3,
+       "black": 3,
+       "white": 3
+      },
+      "players": [
+       {
+        "staging_colors": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ],
+        "staging_counts": [
+         0,
+         0,
+         0,
+         0,
+         0
+        ],
+        "grid": [
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          true,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ]
+        ],
+        "penalty_tiles": [],
+        "penalty_overflow": 0,
+        "score": 1,
+        "has_first_token": false
+       },
+       {
+        "staging_colors": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ],
+        "staging_counts": [
+         0,
+         0,
+         0,
+         0,
+         0
+        ],
+        "grid": [
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          true,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ]
+        ],
+        "penalty_tiles": [],
+        "penalty_overflow": 0,
+        "score": 1,
+        "has_first_token": false
+       }
+      ],
+      "current": 0,
+      "first_player": 0,
+      "round_num": 1,
+      "phase": "drafting"
+     },
+     "expected_events": [
+      {
+       "player": 1,
+       "source": 1,
+       "color": "yellow",
+       "count": 3,
+       "dest": 2,
+       "placed": 3,
+       "overflow": 0,
+       "to_discard": 0,
+       "took_first_token": false,
+       "kind": "draft"
+      },
+      {
+       "player": 0,
+       "row": 2,
+       "col": 2,
+       "color": "blue",
+       "points": 1,
+       "horizontal": 1,
+       "vertical": 1,
+       "kind": "tile_scored"
+      },
+      {
+       "player": 1,
+       "row": 2,
+       "col": 3,
+       "color": "yellow",
+       "points": 1,
+       "horizontal": 1,
+       "vertical": 1,
+       "kind": "tile_scored"
+      },
+      {
+       "round_num": 1,
+       "scores": [
+        1,
+        1
+       ],
+       "kind": "round_end"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "first_token_on_full_penalty",
+   "note": "the token sets has_first_token even when the penalty row is full",
+   "initial_state": {
+    "displays": [
+     {
+      "blue": 2
+     },
+     {},
+     {},
+     {},
+     {}
+    ],
+    "center": {
+     "yellow": 2
+    },
+    "center_has_token": true,
+    "bag": {
+     "blue": 0,
+     "yellow": 0,
+     "red": 0,
+     "black": 0,
+     "white": 0
+    },
+    "discard": {
+     "blue": 0,
+     "yellow": 0,
+     "red": 0,
+     "black": 0,
+     "white": 0
+    },
+    "players": [
+     {
+      "staging_colors": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "staging_counts": [
+       0,
+       0,
+       0,
+       0,
+       0
+      ],
+      "grid": [
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ]
+      ],
+      "penalty_tiles": [
+       "red",
+       "red",
+       "red",
+       "red",
+       "red",
+       "red",
+       "red"
+      ],
+      "penalty_overflow": 0,
+      "score": 0,
+      "has_first_token": false
+     },
+     {
+      "staging_colors": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "staging_counts": [
+       0,
+       0,
+       0,
+       0,
+       0
+      ],
+      "grid": [
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ]
+      ],
+      "penalty_tiles": [],
+      "penalty_overflow": 0,
+      "score": 0,
+      "has_first_token": false
+     }
+    ],
+    "current": 0,
+    "first_player": 0,
+    "round_num": 1,
+    "phase": "drafting"
+   },
+   "steps": [
+    {
+     "action_id": 157,
+     "expected_state": {
+      "displays": [
+       {
+        "blue": 2
+       },
+       {},
+       {},
+       {},
+       {}
+      ],
+      "center": {},
+      "center_has_token": false,
+      "bag": {
+       "blue": 0,
+       "yellow": 0,
+       "red": 0,
+       "black": 0,
+       "white": 0
+      },
+      "discard": {
+       "blue": 0,
+       "yellow": 0,
+       "red": 0,
+       "black": 0,
+       "white": 0
+      },
+      "players": [
+       {
+        "staging_colors": [
+         null,
+         "yellow",
+         null,
+         null,
+         null
+        ],
+        "staging_counts": [
+         0,
+         2,
+         0,
+         0,
+         0
+        ],
+        "grid": [
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ]
+        ],
+        "penalty_tiles": [
+         "red",
+         "red",
+         "red",
+         "red",
+         "red",
+         "red",
+         "red"
+        ],
+        "penalty_overflow": 0,
+        "score": 0,
+        "has_first_token": true
+       },
+       {
+        "staging_colors": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ],
+        "staging_counts": [
+         0,
+         0,
+         0,
+         0,
+         0
+        ],
+        "grid": [
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ]
+        ],
+        "penalty_tiles": [],
+        "penalty_overflow": 0,
+        "score": 0,
+        "has_first_token": false
+       }
+      ],
+      "current": 1,
+      "first_player": 0,
+      "round_num": 1,
+      "phase": "drafting"
+     },
+     "expected_events": [
+      {
+       "player": 0,
+       "source": 5,
+       "color": "yellow",
+       "count": 2,
+       "dest": 1,
+       "placed": 2,
+       "overflow": 0,
+       "to_discard": 0,
+       "took_first_token": true,
+       "kind": "draft"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "name": "penalty_dest_from_center",
+   "note": "dumping a group straight onto the penalty row",
+   "initial_state": {
+    "displays": [
+     {
+      "blue": 1
+     },
+     {},
+     {},
+     {},
+     {}
+    ],
+    "center": {
+     "red": 5
+    },
+    "center_has_token": true,
+    "bag": {
+     "blue": 0,
+     "yellow": 0,
+     "red": 0,
+     "black": 0,
+     "white": 0
+    },
+    "discard": {
+     "blue": 0,
+     "yellow": 0,
+     "red": 0,
+     "black": 0,
+     "white": 0
+    },
+    "players": [
+     {
+      "staging_colors": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "staging_counts": [
+       0,
+       0,
+       0,
+       0,
+       0
+      ],
+      "grid": [
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ]
+      ],
+      "penalty_tiles": [],
+      "penalty_overflow": 0,
+      "score": 0,
+      "has_first_token": false
+     },
+     {
+      "staging_colors": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "staging_counts": [
+       0,
+       0,
+       0,
+       0,
+       0
+      ],
+      "grid": [
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ],
+       [
+        false,
+        false,
+        false,
+        false,
+        false
+       ]
+      ],
+      "penalty_tiles": [],
+      "penalty_overflow": 0,
+      "score": 0,
+      "has_first_token": false
+     }
+    ],
+    "current": 0,
+    "first_player": 0,
+    "round_num": 1,
+    "phase": "drafting"
+   },
+   "steps": [
+    {
+     "action_id": 167,
+     "expected_state": {
+      "displays": [
+       {
+        "blue": 1
+       },
+       {},
+       {},
+       {},
+       {}
+      ],
+      "center": {},
+      "center_has_token": false,
+      "bag": {
+       "blue": 0,
+       "yellow": 0,
+       "red": 0,
+       "black": 0,
+       "white": 0
+      },
+      "discard": {
+       "blue": 0,
+       "yellow": 0,
+       "red": 0,
+       "black": 0,
+       "white": 0
+      },
+      "players": [
+       {
+        "staging_colors": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ],
+        "staging_counts": [
+         0,
+         0,
+         0,
+         0,
+         0
+        ],
+        "grid": [
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ]
+        ],
+        "penalty_tiles": [
+         "first_token",
+         "red",
+         "red",
+         "red",
+         "red",
+         "red"
+        ],
+        "penalty_overflow": 0,
+        "score": 0,
+        "has_first_token": true
+       },
+       {
+        "staging_colors": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ],
+        "staging_counts": [
+         0,
+         0,
+         0,
+         0,
+         0
+        ],
+        "grid": [
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ]
+        ],
+        "penalty_tiles": [],
+        "penalty_overflow": 0,
+        "score": 0,
+        "has_first_token": false
+       }
+      ],
+      "current": 1,
+      "first_player": 0,
+      "round_num": 1,
+      "phase": "drafting"
+     },
+     "expected_events": [
+      {
+       "player": 0,
+       "source": 5,
+       "color": "red",
+       "count": 5,
+       "dest": 5,
+       "placed": 0,
+       "overflow": 5,
+       "to_discard": 0,
+       "took_first_token": true,
+       "kind": "draft"
+      }
+     ]
+    },
+    {
+     "action_id": 5,
+     "expected_state": {
+      "displays": [
+       {},
+       {},
+       {},
+       {},
+       {}
+      ],
+      "center": {},
+      "center_has_token": false,
+      "bag": {
+       "blue": 0,
+       "yellow": 0,
+       "red": 0,
+       "black": 0,
+       "white": 0
+      },
+      "discard": {
+       "blue": 1,
+       "yellow": 0,
+       "red": 5,
+       "black": 0,
+       "white": 0
+      },
+      "players": [
+       {
+        "staging_colors": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ],
+        "staging_counts": [
+         0,
+         0,
+         0,
+         0,
+         0
+        ],
+        "grid": [
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ]
+        ],
+        "penalty_tiles": [],
+        "penalty_overflow": 0,
+        "score": 0,
+        "has_first_token": true
+       },
+       {
+        "staging_colors": [
+         null,
+         null,
+         null,
+         null,
+         null
+        ],
+        "staging_counts": [
+         0,
+         0,
+         0,
+         0,
+         0
+        ],
+        "grid": [
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ],
+         [
+          false,
+          false,
+          false,
+          false,
+          false
+         ]
+        ],
+        "penalty_tiles": [],
+        "penalty_overflow": 0,
+        "score": 0,
+        "has_first_token": false
+       }
+      ],
+      "current": 0,
+      "first_player": 0,
+      "round_num": 1,
+      "phase": "drafting"
+     },
+     "expected_events": [
+      {
+       "player": 1,
+       "source": 0,
+       "color": "blue",
+       "count": 1,
+       "dest": 5,
+       "placed": 0,
+       "overflow": 1,
+       "to_discard": 0,
+       "took_first_token": false,
+       "kind": "draft"
+      },
+      {
+       "player": 0,
+       "tiles": 6,
+       "points": -11,
+       "score_after": 0,
+       "kind": "penalty"
+      },
+      {
+       "player": 1,
+       "tiles": 1,
+       "points": -1,
+       "score_after": 0,
+       "kind": "penalty"
+      },
+      {
+       "round_num": 1,
+       "scores": [
+        0,
+        0
+       ],
+       "kind": "round_end"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
