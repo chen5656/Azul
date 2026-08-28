@@ -19,16 +19,24 @@ export function availableLevels(): readonly AgentLevel[] {
   return LEVELS;
 }
 
-export function makeAgent(level: AgentLevel, seed?: number): Agent {
+/**
+ * `timeBudget` (seconds) applies to the searching levels only. It defaults to
+ * the Daily's 450ms; Practice may lower it, the Daily never does (AC-012).
+ */
+export function makeAgent(
+  level: AgentLevel,
+  seed?: number,
+  timeBudget: number = DAILY_TIME_BUDGET,
+): Agent {
   switch (level) {
     case 'random':
       return new RandomAgent(seed);
     case 'greedy':
       return new GreedyAgent(seed);
     case 'minimax':
-      return new MinimaxAgent(seed);
+      return new MinimaxAgent(seed, 4, timeBudget);
     case 'mcts':
-      return new MctsAgent({ seed, timeBudget: DAILY_TIME_BUDGET });
+      return new MctsAgent({ seed, timeBudget });
     default: {
       const exhaustive: never = level;
       throw new Error(`unknown ai level: ${String(exhaustive)}`);

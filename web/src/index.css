@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-neutral-950 text-neutral-100 antialiased;
+  }
+
+  /* Every interactive element keeps a visible focus ring (NFR-006). */
+  :focus-visible {
+    @apply outline-none ring-2 ring-sky-400 ring-offset-2 ring-offset-neutral-950;
+  }
+}
