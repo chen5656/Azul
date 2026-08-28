@@ -15,7 +15,7 @@ from pydantic import BaseModel, Field
 from engine import Action, GameState
 
 Mode = Literal["pvp", "pve", "eve"]
-AiLevel = Literal["random", "greedy", "minimax", "mcts"]
+AiLevel = Literal["random", "greedy", "minimax", "mcts", "azulzero"]
 ErrorCode = Literal["ILLEGAL_ACTION", "NOT_YOUR_TURN", "GAME_OVER", "BAD_MESSAGE"]
 
 

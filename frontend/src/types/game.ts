@@ -4,7 +4,7 @@ export const COLORS = ["blue", "yellow", "red", "black", "white"] as const;
 export type Color = (typeof COLORS)[number];
 
 export type Mode = "pvp" | "pve" | "eve";
-export type AiLevel = "random" | "greedy" | "minimax" | "mcts";
+export type AiLevel = "random" | "greedy" | "minimax" | "mcts" | "azulzero";
 export type ErrorCode = "ILLEGAL_ACTION" | "NOT_YOUR_TURN" | "GAME_OVER" | "BAD_MESSAGE";
 
 export const CENTER = 5; // source id of the center pool

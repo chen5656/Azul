@@ -106,7 +106,10 @@ def side_value(state: GameState, player: int, w: Weights = DEFAULT_WEIGHTS) -> f
     grid, gained = _settled_grid(board)
 
     penalty = PENALTY_TOTALS[len(board.penalty_tiles)]
-    projected = max(0, board.score + gained + penalty)
+    # Not clamped at 0: the rules floor the *final* score, but clamping here
+    # erases the gradient early on, when score + penalty is still negative --
+    # the agent then reads a floor dump as free and takes tiles it cannot use.
+    projected = board.score + gained + penalty
     value = w.score * board.score + w.round_end * (projected - board.score)
 
     for row in range(NUM_ROWS):

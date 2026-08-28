@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { AiLevel, Mode } from "../types/game";
 
 export function SetupScreen({
@@ -13,6 +13,16 @@ export function SetupScreen({
   const [mode, setMode] = useState<Mode>("pve");
   const [ai1, setAi1] = useState<AiLevel>("greedy");
   const [seed, setSeed] = useState("");
+  // AzulZero only exists where trained weights are installed, so the server
+  // tells us which levels it can actually serve rather than us guessing.
+  const [levels, setLevels] = useState<AiLevel[]>([]);
+
+  useEffect(() => {
+    fetch("/api/levels")
+      .then((r) => r.json())
+      .then((d) => setLevels(d.levels as AiLevel[]))
+      .catch(() => setLevels([]));
+  }, []);
 
   return (
     <div className="mx-auto mt-24 w-full max-w-sm space-y-4 rounded-xl border border-neutral-700 p-6">
@@ -39,6 +49,9 @@ export function SetupScreen({
           <option value="greedy">贪心（Level 1）</option>
           <option value="minimax">推演（Level 2）</option>
           <option value="mcts">蒙特卡洛（Level 3）</option>
+          {levels.includes("azulzero") && (
+            <option value="azulzero">AzulZero（终极 AI）</option>
+          )}
         </select>
       </label>
       <label className="block text-sm">

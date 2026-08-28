@@ -49,8 +49,28 @@ def _session_or_404(game_id: str):
     return session
 
 
+@app.get("/api/levels")
+async def get_levels() -> dict:
+    """AI levels this deployment can actually serve.
+
+    `azulzero` is only playable where trained weights are installed, so the
+    setup screen asks rather than offering a level that would 503.
+    """
+    from ai import available_levels
+
+    return {"levels": list(available_levels())}
+
+
 @app.post("/api/games", response_model=CreateGameResponse)
 async def create_game(req: CreateGameRequest) -> CreateGameResponse:
+    from ai import available_levels
+
+    playable = available_levels()
+    for level in (req.ai0, req.ai1):
+        if level is not None and level not in playable:
+            raise HTTPException(
+                status_code=503, detail=f"ai level '{level}' is not available on this server"
+            )
     session = manager.create(mode=req.mode, ai0=req.ai0, ai1=req.ai1, seed=req.seed)
     manager.schedule_ai(session)  # eve, or pve where the AI has the first move
     return CreateGameResponse(game_id=session.game_id)

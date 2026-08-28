@@ -11,3 +11,7 @@ dist/
 .DS_Store
 
 *.tsbuildinfo
+
+# AzulZero training artifacts: checkpoints, replay windows and run logs.
+backend/runs/
+backend/zero/weights/*.npz
