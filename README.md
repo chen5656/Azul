@@ -3,9 +3,9 @@
 A tile-drafting board game: rules engine, AI opponents, and a web client.
 Two players, five colors, a 5×5 grid to fill and a penalty row to avoid.
 
-Current status: **Phase 2 complete** — the rules engine, a playable terminal
-client, and a browser-playable vertical slice (FastAPI + React) against a
-random opponent. See [PLAN.md](PLAN.md) for the roadmap and [docs/plans/](docs/plans/)
+Current status: **Phase 3 complete** — the rules engine, a playable terminal
+client, a browser-playable vertical slice (FastAPI + React), and four AI levels
+you can pick from the setup screen. See [PLAN.md](PLAN.md) for the roadmap and [docs/plans/](docs/plans/)
 for per-module designs.
 
 ## Play it now
@@ -52,7 +52,7 @@ Other modes:
 
 ```bash
 .venv/bin/python -m scripts.cli --seed 42          # reproducible deal
-.venv/bin/python -m scripts.cli --p1 random        # play the random agent
+.venv/bin/python -m scripts.cli --p1 greedy        # play the greedy agent
 .venv/bin/python -m scripts.cli --auto random random --games 1000
 .venv/bin/python -m scripts.cli --replay game.json
 ```
@@ -93,14 +93,39 @@ bonuses: +2 per full row, +7 per full column, +10 per color collected five times
 
 Full specification, including every edge case: [docs/plans/01-engine.md](docs/plans/01-engine.md).
 
+## AI levels
+
+| Level | Agent | How it decides |
+|-------|-------|----------------|
+| 0 | `random` | uniform over legal moves; the baseline |
+| 1 | `greedy` | one ply over the shared evaluation in `ai/evaluate.py` |
+| 2 | `minimax` | alpha-beta inside the round, iterative deepening to depth 4 |
+| 3 | `mcts` | open-loop determinized UCT, greedy rollouts, 450ms budget |
+
+A round is a perfect-information game once the displays are dealt — the bag's
+composition is public and only the draw order is random — so minimax needs no
+information-set machinery, and MCTS only redraws the bag when a playout crosses
+a round boundary. See [docs/plans/03-ai.md](docs/plans/03-ai.md).
+
+Run a match between any two of them:
+
+```bash
+cd backend
+.venv/bin/python -m scripts.benchmark --p0 minimax --p1 greedy --games 200 --swap --workers 8
+```
+
+`--swap` plays each deal from both seats, so neither agent is helped by the
+tiles. Add `--report` to append the result to
+[docs/ai_benchmarks.md](docs/ai_benchmarks.md).
+
 ## Layout
 
 ```
 backend/
   engine/    rules engine — pure Python, no dependencies
-  ai/        agents; Level 0 (random) today, Levels 1-3 in Phase 3
+  ai/        agents: random, greedy, minimax (in-round alpha-beta), mcts
   app/       FastAPI server: REST lifecycle + one WebSocket per game
-  scripts/   cli.py (terminal client), later benchmark.py and replay.py
+  scripts/   cli.py (terminal client), benchmark.py (EvE match runner)
   tests/
 frontend/    Vite + React + TypeScript client
 docs/

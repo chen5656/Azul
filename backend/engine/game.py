@@ -99,6 +99,26 @@ def start_round(state: GameState) -> RoundStart:
     )
 
 
+def settle_and_deal(state: GameState) -> list[Event]:
+    """Close the finished round and deal the next one, unless the game just ended.
+
+    The AI search drives states directly rather than through `QuadroGame`, so the
+    round boundary lives here where both callers share it.
+    """
+    events = settle_round(state)
+    if state.phase == GAME_OVER:
+        return events
+    holder = next(
+        (i for i, p in enumerate(state.players) if p.has_first_token), state.first_player
+    )
+    state.first_player = holder
+    state.round_num += 1
+    if state.round_num > MAX_ROUNDS:
+        raise AssertionError("round cap exceeded; the game failed to terminate")
+    events.append(start_round(state))
+    return events
+
+
 class QuadroGame:
     def __init__(self, seed: int | None = None):
         self.seed = seed if seed is not None else random.randrange(2**31)
@@ -143,17 +163,7 @@ class QuadroGame:
         events: list[Event] = [undo.event]
 
         if self.state.drafting_done():
-            events.extend(settle_round(self.state))
-            if self.state.phase != GAME_OVER:
-                holder = next(
-                    (i for i, p in enumerate(self.state.players) if p.has_first_token),
-                    self.state.first_player,
-                )
-                self.state.first_player = holder
-                self.state.round_num += 1
-                if self.state.round_num > MAX_ROUNDS:
-                    raise AssertionError("round cap exceeded; the game failed to terminate")
-                events.append(start_round(self.state))
+            events.extend(settle_and_deal(self.state))
 
         self.events.extend(events)
         return events

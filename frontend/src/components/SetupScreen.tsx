@@ -11,7 +11,7 @@ export function SetupScreen({
   error: string | null;
 }) {
   const [mode, setMode] = useState<Mode>("pve");
-  const [ai1, setAi1] = useState<AiLevel>("random");
+  const [ai1, setAi1] = useState<AiLevel>("greedy");
   const [seed, setSeed] = useState("");
 
   return (
@@ -35,8 +35,10 @@ export function SetupScreen({
           onChange={(e) => setAi1(e.target.value as AiLevel)}
           className="mt-1 w-full rounded border border-neutral-600 bg-neutral-800 p-2"
         >
-          {/* P2 ships Level 0 only; the rest fall back to random until P3. */}
           <option value="random">随机（Level 0）</option>
+          <option value="greedy">贪心（Level 1）</option>
+          <option value="minimax">推演（Level 2）</option>
+          <option value="mcts">蒙特卡洛（Level 3）</option>
         </select>
       </label>
       <label className="block text-sm">

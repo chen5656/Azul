@@ -23,7 +23,7 @@
 
 - `pve`：人类固定为 player 0，AI 为 player 1（`ai1`）。
 - `eve`：双方均为 AI，创建后自动开始播放。
-- P2 只实现 Level 0（`random`）；其余等级名已在协议中定型，P3 落地时前端无需改动——`make_agent` 暂时对未实现等级回退到 random。
+- 四个等级均已实现（P3）：`random`(L0) / `greedy`(L1) / `minimax`(L2, 轮内 α-β) / `mcts`(L3, 开环确定化 UCT)。搜索型等级自带时间预算，每步 ≤ 500ms。
 - 对局存于内存，**1 小时无活动自动回收**；对局不存在返回 404。
 
 ## 2. WebSocket `/ws/games/{id}`

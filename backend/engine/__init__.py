@@ -11,7 +11,7 @@ from .events import (
     RoundStart,
     TileScored,
 )
-from .game import GameResult, IllegalAction, QuadroGame
+from .game import GameResult, IllegalAction, QuadroGame, settle_and_deal
 from .rules import (
     Preview,
     Undo,
@@ -54,6 +54,7 @@ __all__ = [
     "legal_actions",
     "preview",
     "score_placement",
+    "settle_and_deal",
     "settle_round",
     "undo_action",
 ]
