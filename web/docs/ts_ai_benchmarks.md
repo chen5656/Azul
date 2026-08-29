@@ -18,3 +18,11 @@ Targets, from [docs/ai_benchmarks.md](../../docs/ai_benchmarks.md):
 
 Each run appends a section below. A run is only a release gate at 120+ games per
 pair with the default 450ms budget; shorter runs are for smoke-checking a change.
+
+## Run 2026-08-29T00:12:23.774Z
+
+Node v25.8.2 on darwin/arm64. 120 games per pair, 450ms budget, seats swapped every game.
+
+| pair | games | W | L | D | win rate | target | result | max move | mean move |
+|---|---|---|---|---|---|---|---|---|---|
+| greedy-vs-random | 120 | 120 | 0 | 0 | 100.0% | 90% | pass | 1ms | 0.1ms |
