@@ -150,4 +150,22 @@ Quadro/
 
 **关键变化**：AI 不再是最后才验证的黑盒。P3 里三级 AI 是**串行落地**的——Greedy 做完立刻接进 P2 的网页让你打，觉得太弱/太怪就当场调评估函数，再进 Minimax。评估函数的权重调参靠"你的主观棋感 + benchmark 胜率"双通道反馈，比纯数据调参可靠得多。
 
+### v1.0.0 — 浏览器版与每日挑战（TypeScript）
+
+在 P1–P5 之上新增的一期，完整规格见
+[docs/working-backwards/web-ts-daily-challenge/BUILD-SPEC.md](docs/working-backwards/web-ts-daily-challenge/BUILD-SPEC.md)。
+
+| 步骤 | 交付 | 出口条件 |
+|------|------|---------|
+| 1 引擎移植 | `web/src/engine/` | 对拍向量逐步深比对全绿；2000 局模糊测试不变量无违反 |
+| 2 AI 移植 | `web/src/ai/` | 四个等级可用；`npm run bench` 复现 `docs/ai_benchmarks.md` 的强度排序 |
+| 3 Practice | `web/src/routes/Practice.tsx` | 断网可完整对局；不发任何请求 |
+| 4 Daily + 计时 | `web/src/routes/Daily.tsx` | 同一 `puzzle_id` 全设备同一开局；仅胜局可提交 |
+| 5 Worker + D1 + Clerk | `web/worker/` | 端点鉴权、BR-011/012/013 拒绝、最优成绩 upsert 全部有测试 |
+| 6 排行榜 | `web/src/components/Leaderboard.tsx` | 未登录可读；离线为状态而非错误 |
+| 7 离线与 Service Worker | `vite-plugin-pwa` | 首次加载后断网仍可 Practice；对局进行中不弹重载 |
+
+`backend/` 保留为参考实现与对拍向量来源，不在运行路径上；`frontend/` 由
+`web/` 取代。
+
 可选扩展（不阻塞验收）：联机房间与断线恢复、音效、3-4 人局、前端回放播放器、自弈强化学习。

@@ -3,10 +3,30 @@
 A tile-drafting board game: rules engine, AI opponents, and a web client.
 Two players, five colors, a 5×5 grid to fill and a penalty row to avoid.
 
-Current status: **Phase 3 complete** — the rules engine, a playable terminal
-client, a browser-playable vertical slice (FastAPI + React), and four AI levels
-you can pick from the setup screen. See [PLAN.md](PLAN.md) for the roadmap and [docs/plans/](docs/plans/)
-for per-module designs.
+Current status: **v1.0.0 in progress** — the engine and all four AI levels now
+also exist in TypeScript under [web/](web/), so the whole game runs in the
+browser with no server. See [PLAN.md](PLAN.md) for the roadmap and
+[docs/plans/](docs/plans/) for per-module designs.
+
+`backend/` is now the **reference implementation**: it is not on the runtime
+path of the web client, but it generates the parity vectors that port is held
+to (`python -m scripts.export_vectors`). The terminal client and the FastAPI
+server still work and are still the fastest way to try a rules change.
+
+## Play in the browser
+
+Practice against any of the four AI levels, or take the Daily Challenge — one
+deal per New York day, the same for everyone, timed, with a global leaderboard
+for the fastest wins.
+
+```bash
+cd web && npm install && npm run dev
+```
+
+Deployed at [games.aclogics.com](https://games.aclogics.com) (Cloudflare Pages
++ Workers + D1). See [web/README.md](web/README.md) for the deploy steps and
+[docs/working-backwards/web-ts-daily-challenge/](docs/working-backwards/web-ts-daily-challenge/)
+for the press release and build spec.
 
 ## Play it now
 

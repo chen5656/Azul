@@ -1,0 +1,5 @@
+# Content Security Policy: self, the Worker origin and Clerk only (NFR-009).
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://*.clerk.accounts.dev https://clerk.games.aclogics.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://img.clerk.com; connect-src 'self' https://clerk.games.aclogics.com https://*.clerk.accounts.dev; worker-src 'self' blob:; frame-src https://clerk.games.aclogics.com; base-uri 'none'; form-action 'self'; object-src 'none'
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin

@@ -4,15 +4,18 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "test": "vitest run",
+    "test": "vitest run && npm run test:worker",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.worker.json",
     "bench": "vite-node test/strength.bench.ts --",
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
-    "preview": "vite preview"
+    "build": "npm run typecheck && vite build",
+    "preview": "vite preview",
+    "test:worker": "vitest run --config test/worker/vitest.config.ts",
+    "deploy": "wrangler deploy"
   },
   "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.8.71",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.6",
@@ -26,7 +29,9 @@
     "tailwindcss": "^3.4.19",
     "typescript": "^5.6.3",
     "vite": "^5.4.21",
-    "vitest": "^2.1.8"
+    "vite-plugin-pwa": "^1.3.0",
+    "vitest": "^2.1.8",
+    "wrangler": "^4.127.1"
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.61.9",

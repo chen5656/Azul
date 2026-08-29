@@ -8,6 +8,8 @@ htmlcov/
 node_modules/
 dist/
 web/.wrangler/
+web/dist/
+.dev.vars
 *.json.log
 .DS_Store
 

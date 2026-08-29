@@ -1,3 +1,5 @@
+import { AppBanners } from './components/AppBanners';
+import { useAttemptRunning } from './game/attemptGuard';
 import { AuthControl } from './auth/clerk';
 import { Daily } from './routes/Daily';
 import { Home } from './routes/Home';
@@ -30,9 +32,11 @@ function Nav() {
 
 export function App() {
   const { route } = useRouter();
+  const attemptRunning = useAttemptRunning();
 
   return (
     <div className="min-h-dvh">
+      <AppBanners blockUpdates={attemptRunning} />
       <header className="border-b border-neutral-800">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-3">
           <Link to="/" className="font-semibold tracking-tight">

@@ -20,6 +20,7 @@ import {
   newDailyGame,
   puzzleIdFor,
 } from '../daily/puzzle';
+import { setAttemptRunning } from '../game/attemptGuard';
 import { useGameSession } from '../game/useGameSession';
 import { useSubmission } from '../game/useSubmission';
 import { storage } from '../storage';
@@ -96,6 +97,14 @@ function DailyAttempt({
 
   const done = session.status === 'game-over' && session.error === null;
   const offered = useRef(false);
+
+  // Holds back the service-worker update banner for the length of an attempt
+  // (AC-038).
+  const running = session.status !== 'idle' && session.status !== 'game-over';
+  useEffect(() => {
+    setAttemptRunning(running);
+    return () => setAttemptRunning(false);
+  }, [running]);
 
   // Offer the attempt exactly once, and only for an outright win by the human
   // (FR-021, AC-015, AC-016).

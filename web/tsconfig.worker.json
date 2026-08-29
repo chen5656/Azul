@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "types": ["./worker-configuration.d.ts"]
+  },
+  // The worker imports `fnv1a32` from the engine, so the engine is compiled with
+  // it — under the Workers lib rather than the DOM's.
+  "include": ["worker", "src/engine", "test/worker", "worker-configuration.d.ts"]
+}

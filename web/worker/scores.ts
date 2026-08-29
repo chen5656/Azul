@@ -1,0 +1,206 @@
+/**
+ * `POST /api/scores` — the only write path (BR-010).
+ *
+ * Anti-cheat posture for v1.0.0 is "trust the client" (D-015): the Worker
+ * authenticates, applies the two sanity rules (BR-011, BR-012), rate-limits
+ * (BR-013), and stores. It does not re-simulate the game.
+ */
+
+import type { Session } from './auth';
+import { currentPuzzleId, isPuzzleId } from './daily';
+import { HttpError, json } from './http';
+import { rankOf } from './leaderboard';
+
+/** BR-011: a five-round game against a 450ms agent cannot be won in 20 seconds. */
+export const MIN_ELAPSED_MS = 20_000;
+export const MAX_ELAPSED_MS = 7_200_000;
+
+/** BR-013: per-user submissions allowed in a rolling hour. */
+export const RATE_LIMIT_PER_HOUR = 60;
+
+export interface SubmissionPayload {
+  puzzle_id: string;
+  elapsed_ms: number;
+  final_score: number;
+  opponent_score: number;
+  rounds: number;
+  client_version: string;
+}
+
+function isInteger(value: unknown, min: number, max: number): value is number {
+  return typeof value === 'number' && Number.isInteger(value) && value >= min && value <= max;
+}
+
+/** Validates shape only; the plausibility rules are applied by the caller. */
+function parsePayload(body: unknown): SubmissionPayload {
+  const p = body as Partial<SubmissionPayload> | null;
+  const valid =
+    p !== null &&
+    typeof p === 'object' &&
+    isPuzzleId(p.puzzle_id) &&
+    isInteger(p.elapsed_ms, 0, Number.MAX_SAFE_INTEGER) &&
+    isInteger(p.final_score, 0, 10_000) &&
+    isInteger(p.opponent_score, 0, 10_000) &&
+    isInteger(p.rounds, 1, 150) &&
+    typeof p.client_version === 'string' &&
+    p.client_version.length <= 32;
+  if (!valid) throw new HttpError(422, 'INVALID_PAYLOAD', 'Malformed submission');
+  return p as SubmissionPayload;
+}
+
+async function audit(
+  db: D1Database,
+  row: {
+    puzzle_id: string;
+    user_id: string;
+    elapsed_ms: number;
+    accepted: boolean;
+    reason: string | null;
+    created_at: number;
+  },
+): Promise<void> {
+  await db
+    .prepare(
+      `INSERT INTO submissions_audit (puzzle_id, user_id, elapsed_ms, accepted, reason, created_at)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+    )
+    .bind(
+      row.puzzle_id,
+      row.user_id,
+      row.elapsed_ms,
+      row.accepted ? 1 : 0,
+      row.reason,
+      row.created_at,
+    )
+    .run();
+}
+
+export async function submitScore(
+  db: D1Database,
+  session: Session,
+  body: unknown,
+  now = Date.now(),
+): Promise<Response> {
+  // Parsed first, so an unparseable body cannot be attributed to a puzzle or a
+  // time in the audit trail.
+  let payload: SubmissionPayload;
+  try {
+    payload = parsePayload(body);
+  } catch (err) {
+    await audit(db, {
+      puzzle_id: 'unknown', user_id: session.userId, elapsed_ms: 0,
+      accepted: false, reason: 'INVALID_PAYLOAD', created_at: now,
+    });
+    throw err;
+  }
+
+  const reject = async (status: number, code: string, message: string): Promise<never> => {
+    await audit(db, {
+      puzzle_id: payload.puzzle_id, user_id: session.userId, elapsed_ms: payload.elapsed_ms,
+      accepted: false, reason: code, created_at: now,
+    });
+    throw new HttpError(status, code, message);
+  };
+
+  const recent = await db
+    .prepare(
+      'SELECT COUNT(*) AS n FROM submissions_audit WHERE user_id = ? AND created_at > ?',
+    )
+    .bind(session.userId, now - 3_600_000)
+    .first<{ n: number }>();
+  if (Number(recent?.n ?? 0) >= RATE_LIMIT_PER_HOUR) {
+    await reject(429, 'RATE_LIMITED', 'Too many submissions in the last hour');
+  }
+
+  if (payload.puzzle_id !== currentPuzzleId(new Date(now))) {
+    await reject(409, 'STALE_PUZZLE', 'That puzzle is no longer the current one');
+  }
+  if (payload.elapsed_ms < MIN_ELAPSED_MS || payload.elapsed_ms > MAX_ELAPSED_MS) {
+    await reject(422, 'IMPLAUSIBLE_TIME', 'That time is not plausible');
+  }
+  // A submission is only admissible for an outright win, so this contradicts
+  // itself (§13).
+  if (payload.final_score <= payload.opponent_score) {
+    await reject(422, 'INVALID_PAYLOAD', 'A submitted attempt must be a win');
+  }
+
+  const existing = await db
+    .prepare('SELECT elapsed_ms, created_at FROM scores WHERE puzzle_id = ? AND user_id = ?')
+    .bind(payload.puzzle_id, session.userId)
+    .first<{ elapsed_ms: number; created_at: number }>();
+
+  let improved: boolean;
+  let bestElapsedMs: number;
+  let createdAt: number;
+
+  if (!existing) {
+    await db
+      .prepare(
+        `INSERT INTO scores (puzzle_id, user_id, display_name, elapsed_ms, final_score,
+                             opponent_score, rounds, client_version, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .bind(
+        payload.puzzle_id, session.userId, session.displayName, payload.elapsed_ms,
+        payload.final_score, payload.opponent_score, payload.rounds, payload.client_version,
+        now, now,
+      )
+      .run();
+    improved = true;
+    bestElapsedMs = payload.elapsed_ms;
+    createdAt = now;
+  } else if (payload.elapsed_ms < existing.elapsed_ms) {
+    // Strictly faster only (FR-030). `created_at` is kept, so a repeat winner
+    // does not lose their place in a tie-break they already earned.
+    await db
+      .prepare(
+        `UPDATE scores
+            SET display_name = ?, elapsed_ms = ?, final_score = ?, opponent_score = ?,
+                rounds = ?, client_version = ?, updated_at = ?
+          WHERE puzzle_id = ? AND user_id = ?`,
+      )
+      .bind(
+        session.displayName, payload.elapsed_ms, payload.final_score, payload.opponent_score,
+        payload.rounds, payload.client_version, now, payload.puzzle_id, session.userId,
+      )
+      .run();
+    improved = true;
+    bestElapsedMs = payload.elapsed_ms;
+    createdAt = existing.created_at;
+  } else {
+    improved = false;
+    bestElapsedMs = existing.elapsed_ms;
+    createdAt = existing.created_at;
+  }
+
+  await audit(db, {
+    puzzle_id: payload.puzzle_id, user_id: session.userId, elapsed_ms: payload.elapsed_ms,
+    accepted: true, reason: null, created_at: now,
+  });
+
+  const total = await db
+    .prepare('SELECT COUNT(*) AS n FROM scores WHERE puzzle_id = ?')
+    .bind(payload.puzzle_id)
+    .first<{ n: number }>();
+
+  return json({
+    accepted: true,
+    improved,
+    best_elapsed_ms: bestElapsedMs,
+    rank: await rankOf(db, payload.puzzle_id, bestElapsedMs, createdAt),
+    total_entries: Number(total?.n ?? 0),
+  });
+}
+
+/** `DELETE /api/me` — the account-deletion path (§12.2). Required, not optional. */
+export async function deleteMe(db: D1Database, session: Session): Promise<Response> {
+  const scores = await db.prepare('DELETE FROM scores WHERE user_id = ?').bind(session.userId).run();
+  const audits = await db
+    .prepare('DELETE FROM submissions_audit WHERE user_id = ?')
+    .bind(session.userId)
+    .run();
+  return json({
+    deleted_scores: scores.meta.changes ?? 0,
+    deleted_audit: audits.meta.changes ?? 0,
+  });
+}

@@ -1,0 +1,31 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "quadro-api",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-08-28",
+  "compatibility_flags": ["nodejs_compat"],
+
+  "observability": {
+    "enabled": true,
+    "logs": { "head_sampling_rate": 1 }
+  },
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "quadro",
+      // Replace with the id printed by `wrangler d1 create quadro`.
+      "database_id": "REPLACE_WITH_D1_DATABASE_ID"
+    }
+  ],
+
+  // ~midnight New York year-round; deletes rows older than 90 days (BR-014).
+  "triggers": { "crons": ["0 5 * * *"] },
+
+  "vars": {
+    // Public, non-secret configuration. CLERK_SECRET_KEY is a Worker secret and
+    // never appears here (NFR-010).
+    "CLERK_ISSUER": "https://clerk.games.aclogics.com",
+    "ALLOWED_ORIGIN": "https://games.aclogics.com"
+  }
+}
