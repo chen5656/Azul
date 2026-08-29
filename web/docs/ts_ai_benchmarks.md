@@ -26,3 +26,12 @@ Node v25.8.2 on darwin/arm64. 120 games per pair, 450ms budget, seats swapped ev
 | pair | games | W | L | D | win rate | target | result | max move | mean move |
 |---|---|---|---|---|---|---|---|---|---|
 | greedy-vs-random | 120 | 120 | 0 | 0 | 100.0% | 90% | pass | 1ms | 0.1ms |
+
+## Run 2026-08-29T00:46:03.942Z
+
+Node v25.8.2 on darwin/arm64. 120 games per pair, 450ms budget, seats swapped every game.
+
+| pair | games | W | L | D | win rate | target | result | max move | mean move |
+|---|---|---|---|---|---|---|---|---|---|
+| minimax-vs-greedy | 120 | 106 | 13 | 1 | 88.3% | 65% | pass | 451ms | 52.0ms |
+| mcts-vs-minimax | 120 | 108 | 12 | 0 | 90.0% | 55% | pass | 451ms | 267.3ms |
