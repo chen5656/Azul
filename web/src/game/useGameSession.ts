@@ -111,13 +111,14 @@ export function useGameSession(options: SessionOptions): Session {
 
   useEffect(() => {
     if (!timed || startedAt === null || stoppedAt !== null) return;
-    let frame = 0;
-    const tick = () => {
-      setElapsedMs(performance.now() - startedAt);
-      frame = requestAnimationFrame(tick);
-    };
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
+    // An interval rather than requestAnimationFrame: rAF stops in a background
+    // tab, and the displayed time would then sit still while the clock that
+    // actually gets submitted keeps running. 50ms is smooth enough for a
+    // millisecond readout.
+    const tick = () => setElapsedMs(performance.now() - startedAt);
+    tick();
+    const timer = window.setInterval(tick, 50);
+    return () => window.clearInterval(timer);
   }, [timed, startedAt, stoppedAt]);
 
   const finish = useCallback(() => {

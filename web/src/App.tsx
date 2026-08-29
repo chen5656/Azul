@@ -1,4 +1,7 @@
+import { AuthControl } from './auth/clerk';
+import { Daily } from './routes/Daily';
 import { Home } from './routes/Home';
+import { LeaderboardPage } from './routes/LeaderboardPage';
 import { Practice } from './routes/Practice';
 import { Link, useRouter } from './router';
 
@@ -35,21 +38,19 @@ export function App() {
           <Link to="/" className="font-semibold tracking-tight">
             Quadro
           </Link>
-          <Nav />
+          <div className="flex items-center gap-3">
+            <Nav />
+            <AuthControl />
+          </div>
         </div>
       </header>
 
       <main className="mx-auto max-w-5xl px-4 py-6">
         {route === '/' && <Home />}
         {route === '/practice' && <Practice />}
-        {route === '/daily' && <Placeholder name="Daily" />}
-        {route === '/leaderboard' && <Placeholder name="Leaderboard" />}
+        {route === '/daily' && <Daily />}
+        {route === '/leaderboard' && <LeaderboardPage />}
       </main>
     </div>
   );
-}
-
-/** Routes that arrive in the next slices of the build (§18 rollout order). */
-function Placeholder({ name }: { name: string }) {
-  return <p className="text-neutral-400">{name} is not built yet.</p>;
 }
