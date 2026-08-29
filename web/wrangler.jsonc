@@ -14,9 +14,15 @@
     {
       "binding": "DB",
       "database_name": "quadro",
-      // Replace with the id printed by `wrangler d1 create quadro`.
-      "database_id": "REPLACE_WITH_D1_DATABASE_ID"
+      "database_id": "50ec5486-b419-46da-89d6-0f99f52ce947"
     }
+  ],
+
+  // The API shares the hostname with the Pages site; a Worker route takes
+  // precedence over Pages for the paths it matches, so /api/* lands here and
+  // everything else is served as the SPA.
+  "routes": [
+    { "pattern": "games.aclogics.com/api/*", "zone_name": "aclogics.com" }
   ],
 
   // ~midnight New York year-round; deletes rows older than 90 days (BR-014).

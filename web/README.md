@@ -61,23 +61,38 @@ Results append to [docs/ts_ai_benchmarks.md](docs/ts_ai_benchmarks.md).
 The client is Cloudflare Pages, the API is a Worker over D1, and identity is
 Clerk on `games.aclogics.com`.
 
+Everything below is already provisioned; these are the commands to redeploy.
+
 ```bash
-# 1. Database
-npx wrangler d1 create quadro                    # put the id in wrangler.jsonc
+npm run build                                    # reads .env.production
+npx wrangler pages deploy dist --project-name quadro --branch main
+npx wrangler deploy                              # the /api/* Worker
+```
+
+The Worker holds **no secrets**. It verifies Clerk sessions against the
+instance JWKS at `https://clerk.games.aclogics.com/.well-known/jwks.json`,
+which is public-key only, so there is no `CLERK_SECRET_KEY` to leak or rotate.
+`CLERK_ISSUER` and `ALLOWED_ORIGIN` are plain vars in `wrangler.jsonc`, and the
+Clerk publishable key in `.env.production` is public by design.
+
+First-time setup, for reference:
+
+```bash
+npx wrangler d1 create quadro                    # id goes in wrangler.jsonc
 npx wrangler d1 execute quadro --remote --file worker/schema.sql
-
-# 2. Worker secrets (never in the repo, never in the client bundle)
-npx wrangler secret put CLERK_SECRET_KEY
-
-# 3. API
-npx wrangler deploy
-
-# 4. Client
-VITE_CLERK_PUBLISHABLE_KEY=pk_live_... npm run build
-npx wrangler pages deploy dist --project-name quadro
+npx wrangler pages project create quadro --production-branch main
+# then add games.aclogics.com as a Pages custom domain in the dashboard,
+# which writes the `games` CNAME itself
 ```
 
 `public/_redirects` gives Pages the SPA fallback the deep links need;
-`public/_headers` carries the CSP. `CLERK_ISSUER` and `ALLOWED_ORIGIN` are
-plain vars in `wrangler.jsonc`; the publishable key is a build-time public
-variable. No secret ever reaches the client.
+`public/_headers` carries the CSP.
+
+## What is live
+
+| Piece | Where |
+|---|---|
+| Client | `games.aclogics.com` (Pages project `quadro`, `quadro-3yb.pages.dev`) |
+| API | same host, `/api/*` (Worker `quadro-api`, route on the zone) |
+| Database | D1 `quadro`, `50ec5486-b419-46da-89d6-0f99f52ce947` |
+| Identity | Clerk production instance on `games.aclogics.com`, Frontend API `clerk.games.aclogics.com` |

@@ -10,6 +10,9 @@ dist/
 web/.wrangler/
 web/dist/
 .dev.vars
+.env
+.env.*
+!.env.example
 *.json.log
 .DS_Store
 
