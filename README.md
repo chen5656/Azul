@@ -113,19 +113,27 @@ bonuses: +2 per full row, +7 per full column, +10 per color collected five times
 
 Full specification, including every edge case: [docs/plans/01-engine.md](docs/plans/01-engine.md).
 
-## AI levels
+## AI opponents
 
-| Level | Agent | How it decides |
-|-------|-------|----------------|
-| 0 | `random` | uniform over legal moves; the baseline |
-| 1 | `greedy` | one ply over the shared evaluation in `ai/evaluate.py` |
-| 2 | `minimax` | alpha-beta inside the round, iterative deepening to depth 4 |
-| 3 | `mcts` | open-loop determinized UCT, greedy rollouts, 450ms budget |
+The game ships with four AI levels, sharing a zero-sum heuristic evaluation function (`backend/ai/evaluate.py` / `web/src/ai/evaluate.ts`) but employing different search horizons and game-theoretic techniques:
 
-A round is a perfect-information game once the displays are dealt — the bag's
-composition is public and only the draw order is random — so minimax needs no
-information-set machinery, and MCTS only redraws the bag when a playout crosses
-a round boundary. See [docs/plans/03-ai.md](docs/plans/03-ai.md).
+| Level | Agent | Core Algorithm | Decision Time | Play Style & Characteristics |
+|:---|:---|:---|:---|:---|
+| 0 | `random` | Uniform random choice | < 1ms | Uniform baseline and fuzz testing. |
+| 1 | `greedy` | 1-Ply Lookahead | < 5ms | Evaluates static score after every immediate legal move (settles the round if the move ends it). Plays for immediate gain; ignores opponent counterplay. |
+| 2 | `minimax` | Alpha-Beta Pruning within the round (Depth 2–4) | 50–300ms | Exploits the deterministic nature of an active round with move ordering and iterative deepening. Actively denies needed colors and forces floor penalties. |
+| 3 | `mcts` | Open-Loop Determinized UCT | ~450ms | Simulates future rounds using stochastic determinization. Evaluates thousands of random rollouts to plan cross-round combos and robust endgame scoring. |
+
+### How the AI computes & Game Fairness
+
+A common question is whether search agents like Minimax and MCTS "see into the future" or have an unfair advantage over human players. **The game is strictly symmetric with zero hidden information:**
+
+1. **Perfect Information Game:**
+   Like Backgammon or Mancala, Azul is a game of perfect information with stochastic events. The tile bag's distribution is fully public (100 tiles, 20 of each color). Any player can deduce the exact bag composition by subtracting visible tiles (factories, center pool, player boards, discard lid) from the total.
+2. **Minimax is strictly intra-round:**
+   Minimax does **not** look into future rounds. Its search tree terminates at the round boundary (`drafting_done()`). It simply computes tactical traps within the currently dealt, visible tiles.
+3. **MCTS uses probabilistic sampling, not future-peeking:**
+   When MCTS simulates moves across round boundaries, it does not know what tiles will actually be drawn next. Instead, it performs **Open-Loop Determinization**: each simulation independently deals a random hand from the remaining bag distribution, gathers win/loss statistics over thousands of plausible scenarios, and selects the move with the highest expected value (robust child). When the actual next round begins, the real game engine deals a fresh hand using its own authoritative RNG.
 
 Run a match between any two of them:
 
