@@ -1,4 +1,5 @@
 import type { Session } from '../game/useGameSession';
+import { GameOverBurst } from './GameOverBurst';
 
 /**
  * What the board is doing right now. The AI-thinking state is deliberately
@@ -19,15 +20,22 @@ export function StatusLine({ session, opponentLabel }: { session: Session; oppon
     const result = game.result();
     const mine = result.scores[humanSeat];
     const theirs = result.scores[1 - humanSeat];
+    const verdict = result.draw ? 'Draw' : humanWon ? 'You win' : 'You lose';
     return (
-      <p className="text-sm" role="status">
+      <>
+        <GameOverBurst
+          text={verdict}
+          tone={result.draw ? 'draw' : humanWon ? 'win' : 'lose'}
+        />
+        <p className="text-sm" role="status">
         <span className={humanWon ? 'font-semibold text-sky-300' : 'font-semibold text-neutral-300'}>
           {result.draw ? 'Draw' : humanWon ? 'You win' : `${opponentLabel} wins`}
         </span>{' '}
         <span className="tabular-nums text-neutral-400">
-          {mine} – {theirs} after {result.rounds} rounds
+          {mine} – {theirs}
         </span>
-      </p>
+        </p>
+      </>
     );
   }
 

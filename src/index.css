@@ -16,3 +16,98 @@
     @apply outline-none ring-2 ring-sky-400 ring-offset-2 ring-offset-neutral-950;
   }
 }
+
+/* Game-over verdict: throb bigger and bigger, then explode. */
+@layer components {
+  .azul-burst-grow {
+    animation: azul-burst-grow 1.5s cubic-bezier(0.3, 0, 0.2, 1) forwards;
+  }
+
+  .azul-burst-letter {
+    animation: azul-burst-letter 1.5s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+  }
+
+  .azul-burst-spark {
+    animation: azul-burst-spark 1.4s ease-out forwards;
+  }
+
+  .azul-burst-flash {
+    animation: azul-burst-flash 0.45s ease-out forwards;
+  }
+}
+
+@keyframes azul-burst-grow {
+  0% {
+    transform: scale(0.2);
+    opacity: 0;
+  }
+  15% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  30% {
+    transform: scale(0.85);
+  }
+  45% {
+    transform: scale(1.6);
+  }
+  60% {
+    transform: scale(1.3);
+  }
+  75% {
+    transform: scale(2.4);
+  }
+  88% {
+    transform: scale(2.1);
+  }
+  100% {
+    transform: scale(3.2);
+    opacity: 1;
+  }
+}
+
+@keyframes azul-burst-letter {
+  0% {
+    transform: scale(3.2) translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+  10% {
+    transform: scale(3.6) translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.2) translate(var(--dx), var(--dy)) rotate(var(--rot));
+    opacity: 0;
+  }
+}
+
+@keyframes azul-burst-spark {
+  0% {
+    transform: translate(0, 0) scale(1.4);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--dx), var(--dy)) scale(0.2);
+    opacity: 0;
+  }
+}
+
+@keyframes azul-burst-flash {
+  0% {
+    transform: scale(0.4);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(3.5);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .azul-burst-grow,
+  .azul-burst-letter,
+  .azul-burst-spark,
+  .azul-burst-flash {
+    animation: none;
+  }
+}
