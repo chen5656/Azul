@@ -67,7 +67,7 @@ export function PlayerBoard({
                 onClick={() => place(row)}
                 aria-label={`Staging row ${row + 1}${p ? `, places ${p.placed} tiles` : ''}`}
                 title={p ? `${p.placed} on the row, ${p.overflow} to the penalty row` : undefined}
-                className={`flex justify-end gap-1 rounded p-1 ${
+                className={`flex justify-end gap-1 rounded p-1.5 ${
                   ok ? 'bg-sky-900/40 ring-1 ring-sky-500 hover:bg-sky-800/60' : ''
                 } ${interactive && selection && !ok ? 'opacity-50' : ''}`}
               >
@@ -97,7 +97,7 @@ export function PlayerBoard({
                 ) : (
                   <div
                     key={col}
-                    className="grid h-5 w-5 place-items-center rounded border border-neutral-800 text-[9px] text-neutral-600"
+                    className="grid h-8 w-8 place-items-center rounded border border-neutral-800 text-[10px] text-neutral-600"
                   >
                     {['B', 'Y', 'R', 'K', 'W'][color]}
                   </div>
@@ -113,7 +113,7 @@ export function PlayerBoard({
         disabled={!drop(PENALTY_DEST)}
         onClick={() => place(PENALTY_DEST)}
         aria-label="Penalty row — discard the whole group here"
-        className={`mt-3 flex w-full items-center gap-1 rounded p-1 ${
+        className={`mt-3 flex w-full items-center gap-1 rounded p-1.5 ${
           drop(PENALTY_DEST)
             ? 'bg-red-900/40 ring-1 ring-red-500 hover:bg-red-800/60'
             : interactive && selection
@@ -124,7 +124,7 @@ export function PlayerBoard({
         {PENALTIES.map((points, i) => (
           <span key={i} className="flex flex-col items-center">
             <PenaltySlot tile={board.penalty_tiles[i]} />
-            <span className="text-[9px] text-neutral-500">{points}</span>
+            <span className="text-[10px] text-neutral-500">{points}</span>
           </span>
         ))}
         <span className="ml-auto pr-1 text-xs tabular-nums text-red-300">

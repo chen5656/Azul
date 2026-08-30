@@ -38,7 +38,7 @@ export function DisplayArea({ session }: { session: Session }) {
                 onClick={() => select(source, color)}
                 aria-pressed={active}
                 aria-label={`Take ${n} ${COLOR_NAMES[color]} from ${sourceLabel(source)}`}
-                className={`flex gap-1 rounded p-1 ${
+                className={`flex gap-1 rounded p-1.5 ${
                   enabled ? 'hover:bg-neutral-700' : 'cursor-not-allowed opacity-40'
                 } ${active ? 'bg-sky-900/60' : ''}`}
               >
