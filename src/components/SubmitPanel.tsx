@@ -12,7 +12,9 @@ import type { SubmissionState } from '../game/useSubmission';
 import { formatElapsed } from './Timer';
 
 export function SubmitPanel({
-  admissible,
+  admissible = true,
+  humanWon,
+  draw,
   elapsedMs,
   opponentLabel = 'opponent',
   state,
@@ -20,7 +22,9 @@ export function SubmitPanel({
   onDiscard,
   onPlayAgain,
 }: {
-  admissible: boolean;
+  admissible?: boolean;
+  humanWon?: boolean;
+  draw?: boolean;
   elapsedMs: number;
   opponentLabel?: string;
   state: SubmissionState;
@@ -32,17 +36,23 @@ export function SubmitPanel({
     return (
       <div className="rounded-xl border border-neutral-800 p-3">
         <p className="text-sm text-neutral-300">
-          Only a win counts for the board. Nothing was recorded.
+          Nothing was recorded.
         </p>
         <PlayAgain onPlayAgain={onPlayAgain} />
       </div>
     );
   }
 
+  const outcomeText = draw
+    ? `Game tied vs ${opponentLabel}`
+    : humanWon
+      ? `You beat ${opponentLabel}`
+      : `${opponentLabel} won`;
+
   return (
     <div className="rounded-xl border border-sky-800 bg-sky-950/30 p-3">
       <p className="text-sm">
-        You beat {opponentLabel} in{' '}
+        {outcomeText} in{' '}
         <span className="font-mono font-semibold text-sky-300">{formatElapsed(elapsedMs)}</span>.
       </p>
 

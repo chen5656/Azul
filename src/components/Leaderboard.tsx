@@ -99,11 +99,21 @@ function Body({
 
   const { board } = state;
   if (board.entries.length === 0) {
-    return <p className="text-sm text-neutral-400">Nobody has beaten it yet today.</p>;
+    return <p className="text-sm text-neutral-400">Nobody has played it yet today.</p>;
   }
 
   const meInList =
     board.me !== null && board.entries.some((entry) => entry.rank === board.me!.rank);
+
+  const formatDiff = (diff: number) => {
+    if (diff > 0) {
+      return <span className="ml-1 text-xs font-medium text-emerald-400">(+{diff})</span>;
+    }
+    if (diff < 0) {
+      return <span className="ml-1 text-xs font-medium text-rose-400">({diff})</span>;
+    }
+    return <span className="ml-1 text-xs font-medium text-neutral-400">(0)</span>;
+  };
 
   return (
     <>
@@ -129,9 +139,7 @@ function Body({
                 <span>{entry.final_score}</span>
                 <span className="text-neutral-500"> - </span>
                 <span className="text-neutral-400">{entry.opponent_score}</span>
-                <span className="ml-1 text-xs font-medium text-emerald-400">
-                  (+{diff})
-                </span>
+                {formatDiff(diff)}
               </span>
               <span className="w-16 text-right font-mono text-xs tabular-nums text-neutral-400">
                 {formatElapsed(entry.elapsed_ms)}
@@ -150,9 +158,7 @@ function Body({
               <span>{board.me.final_score}</span>
               <span className="text-sky-400/60"> - </span>
               <span>{board.me.opponent_score}</span>
-              <span className="ml-1 text-xs font-medium text-emerald-400">
-                (+{board.me.final_score - board.me.opponent_score})
-              </span>
+              {formatDiff(board.me.final_score - board.me.opponent_score)}
             </span>
             <span className="w-16 text-right font-mono text-xs tabular-nums">
               {formatElapsed(board.me.elapsed_ms)}
@@ -162,7 +168,7 @@ function Body({
       )}
 
       <p className="mt-2 text-xs text-neutral-500">
-        {board.total_entries} {board.total_entries === 1 ? 'player has' : 'players have'} beaten it
+        {board.total_entries} {board.total_entries === 1 ? 'player has' : 'players have'} played
         today
         {!signedIn && ' · sign in to see your own rank'}
       </p>

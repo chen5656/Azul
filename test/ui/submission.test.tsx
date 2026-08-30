@@ -153,7 +153,7 @@ describe('useSubmission', () => {
 describe('SubmitPanel', () => {
   const noop = () => {};
 
-  it('offers nothing to submit after a loss or a draw (AC-015, AC-016)', () => {
+  it('shows no submit controls when not admissible', () => {
     render(
       <SubmitPanel
         admissible={false}
@@ -164,7 +164,7 @@ describe('SubmitPanel', () => {
         onPlayAgain={noop}
       />,
     );
-    expect(screen.getByText(/Only a win counts/i)).toBeInTheDocument();
+    expect(screen.getByText(/Nothing was recorded/i)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /sign in/i })).not.toBeInTheDocument();
   });
 

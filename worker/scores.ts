@@ -118,11 +118,6 @@ export async function submitScore(
   if (payload.elapsed_ms < MIN_ELAPSED_MS || payload.elapsed_ms > MAX_ELAPSED_MS) {
     await reject(422, 'IMPLAUSIBLE_TIME', 'That time is not plausible');
   }
-  // A submission is only admissible for an outright win, so this contradicts
-  // itself (§13).
-  if (payload.final_score <= payload.opponent_score) {
-    await reject(422, 'INVALID_PAYLOAD', 'A submitted attempt must be a win');
-  }
 
   const existing = await db
     .prepare('SELECT elapsed_ms, final_score, opponent_score, created_at FROM scores WHERE puzzle_id = ? AND user_id = ?')

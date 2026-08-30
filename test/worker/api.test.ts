@@ -115,11 +115,11 @@ describe('POST /api/scores', () => {
     expect((await post({ ...WIN, elapsed_ms: 7_200_001 }, token)).status).toBe(422);
   });
 
-  it('rejects a submission that is not a win (AC-023)', async () => {
+  it('accepts a submission with a tie or loss (negative score margin)', async () => {
     const token = await makeToken();
-    const response = await post({ ...WIN, final_score: 40, opponent_score: 40 }, token);
-    expect(response.status).toBe(422);
-    expect(await response.json()).toMatchObject({ error: { code: 'INVALID_PAYLOAD' } });
+    const response = await post({ ...WIN, final_score: 40, opponent_score: 45 }, token);
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ accepted: true, rank: 1 });
   });
 
   it('rejects a malformed payload and audits it', async () => {

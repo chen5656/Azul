@@ -61,7 +61,7 @@ describe('leaderboard', () => {
     respond({ puzzle_id: '2026-08-28', entries: [], total_entries: 0, me: null });
     render(<Leaderboard puzzleId="2026-08-28" />);
     await waitFor(() =>
-      expect(screen.getByText(/Nobody has beaten it yet today/i)).toBeInTheDocument(),
+      expect(screen.getByText(/Nobody has played it yet today/i)).toBeInTheDocument(),
     );
   });
 

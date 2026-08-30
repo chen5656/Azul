@@ -3,7 +3,7 @@
  *
  * One deal per New York day. Supports multiple AI difficulty levels (defaults to Monte Carlo).
  * Timed on total wall clock including the opponent's thinking.
- * Ranked by score margin (human score - opponent score). Unlimited retries; only a win counts.
+ * Ranked by score margin (human score - opponent score). Unlimited retries; any completed game is ranked.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -120,13 +120,11 @@ function DailyAttempt({
     return () => setAttemptRunning(false);
   }, [running]);
 
-  // Offer the attempt exactly once, and only for an outright win by the human
-  // (FR-021, AC-015, AC-016).
+  // Offer the attempt exactly once for any completed game (win, loss, or draw).
   useEffect(() => {
     if (!done || offered.current) return;
     offered.current = true;
     storage.setLastDailyPlayed(puzzleId);
-    if (!session.humanWon) return;
     const result = session.game.result();
     void submission.submit({
       puzzle_id: puzzleId,
@@ -206,7 +204,9 @@ function DailyAttempt({
 
         {session.status === 'game-over' && (
           <SubmitPanel
-            admissible={session.humanWon}
+            admissible={true}
+            humanWon={session.humanWon}
+            draw={session.game.result().draw}
             elapsedMs={session.elapsedMs}
             opponentLabel={opponentLabel}
             state={submission.state}
