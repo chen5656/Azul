@@ -19,10 +19,10 @@
   ],
 
   // The API shares the hostname with the Pages site; a Worker route takes
-  // precedence over Pages for the paths it matches, so /api/* lands here and
+  // precedence over Pages for the paths it matches, so /quadro/api/* lands here and
   // everything else is served as the SPA.
   "routes": [
-    { "pattern": "games.aclogics.com/api/*", "zone_name": "aclogics.com" }
+    { "pattern": "games.aclogics.com/quadro/api/*", "zone_name": "aclogics.com" }
   ],
 
   // ~midnight New York year-round; deletes rows older than 90 days (BR-014).

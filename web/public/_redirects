@@ -1,4 +1,6 @@
 # SPA fallback: Pages must serve index.html for unknown paths so deep links to
-# /daily, /practice and /leaderboard work (§9.1, AC-036). /api/* is the Worker's.
-/api/*  /api/:splat  200
-/*      /index.html  200
+# /quadro/daily, /quadro/practice and /quadro/leaderboard work (§9.1, AC-036). /quadro/api/* is the Worker's.
+/quadro/api/*  /quadro/api/:splat  200
+/quadro/*      /quadro/index.html  200
+/api/*         /api/:splat         200
+/*             /index.html         200

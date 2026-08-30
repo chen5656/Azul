@@ -50,7 +50,7 @@ async function route(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
   const path = url.pathname.replace(/\/+$/, '') || '/';
 
-  if (path === '/api/daily' && request.method === 'GET') {
+  if ((path === '/quadro/api/daily' || path === '/api/daily') && request.method === 'GET') {
     const puzzleId = currentPuzzleId();
     return json({
       puzzle_id: puzzleId,
@@ -60,7 +60,7 @@ async function route(request: Request, env: Env): Promise<Response> {
     });
   }
 
-  if (path === '/api/leaderboard' && request.method === 'GET') {
+  if ((path === '/quadro/api/leaderboard' || path === '/api/leaderboard') && request.method === 'GET') {
     const requested = url.searchParams.get('puzzle_id');
     if (requested !== null && !isPuzzleId(requested)) {
       throw new HttpError(422, 'INVALID_PAYLOAD', 'puzzle_id must be YYYY-MM-DD');
@@ -76,14 +76,14 @@ async function route(request: Request, env: Env): Promise<Response> {
     );
   }
 
-  if (path === '/api/scores' && request.method === 'POST') {
+  if ((path === '/quadro/api/scores' || path === '/api/scores') && request.method === 'POST') {
     const session = await verifyRequest(request, env);
     if (!session) throw new HttpError(401, 'UNAUTHENTICATED', 'Sign in to post a time');
     const body = await request.json().catch(() => null);
     return submitScore(env.DB, session, body);
   }
 
-  if (path === '/api/me' && request.method === 'DELETE') {
+  if ((path === '/quadro/api/me' || path === '/api/me') && request.method === 'DELETE') {
     const session = await verifyRequest(request, env);
     if (!session) throw new HttpError(401, 'UNAUTHENTICATED', 'Sign in first');
     return deleteMe(env.DB, session);

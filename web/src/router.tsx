@@ -10,10 +10,24 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 
 export type Route = '/' | '/daily' | '/practice' | '/leaderboard';
 
+const BASE_PATH = '/quadro';
 const ROUTES: Route[] = ['/', '/daily', '/practice', '/leaderboard'];
 
+function stripBase(pathname: string): string {
+  if (pathname === BASE_PATH || pathname === `${BASE_PATH}/`) return '/';
+  if (pathname.startsWith(`${BASE_PATH}/`)) {
+    return pathname.slice(BASE_PATH.length);
+  }
+  return pathname;
+}
+
+function toHref(route: Route): string {
+  return route === '/' ? `${BASE_PATH}/` : `${BASE_PATH}${route}`;
+}
+
 function normalize(pathname: string): Route {
-  const trimmed = pathname.replace(/\/+$/, '') || '/';
+  const stripped = stripBase(pathname);
+  const trimmed = stripped.replace(/\/+$/, '') || '/';
   return (ROUTES.find((r) => r === trimmed) ?? '/') as Route;
 }
 
@@ -34,7 +48,8 @@ export function RouterProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const navigate = useCallback((to: Route) => {
-    if (normalize(window.location.pathname) !== to) window.history.pushState({}, '', to);
+    const targetHref = toHref(to);
+    if (normalize(window.location.pathname) !== to) window.history.pushState({}, '', targetHref);
     setRoute(to);
     window.scrollTo(0, 0);
   }, []);
@@ -59,7 +74,7 @@ export function Link({
   const { navigate } = useRouter();
   return (
     <a
-      href={to}
+      href={toHref(to)}
       className={className}
       onClick={(event) => {
         if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
