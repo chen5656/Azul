@@ -3,7 +3,6 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
-  base: '/quadro/',
   plugins: [
     react(),
     // Precaches the app shell so Practice and a cached Daily still play with no
@@ -16,7 +15,7 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,woff2}'],
         // Never serve an /api response from the cache: a stale leaderboard is
         // worse than an honest offline state.
-        navigateFallbackDenylist: [/^\/quadro\/api\//, /^\/api\//],
+        navigateFallbackDenylist: [/^\/api\//],
       },
       manifest: {
         name: 'Quadro — Daily Challenge',
@@ -25,8 +24,8 @@ export default defineConfig({
         theme_color: '#0a0a0a',
         background_color: '#0a0a0a',
         display: 'standalone',
-        start_url: '/quadro/',
-        scope: '/quadro/',
+        start_url: '/',
+        scope: '/',
       },
     }),
   ],

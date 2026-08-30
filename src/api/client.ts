@@ -9,7 +9,7 @@
 export const CLIENT_VERSION = '1.0.0';
 
 /** Same-origin in production; Pages and the Worker share `games.aclogics.com`. */
-const BASE = (import.meta.env.VITE_API_BASE as string | undefined) ?? '/quadro';
+const BASE = (import.meta.env.VITE_API_BASE as string | undefined) ?? '';
 
 export interface LeaderboardEntry {
   rank: number;
