@@ -1,14 +1,15 @@
 /**
  * The Daily Challenge (FR-016 … FR-025).
  *
- * One deal per New York day. Supports multiple AI difficulty levels (defaults to Monte Carlo).
+ * One deal per New York day. Supports multiple AI difficulty levels (Random, Greedy, Minimax, Monte Carlo; defaults to Monte Carlo).
+ * The selected AI difficulty is synchronized via URL query parameter (e.g. `?ai=greedy` or `?ai=random`).
  * Timed on total wall clock including the opponent's thinking.
  * Ranked by score margin (human score - opponent score). Unlimited retries; any completed game is ranked.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { DAILY_TIME_BUDGET, LEVEL_LABELS, type AgentLevel } from '../ai';
+import { DAILY_TIME_BUDGET, LEVELS, LEVEL_LABELS, type AgentLevel } from '../ai';
 import { useIdentity } from '../auth/clerk';
 import { Board } from '../components/Board';
 import { Leaderboard } from '../components/Leaderboard';
@@ -24,17 +25,29 @@ import {
 import { setAttemptRunning } from '../game/attemptGuard';
 import { useGameSession } from '../game/useGameSession';
 import { useSubmission } from '../game/useSubmission';
+import { useRouter } from '../router';
 import { storage } from '../storage';
 
-const DAILY_LEVELS: readonly Exclude<AgentLevel, 'random'>[] = ['mcts', 'minimax', 'greedy'] as const;
+const DAILY_LEVELS: readonly AgentLevel[] = ['mcts', 'minimax', 'greedy', 'random'] as const;
+
+function getLevelFromSearch(search: string): AgentLevel {
+  const params = new URLSearchParams(search);
+  const ai = params.get('ai') ?? params.get('level');
+  if (ai && (LEVELS as readonly string[]).includes(ai)) {
+    return ai as AgentLevel;
+  }
+  return 'mcts';
+}
 
 export function Daily() {
+  const { search, navigate } = useRouter();
   // The id the attempt is played under. It is captured when the attempt starts
   // and never swapped mid-game (FR-025).
   const [puzzleId, setPuzzleId] = useState(() => puzzleIdFor());
   const [today, setToday] = useState(puzzleId);
   const [attempt, setAttempt] = useState(0);
-  const [level, setLevel] = useState<Exclude<AgentLevel, 'random'>>('mcts');
+
+  const level = useMemo(() => getLevelFromSearch(search), [search]);
 
   // Re-resolve the New York date on focus and once a minute (§8.1).
   useEffect(() => {
@@ -48,6 +61,23 @@ export function Daily() {
   }, []);
 
   const stale = today !== puzzleId;
+
+  const handleSelectLevel = useCallback(
+    (nextLevel: AgentLevel) => {
+      if (nextLevel !== level) {
+        const params = new URLSearchParams(window.location.search);
+        if (nextLevel === 'mcts') {
+          params.delete('ai');
+          params.delete('level');
+        } else {
+          params.set('ai', nextLevel);
+        }
+        const qs = params.toString();
+        navigate(qs ? `/daily?${qs}` : '/daily');
+      }
+    },
+    [level, navigate],
+  );
 
   return (
     <div className="flex flex-col gap-4">
@@ -70,12 +100,7 @@ export function Daily() {
         key={`${puzzleId}:${level}:${attempt}`}
         puzzleId={puzzleId}
         level={level}
-        onSelectLevel={(nextLevel) => {
-          if (nextLevel !== level) {
-            setLevel(nextLevel);
-            setAttempt((n) => n + 1);
-          }
-        }}
+        onSelectLevel={handleSelectLevel}
         onPlayAgain={() => setAttempt((n) => n + 1)}
       />
     </div>
@@ -89,8 +114,8 @@ function DailyAttempt({
   onPlayAgain,
 }: {
   puzzleId: string;
-  level: Exclude<AgentLevel, 'random'>;
-  onSelectLevel: (level: Exclude<AgentLevel, 'random'>) => void;
+  level: AgentLevel;
+  onSelectLevel: (level: AgentLevel) => void;
   onPlayAgain: () => void;
 }) {
   const identity = useIdentity();
@@ -175,18 +200,19 @@ function DailyAttempt({
         </header>
 
         {/* Difficulty Picker */}
-        <div className="flex items-center gap-2 text-sm">
-          <span className="text-xs text-neutral-400 font-medium">Difficulty:</span>
-          <div className="inline-flex rounded-lg border border-neutral-800 bg-neutral-900 p-0.5">
+        <div className="flex flex-wrap items-center gap-3 rounded-lg border border-neutral-800 bg-neutral-900/60 p-2.5">
+          <span className="text-xs font-semibold uppercase tracking-wider text-neutral-400">AI Opponent:</span>
+          <div className="flex flex-wrap gap-1.5">
             {DAILY_LEVELS.map((candidate) => (
               <button
                 key={candidate}
                 type="button"
                 onClick={() => onSelectLevel(candidate)}
-                className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
+                aria-pressed={level === candidate}
+                className={`rounded-md px-3 py-1.5 text-xs font-medium transition cursor-pointer ${
                   level === candidate
-                    ? 'bg-sky-600 text-white shadow'
-                    : 'text-neutral-400 hover:text-neutral-200'
+                    ? 'bg-sky-600 font-semibold text-white shadow-sm ring-1 ring-sky-400'
+                    : 'border border-neutral-700 bg-neutral-800 text-neutral-300 hover:bg-neutral-700 hover:text-white'
                 }`}
               >
                 {LEVEL_LABELS[candidate]}

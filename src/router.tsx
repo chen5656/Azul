@@ -19,27 +19,38 @@ function normalize(pathname: string): Route {
 
 interface RouterValue {
   route: Route;
-  navigate: (to: Route) => void;
+  search: string;
+  navigate: (to: string) => void;
 }
 
-const RouterContext = createContext<RouterValue>({ route: '/', navigate: () => {} });
+const RouterContext = createContext<RouterValue>({ route: '/', search: '', navigate: () => {} });
 
 export function RouterProvider({ children }: { children: ReactNode }) {
   const [route, setRoute] = useState<Route>(() => normalize(window.location.pathname));
+  const [search, setSearch] = useState<string>(() => window.location.search);
 
   useEffect(() => {
-    const onPop = () => setRoute(normalize(window.location.pathname));
+    const onPop = () => {
+      setRoute(normalize(window.location.pathname));
+      setSearch(window.location.search);
+    };
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
   }, []);
 
-  const navigate = useCallback((to: Route) => {
-    if (normalize(window.location.pathname) !== to) window.history.pushState({}, '', to);
-    setRoute(to);
+  const navigate = useCallback((to: string) => {
+    const url = new URL(to, window.location.href);
+    const newRoute = normalize(url.pathname);
+    const newSearch = url.search;
+    if (window.location.pathname !== url.pathname || window.location.search !== url.search) {
+      window.history.pushState({}, '', to);
+    }
+    setRoute(newRoute);
+    setSearch(newSearch);
     window.scrollTo(0, 0);
   }, []);
 
-  return <RouterContext.Provider value={{ route, navigate }}>{children}</RouterContext.Provider>;
+  return <RouterContext.Provider value={{ route, search, navigate }}>{children}</RouterContext.Provider>;
 }
 
 export function useRouter(): RouterValue {
