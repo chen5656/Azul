@@ -26,7 +26,11 @@ export function DisplayArea({ session }: { session: Session }) {
         aria-label={sourceLabel(source)}
       >
         <div className="mb-1 text-xs text-neutral-400">{sourceLabel(source)}</div>
-        <div className="flex flex-wrap items-center gap-1">
+        <div
+          className={`flex items-center gap-1 ${
+            isCenter ? 'min-h-[6.5rem] flex-wrap content-start' : 'min-h-[3.25rem] flex-nowrap'
+          }`}
+        >
           {colors.map(([color, n]) => {
             const enabled = canSelect(source, color);
             const active = selection?.source === source && selection.color === color;
@@ -58,7 +62,7 @@ export function DisplayArea({ session }: { session: Session }) {
   };
 
   return (
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
       {Array.from({ length: NUM_DISPLAYS }, (_, i) =>
         group(i, state.displays[i] ?? new Array(NUM_COLORS).fill(0)),
       )}

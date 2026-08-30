@@ -58,7 +58,7 @@ export function Board({
   return (
     <div ref={root} className="flex flex-col gap-3">
       <DisplayArea session={session} />
-      <div className="grid gap-3 lg:grid-cols-2">
+      <div className="grid min-w-0 gap-3 xl:grid-cols-2">
         <PlayerBoard
           board={game.state.players[humanSeat]}
           label={humanLabel}
