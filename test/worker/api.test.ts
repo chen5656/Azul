@@ -130,20 +130,26 @@ describe('POST /api/scores', () => {
     expect(audit?.reason).toBe('INVALID_PAYLOAD');
   });
 
-  it('keeps the faster of two attempts, in one row (AC-018, AC-019)', async () => {
+  it('keeps the attempt with better score margin, in one row (AC-018, AC-019)', async () => {
     const token = await makeToken();
-    await post(WIN, token);
+    await post(WIN, token); // 64 - 51 = 13 diff
 
-    const slower = await post({ ...WIN, elapsed_ms: 500_000 }, token);
-    expect(await slower.json()).toMatchObject({ improved: false, best_elapsed_ms: 461_230 });
+    // Smaller diff (10 diff) even if faster elapsed time is not improved
+    const smallerDiff = await post({ ...WIN, elapsed_ms: 300_000, final_score: 60, opponent_score: 50 }, token);
+    expect(await smallerDiff.json()).toMatchObject({ improved: false, best_elapsed_ms: 461_230 });
 
-    const faster = await post({ ...WIN, elapsed_ms: 400_000 }, token);
-    expect(await faster.json()).toMatchObject({ improved: true, best_elapsed_ms: 400_000 });
+    // Larger diff (20 diff) is improved
+    const largerDiff = await post({ ...WIN, elapsed_ms: 500_000, final_score: 70, opponent_score: 50 }, token);
+    expect(await largerDiff.json()).toMatchObject({ improved: true, best_final_score: 70, best_opponent_score: 50 });
+
+    // Same diff (20 diff) but faster time is improved
+    const fasterSameDiff = await post({ ...WIN, elapsed_ms: 400_000, final_score: 70, opponent_score: 50 }, token);
+    expect(await fasterSameDiff.json()).toMatchObject({ improved: true, best_elapsed_ms: 400_000 });
 
     const rows = await env.DB.prepare(
-      'SELECT COUNT(*) AS n, MIN(elapsed_ms) AS best FROM scores WHERE user_id = ?',
-    ).bind('user_ada').first<{ n: number; best: number }>();
-    expect(rows).toMatchObject({ n: 1, best: 400_000 });
+      'SELECT COUNT(*) AS n, MIN(elapsed_ms) AS best, MAX(final_score) AS score FROM scores WHERE user_id = ?',
+    ).bind('user_ada').first<{ n: number; best: number; score: number }>();
+    expect(rows).toMatchObject({ n: 1, best: 400_000, score: 70 });
   });
 
   it('rate-limits the 61st submission in an hour (AC-024)', async () => {
@@ -163,18 +169,18 @@ describe('POST /api/scores', () => {
 });
 
 describe('GET /api/leaderboard', () => {
-  async function seed(rows: [string, string, number, number][]): Promise<void> {
-    for (const [userId, name, elapsed, createdAt] of rows) {
+  async function seed(rows: [string, string, number, number, number, number][]): Promise<void> {
+    for (const [userId, name, elapsed, finalScore, oppScore, createdAt] of rows) {
       await env.DB.prepare(
         `INSERT INTO scores (puzzle_id, user_id, display_name, elapsed_ms, final_score,
                              opponent_score, rounds, client_version, created_at, updated_at)
-         VALUES (?, ?, ?, ?, 64, 51, 5, '1.0.0', ?, ?)`,
-      ).bind(TODAY, userId, name, elapsed, createdAt, createdAt).run();
+         VALUES (?, ?, ?, ?, ?, ?, 5, '1.0.0', ?, ?)`,
+      ).bind(TODAY, userId, name, elapsed, finalScore, oppScore, createdAt, createdAt).run();
     }
   }
 
   it('returns entries and a null me without auth (AC-025)', async () => {
-    await seed([['user_a', 'ada', 461_230, 1000]]);
+    await seed([['user_a', 'ada', 461_230, 64, 51, 1000]]);
     const response = await call(apiRequest('/api/leaderboard'));
     const body = await response.json<{ entries: unknown[]; me: unknown; total_entries: number }>();
     expect(body.entries).toHaveLength(1);
@@ -182,28 +188,35 @@ describe('GET /api/leaderboard', () => {
     expect(body.total_entries).toBe(1);
   });
 
-  it('breaks equal times on the earlier created_at (AC-027)', async () => {
+  it('orders by score margin descending first, then elapsed time, then created_at', async () => {
     await seed([
-      ['user_late', 'late', 461_230, 2000],
-      ['user_early', 'early', 461_230, 1000],
+      ['user_diff_small', 'small_diff', 200_000, 50, 45, 1000], // diff = +5
+      ['user_diff_big', 'big_diff', 500_000, 70, 50, 3000],    // diff = +20
+      ['user_late_same_diff', 'late_same', 400_000, 60, 45, 2000], // diff = +15
+      ['user_early_same_diff', 'early_same', 400_000, 60, 45, 1000], // diff = +15
     ]);
     const response = await call(apiRequest('/api/leaderboard'));
     const body = await response.json<{ entries: { display_name: string; rank: number }[] }>();
-    expect(body.entries.map((e) => e.display_name)).toEqual(['early', 'late']);
-    expect(body.entries.map((e) => e.rank)).toEqual([1, 2]);
+    expect(body.entries.map((e) => e.display_name)).toEqual([
+      'big_diff',
+      'early_same',
+      'late_same',
+      'small_diff',
+    ]);
+    expect(body.entries.map((e) => e.rank)).toEqual([1, 2, 3, 4]);
   });
 
   it('reports a true rank outside the top of the board (AC-026)', async () => {
-    const rows: [string, string, number, number][] = [];
-    for (let i = 0; i < 111; i += 1) rows.push([`user_${i}`, `p${i}`, 100_000 + i, 1000 + i]);
-    rows.push(['user_ada', 'ada', 900_000, 5000]);
+    const rows: [string, string, number, number, number, number][] = [];
+    for (let i = 0; i < 111; i += 1) rows.push([`user_${i}`, `p${i}`, 100_000 + i, 80, 50, 1000 + i]);
+    rows.push(['user_ada', 'ada', 900_000, 55, 50, 5000]); // diff = +5 vs +30 of others
     await seed(rows);
 
     const token = await makeToken();
     const response = await call(apiRequest('/api/leaderboard?limit=100', { token }));
-    const body = await response.json<{ entries: unknown[]; me: { rank: number; elapsed_ms: number } }>();
+    const body = await response.json<{ entries: unknown[]; me: { rank: number; elapsed_ms: number; final_score: number; opponent_score: number } }>();
     expect(body.entries).toHaveLength(100);
-    expect(body.me).toEqual({ rank: 112, elapsed_ms: 900_000 });
+    expect(body.me).toEqual({ rank: 112, elapsed_ms: 900_000, final_score: 55, opponent_score: 50 });
   });
 
   it('returns an empty board rather than an error (AC-028)', async () => {

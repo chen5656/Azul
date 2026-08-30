@@ -31,12 +31,14 @@ function respond(body: unknown) {
 }
 
 describe('leaderboard', () => {
-  it("renders today's entries with rank, name and time (FR-034)", async () => {
+  it("renders today's entries with rank, name, scores and time (FR-034)", async () => {
     respond({ puzzle_id: '2026-08-28', entries: [ENTRY], total_entries: 1, me: null });
     render(<Leaderboard puzzleId="2026-08-28" />);
     await waitFor(() => expect(screen.getByText('ada')).toBeInTheDocument());
     expect(screen.getByText('07:41.230')).toBeInTheDocument();
     expect(screen.getByText('64')).toBeInTheDocument();
+    expect(screen.getByText('51')).toBeInTheDocument();
+    expect(screen.getByText('(+13)')).toBeInTheDocument();
   });
 
   it('pins the player below the list when they are outside it (AC-026)', async () => {
@@ -44,12 +46,15 @@ describe('leaderboard', () => {
       puzzle_id: '2026-08-28',
       entries: [ENTRY],
       total_entries: 112,
-      me: { rank: 112, elapsed_ms: 903_118 },
+      me: { rank: 112, elapsed_ms: 903_118, final_score: 55, opponent_score: 50 },
     });
     render(<Leaderboard puzzleId="2026-08-28" />);
     await waitFor(() => expect(screen.getByText('You')).toBeInTheDocument());
     expect(screen.getByText('112')).toBeInTheDocument();
     expect(screen.getByText('15:03.118')).toBeInTheDocument();
+    expect(screen.getByText('55')).toBeInTheDocument();
+    expect(screen.getByText('50')).toBeInTheDocument();
+    expect(screen.getByText('(+5)')).toBeInTheDocument();
   });
 
   it('renders an empty board as a sentence, not a spinner (AC-028)', async () => {

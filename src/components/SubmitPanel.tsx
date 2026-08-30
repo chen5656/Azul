@@ -14,6 +14,7 @@ import { formatElapsed } from './Timer';
 export function SubmitPanel({
   admissible,
   elapsedMs,
+  opponentLabel = 'opponent',
   state,
   onRetry,
   onDiscard,
@@ -21,6 +22,7 @@ export function SubmitPanel({
 }: {
   admissible: boolean;
   elapsedMs: number;
+  opponentLabel?: string;
   state: SubmissionState;
   onRetry: () => void;
   onDiscard: () => void;
@@ -40,16 +42,16 @@ export function SubmitPanel({
   return (
     <div className="rounded-xl border border-sky-800 bg-sky-950/30 p-3">
       <p className="text-sm">
-        You beat Monte Carlo in{' '}
+        You beat {opponentLabel} in{' '}
         <span className="font-mono font-semibold text-sky-300">{formatElapsed(elapsedMs)}</span>.
       </p>
 
       <div className="mt-2 text-sm text-neutral-300">
-        {state.kind === 'submitting' && <p>Posting your time…</p>}
+        {state.kind === 'submitting' && <p>Posting your score…</p>}
 
         {state.kind === 'awaiting-auth' && (
           <div className="flex flex-wrap items-center gap-2">
-            <span>Sign in to post {formatElapsed(elapsedMs)}.</span>
+            <span>Sign in to post your score.</span>
             {clerkConfigured ? (
               <SignInButton mode="modal">
                 <button type="button" className="rounded bg-sky-600 px-3 py-1 hover:bg-sky-500">
@@ -78,9 +80,7 @@ export function SubmitPanel({
 
         {state.kind === 'not-improved' && (
           <p>
-            Not faster than your{' '}
-            <span className="font-mono">{formatElapsed(state.bestElapsedMs)}</span>, so the board
-            keeps that time.
+            Not higher than your previous best margin, so the board keeps your existing record.
           </p>
         )}
 

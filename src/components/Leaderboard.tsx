@@ -53,7 +53,7 @@ export function Leaderboard({
   return (
     <section aria-label="Leaderboard" className="rounded-xl border border-neutral-800 p-3">
       <header className="mb-2 flex items-baseline justify-between">
-        <h2 className="font-semibold">Today's fastest wins</h2>
+        <h2 className="font-semibold">Today's top scores</h2>
         <span className="text-xs text-neutral-500">{puzzleId}</span>
       </header>
       <Body state={state} onRetry={load} signedIn={identity.signedIn} />
@@ -107,28 +107,56 @@ function Body({
 
   return (
     <>
+      <div className="mb-1 flex items-center gap-2 text-xs font-medium text-neutral-500 px-1">
+        <span className="w-6">#</span>
+        <span className="flex-1">Player</span>
+        <span className="w-24 text-right">Score (Diff)</span>
+        <span className="w-16 text-right">Time</span>
+      </div>
       <ol className="divide-y divide-neutral-800 text-sm">
-        {board.entries.map((entry) => (
-          <li
-            key={entry.rank}
-            className={`flex items-baseline gap-3 py-1.5 ${
-              board.me?.rank === entry.rank ? 'text-sky-300' : ''
-            }`}
-          >
-            <span className="w-8 tabular-nums text-neutral-500">{entry.rank}</span>
-            <span className="min-w-0 flex-1 truncate">{entry.display_name}</span>
-            <span className="tabular-nums text-neutral-400">{entry.final_score}</span>
-            <span className="font-mono tabular-nums">{formatElapsed(entry.elapsed_ms)}</span>
-          </li>
-        ))}
+        {board.entries.map((entry) => {
+          const diff = entry.final_score - entry.opponent_score;
+          return (
+            <li
+              key={entry.rank}
+              className={`flex items-baseline gap-2 py-1.5 px-1 ${
+                board.me?.rank === entry.rank ? 'text-sky-300' : ''
+              }`}
+            >
+              <span className="w-6 tabular-nums text-neutral-500">{entry.rank}</span>
+              <span className="min-w-0 flex-1 truncate">{entry.display_name}</span>
+              <span className="w-24 text-right tabular-nums text-neutral-300">
+                <span>{entry.final_score}</span>
+                <span className="text-neutral-500"> - </span>
+                <span className="text-neutral-400">{entry.opponent_score}</span>
+                <span className="ml-1 text-xs font-medium text-emerald-400">
+                  (+{diff})
+                </span>
+              </span>
+              <span className="w-16 text-right font-mono text-xs tabular-nums text-neutral-400">
+                {formatElapsed(entry.elapsed_ms)}
+              </span>
+            </li>
+          );
+        })}
       </ol>
 
       {board.me !== null && !meInList && (
         <div className="mt-2 border-t border-neutral-700 pt-2 text-sm text-sky-300">
-          <div className="flex items-baseline gap-3">
-            <span className="w-8 tabular-nums">{board.me.rank}</span>
-            <span className="flex-1">You</span>
-            <span className="font-mono tabular-nums">{formatElapsed(board.me.elapsed_ms)}</span>
+          <div className="flex items-baseline gap-2 px-1">
+            <span className="w-6 tabular-nums">{board.me.rank}</span>
+            <span className="flex-1 truncate">You</span>
+            <span className="w-24 text-right tabular-nums">
+              <span>{board.me.final_score}</span>
+              <span className="text-sky-400/60"> - </span>
+              <span>{board.me.opponent_score}</span>
+              <span className="ml-1 text-xs font-medium text-emerald-400">
+                (+{board.me.final_score - board.me.opponent_score})
+              </span>
+            </span>
+            <span className="w-16 text-right font-mono text-xs tabular-nums">
+              {formatElapsed(board.me.elapsed_ms)}
+            </span>
           </div>
         </div>
       )}

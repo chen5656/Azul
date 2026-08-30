@@ -23,7 +23,12 @@ export interface Leaderboard {
   puzzle_id: string;
   entries: LeaderboardEntry[];
   total_entries: number;
-  me: { rank: number; elapsed_ms: number } | null;
+  me: {
+    rank: number;
+    elapsed_ms: number;
+    final_score: number;
+    opponent_score: number;
+  } | null;
 }
 
 export interface DailyDescriptor {
@@ -46,6 +51,8 @@ export interface ScoreResult {
   accepted: true;
   improved: boolean;
   best_elapsed_ms: number;
+  best_final_score?: number;
+  best_opponent_score?: number;
   rank: number;
   total_entries: number;
 }

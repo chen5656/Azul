@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS scores (
 );
 
 CREATE INDEX IF NOT EXISTS idx_scores_board
-  ON scores (puzzle_id, elapsed_ms ASC, created_at ASC);
+  ON scores (puzzle_id, (final_score - opponent_score) DESC, elapsed_ms ASC, created_at ASC);
 
 -- Append-only. Makes the per-user rate limit enforceable without a KV counter
 -- and leaves a forensic trail if the board is ever polluted.

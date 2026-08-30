@@ -125,13 +125,17 @@ export async function submitScore(
   }
 
   const existing = await db
-    .prepare('SELECT elapsed_ms, created_at FROM scores WHERE puzzle_id = ? AND user_id = ?')
+    .prepare('SELECT elapsed_ms, final_score, opponent_score, created_at FROM scores WHERE puzzle_id = ? AND user_id = ?')
     .bind(payload.puzzle_id, session.userId)
-    .first<{ elapsed_ms: number; created_at: number }>();
+    .first<{ elapsed_ms: number; final_score: number; opponent_score: number; created_at: number }>();
 
   let improved: boolean;
   let bestElapsedMs: number;
+  let bestFinalScore: number;
+  let bestOpponentScore: number;
   let createdAt: number;
+
+  const payloadDiff = payload.final_score - payload.opponent_score;
 
   if (!existing) {
     await db
@@ -148,29 +152,40 @@ export async function submitScore(
       .run();
     improved = true;
     bestElapsedMs = payload.elapsed_ms;
+    bestFinalScore = payload.final_score;
+    bestOpponentScore = payload.opponent_score;
     createdAt = now;
-  } else if (payload.elapsed_ms < existing.elapsed_ms) {
-    // Strictly faster only (FR-030). `created_at` is kept, so a repeat winner
-    // does not lose their place in a tie-break they already earned.
-    await db
-      .prepare(
-        `UPDATE scores
-            SET display_name = ?, elapsed_ms = ?, final_score = ?, opponent_score = ?,
-                rounds = ?, client_version = ?, updated_at = ?
-          WHERE puzzle_id = ? AND user_id = ?`,
-      )
-      .bind(
-        session.displayName, payload.elapsed_ms, payload.final_score, payload.opponent_score,
-        payload.rounds, payload.client_version, now, payload.puzzle_id, session.userId,
-      )
-      .run();
-    improved = true;
-    bestElapsedMs = payload.elapsed_ms;
-    createdAt = existing.created_at;
   } else {
-    improved = false;
-    bestElapsedMs = existing.elapsed_ms;
-    createdAt = existing.created_at;
+    const existingDiff = existing.final_score - existing.opponent_score;
+    const isBetter =
+      payloadDiff > existingDiff ||
+      (payloadDiff === existingDiff && payload.elapsed_ms < existing.elapsed_ms);
+
+    if (isBetter) {
+      await db
+        .prepare(
+          `UPDATE scores
+              SET display_name = ?, elapsed_ms = ?, final_score = ?, opponent_score = ?,
+                  rounds = ?, client_version = ?, updated_at = ?
+            WHERE puzzle_id = ? AND user_id = ?`,
+        )
+        .bind(
+          session.displayName, payload.elapsed_ms, payload.final_score, payload.opponent_score,
+          payload.rounds, payload.client_version, now, payload.puzzle_id, session.userId,
+        )
+        .run();
+      improved = true;
+      bestElapsedMs = payload.elapsed_ms;
+      bestFinalScore = payload.final_score;
+      bestOpponentScore = payload.opponent_score;
+      createdAt = existing.created_at;
+    } else {
+      improved = false;
+      bestElapsedMs = existing.elapsed_ms;
+      bestFinalScore = existing.final_score;
+      bestOpponentScore = existing.opponent_score;
+      createdAt = existing.created_at;
+    }
   }
 
   await audit(db, {
@@ -183,11 +198,15 @@ export async function submitScore(
     .bind(payload.puzzle_id)
     .first<{ n: number }>();
 
+  const bestDiff = bestFinalScore - bestOpponentScore;
+
   return json({
     accepted: true,
     improved,
     best_elapsed_ms: bestElapsedMs,
-    rank: await rankOf(db, payload.puzzle_id, bestElapsedMs, createdAt),
+    best_final_score: bestFinalScore,
+    best_opponent_score: bestOpponentScore,
+    rank: await rankOf(db, payload.puzzle_id, bestDiff, bestElapsedMs, createdAt),
     total_entries: Number(total?.n ?? 0),
   });
 }

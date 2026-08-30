@@ -23,8 +23,7 @@ export function Home() {
         >
           <h2 className="text-lg font-semibold">Daily Challenge</h2>
           <p className="mt-1 text-sm text-neutral-400">
-            One deal for everyone, against Monte Carlo. Beat it, and your time goes on today's
-            board.
+            One deal for everyone. Choose your difficulty, maximize your score margin, and take the lead on today's board.
           </p>
           <p className="mt-3 text-xs text-neutral-500">
             {puzzleId}

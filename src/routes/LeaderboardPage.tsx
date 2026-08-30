@@ -10,7 +10,7 @@ export function LeaderboardPage() {
       <h1 className="mb-3 text-2xl font-semibold">Leaderboard</h1>
       <Leaderboard puzzleId={puzzleIdFor()} />
       <p className="mt-4 text-sm text-neutral-500">
-        Times are for today's puzzle only.{' '}
+        Scores are for today's puzzle only.{' '}
         <Link to="/daily" className="underline hover:text-neutral-300">
           Play it
         </Link>

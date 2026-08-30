@@ -1,8 +1,8 @@
 /**
- * `GET /api/leaderboard` — today's global board, ascending, top 100.
+ * `GET /api/leaderboard` — today's global board, top 100.
  *
- * Ties break on the earlier `created_at` (FR-038, AC-027), which is exactly the
- * order the `idx_scores_board` index stores, so the query is a range scan.
+ * Ordered by score margin (final_score - opponent_score) DESC, elapsed_ms ASC,
+ * with ties broken on earlier created_at (FR-038, AC-027).
  */
 
 import type { Session } from './auth';
@@ -29,13 +29,13 @@ export async function leaderboard(
         `SELECT display_name, elapsed_ms, final_score, opponent_score
            FROM scores
           WHERE puzzle_id = ?
-          ORDER BY elapsed_ms ASC, created_at ASC
+          ORDER BY (final_score - opponent_score) DESC, elapsed_ms ASC, created_at ASC
           LIMIT ?`,
       )
       .bind(puzzleId, clamped),
     db.prepare('SELECT COUNT(*) AS n FROM scores WHERE puzzle_id = ?').bind(puzzleId),
     db
-      .prepare('SELECT elapsed_ms, created_at FROM scores WHERE puzzle_id = ? AND user_id = ?')
+      .prepare('SELECT elapsed_ms, final_score, opponent_score, created_at FROM scores WHERE puzzle_id = ? AND user_id = ?')
       .bind(puzzleId, session?.userId ?? ''),
   ]);
 
@@ -44,10 +44,16 @@ export async function leaderboard(
     ...row,
   }));
 
-  let me: { rank: number; elapsed_ms: number } | null = null;
-  const own = (mine.results as unknown as { elapsed_ms: number; created_at: number }[])[0];
+  let me: { rank: number; elapsed_ms: number; final_score: number; opponent_score: number } | null = null;
+  const own = (mine.results as unknown as { elapsed_ms: number; final_score: number; opponent_score: number; created_at: number }[])[0];
   if (session && own) {
-    me = { rank: await rankOf(db, puzzleId, own.elapsed_ms, own.created_at), elapsed_ms: own.elapsed_ms };
+    const diff = own.final_score - own.opponent_score;
+    me = {
+      rank: await rankOf(db, puzzleId, diff, own.elapsed_ms, own.created_at),
+      elapsed_ms: own.elapsed_ms,
+      final_score: own.final_score,
+      opponent_score: own.opponent_score,
+    };
   }
 
   return json({
@@ -62,6 +68,7 @@ export async function leaderboard(
 export async function rankOf(
   db: D1Database,
   puzzleId: string,
+  diff: number,
   elapsedMs: number,
   createdAt: number,
 ): Promise<number> {
@@ -70,9 +77,13 @@ export async function rankOf(
       `SELECT COUNT(*) AS ahead
          FROM scores
         WHERE puzzle_id = ?
-          AND (elapsed_ms < ? OR (elapsed_ms = ? AND created_at < ?))`,
+          AND (
+            (final_score - opponent_score) > ?
+            OR ((final_score - opponent_score) = ? AND elapsed_ms < ?)
+            OR ((final_score - opponent_score) = ? AND elapsed_ms = ? AND created_at < ?)
+          )`,
     )
-    .bind(puzzleId, elapsedMs, elapsedMs, createdAt)
+    .bind(puzzleId, diff, diff, elapsedMs, diff, elapsedMs, createdAt)
     .first<{ ahead: number }>();
   return Number(row?.ahead ?? 0) + 1;
 }

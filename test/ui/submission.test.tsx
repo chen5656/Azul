@@ -191,8 +191,7 @@ describe('SubmitPanel', () => {
         onPlayAgain={noop}
       />,
     );
-    await waitFor(() => expect(screen.getByText(/Not faster than your/i)).toBeInTheDocument());
-    expect(screen.getByText('07:41.230')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText(/Not higher than your previous best margin/i)).toBeInTheDocument());
   });
 
   it('shows a retry control when the post failed', () => {
