@@ -21,3 +21,4 @@ web/dist/
 # AzulZero training artifacts: checkpoints, replay windows and run logs.
 backend/runs/
 backend/zero/weights/*.npz
+backend/tests/test_game.py
