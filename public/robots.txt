@@ -1,0 +1,7 @@
+# Everything on the site is public and worth crawling except the JSON API,
+# which has no indexable representation and only burns crawl budget.
+User-agent: *
+Allow: /
+Disallow: /api/
+
+Sitemap: https://acgame.win/sitemap.xml

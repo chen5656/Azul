@@ -9,7 +9,7 @@
     "typecheck": "tsc --noEmit && tsc -p tsconfig.worker.json",
     "bench": "vite-node test/strength.bench.ts --",
     "dev": "vite",
-    "build": "npm run typecheck && vite build",
+    "build": "npm run typecheck && vite build && node scripts/seo-build.mjs",
     "preview": "vite preview",
     "test:worker": "vitest run --config test/worker/vitest.config.ts",
     "deploy": "wrangler deploy"

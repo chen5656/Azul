@@ -14,8 +14,9 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,woff2}'],
         // Never serve an /api response from the cache: a stale leaderboard is
-        // worse than an honest offline state.
-        navigateFallbackDenylist: [/^\/api\//],
+        // worse than an honest offline state. /guide/* is static HTML built
+        // after this plugin runs, so the app shell must not shadow it either.
+        navigateFallbackDenylist: [/^\/api\//, /^\/guide(\/|$)/],
       },
       manifest: {
         name: 'Quadro — Daily Challenge',
