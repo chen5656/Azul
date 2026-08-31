@@ -23,7 +23,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-async function startPractice(level = 'Random', seed = '4242') {
+async function startPractice(level = 'Easy', seed = '4242') {
   const user = userEvent.setup();
   render(<Practice />);
   await user.click(screen.getByRole('button', { name: level }));
@@ -41,7 +41,7 @@ describe('practice setup', () => {
 
   it('offers all four levels and no others (FR-010)', () => {
     render(<Practice />);
-    for (const label of ['Random', 'Greedy', 'Minimax', 'Monte Carlo']) {
+    for (const label of ['Easy', 'Medium', 'Hard', 'Expert', 'Master', 'Extreme']) {
       expect(screen.getByRole('button', { name: label })).toBeInTheDocument();
     }
     expect(screen.queryByText(/zero/i)).not.toBeInTheDocument();
@@ -56,7 +56,7 @@ describe('practice setup', () => {
   });
 
   it('shows the seed in play so a deal can be replayed (FR-011)', async () => {
-    await startPractice('Random', '4242');
+    await startPractice('Easy', '4242');
     expect(screen.getByText(/Seed 4242/)).toBeInTheDocument();
   });
 });
@@ -76,7 +76,7 @@ describe('board interaction', () => {
   it('never enables an illegal destination', async () => {
     await startPractice();
     // The opponent's board is never a destination.
-    const theirBoard = screen.getByRole('region', { name: 'Random' });
+    const theirBoard = screen.getByRole('region', { name: 'Easy' });
     await userEvent.click(screen.getAllByRole('button', { name: /^Take \d/ })[0]);
     for (const row of within(theirBoard).getAllByRole('button', { name: /Staging row/ })) {
       expect(row).toBeDisabled();
@@ -108,11 +108,11 @@ describe('board interaction', () => {
   it('lets the opponent open when the deal seats it first', async () => {
     // Seed 564659697 deals the first move to seat 1, so the session must run the
     // opponent's turn on its own before the player can touch anything.
-    await startPractice('Random', '564659697');
+    await startPractice('Easy', '564659697');
     await waitFor(() =>
       expect(screen.getByRole('status').textContent).toMatch(/Your turn/i),
     );
-    const theirBoard = screen.getByRole('region', { name: 'Random' });
+    const theirBoard = screen.getByRole('region', { name: 'Easy' });
     const staged = within(theirBoard)
       .getAllByRole('button', { name: /Staging row/ })
       .some((row) => row.textContent !== '');

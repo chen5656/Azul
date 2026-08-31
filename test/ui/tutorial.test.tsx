@@ -8,7 +8,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { Action, QuadroGame } from '../../src/engine';
-import { makeAgent } from '../../src/ai';
+import { GreedyAgent } from '../../src/ai';
 import { Tutorial } from '../../src/routes/Tutorial';
 import { RouterProvider } from '../../src/router';
 import {
@@ -24,7 +24,7 @@ afterEach(cleanup);
 describe('the lesson script', () => {
   it('is legal from start to finish against the seeded deal', () => {
     const game = new QuadroGame(TUTORIAL_SEED, TUTORIAL_FIRST_PLAYER);
-    const opponent = makeAgent('greedy', TUTORIAL_SEED ^ 0x5f3759df);
+    const opponent = new GreedyAgent(TUTORIAL_SEED ^ 0x5f3759df);
 
     for (const step of MOVE_STEPS) {
       expect(game.isOver()).toBe(false);

@@ -1,5 +1,5 @@
 /**
- * Level 3 — open-loop determinized UCT.
+ * The `extreme` level — open-loop determinized UCT.
  *
  * Chance only enters at a round boundary (the deal), and the bag's composition
  * is public — only the draw order is random. So instead of building a node per
@@ -57,7 +57,7 @@ export interface MctsOptions {
 }
 
 export class MctsAgent implements Agent {
-  readonly level = 'mcts' as const;
+  readonly level = 'extreme' as const;
   simulations = 0;
 
   private readonly rng: Rng;

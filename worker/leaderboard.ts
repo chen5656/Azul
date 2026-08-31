@@ -2,7 +2,8 @@
  * `GET /api/leaderboard` — today's global board, top 100.
  *
  * One board per opponent agent (they are not comparable, so they are never
- * mixed): `?ai=mcts|minimax|greedy|random`, defaulting to Monte Carlo.
+ * mixed): `?ai=extreme|master|expert|hard|medium|easy`, defaulting to the
+ * strongest opponent.
  * Ordered by score margin (final_score - opponent_score) DESC, elapsed_ms ASC,
  * with ties broken on earlier created_at (FR-038, AC-027).
  */
@@ -10,9 +11,9 @@
 import type { Session } from './auth';
 import { json } from './http';
 
-export const AI_LEVELS = ['mcts', 'minimax', 'greedy', 'random'] as const;
+export const AI_LEVELS = ['extreme', 'master', 'expert', 'hard', 'medium', 'easy'] as const;
 export type AiLevel = (typeof AI_LEVELS)[number];
-export const DEFAULT_AI_LEVEL: AiLevel = 'mcts';
+export const DEFAULT_AI_LEVEL: AiLevel = 'extreme';
 
 export function isAiLevel(value: unknown): value is AiLevel {
   return typeof value === 'string' && (AI_LEVELS as readonly string[]).includes(value);

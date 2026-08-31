@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS scores (
   elapsed_ms    INTEGER NOT NULL,
   final_score   INTEGER NOT NULL,
   opponent_score INTEGER NOT NULL,
-  ai_level      TEXT    NOT NULL DEFAULT 'mcts',  -- opponent agent the attempt was played against
+  ai_level      TEXT    NOT NULL DEFAULT 'extreme', -- opponent agent the attempt was played against
   rounds        INTEGER NOT NULL,
   client_version TEXT   NOT NULL,
   created_at    INTEGER NOT NULL,          -- epoch ms, server-assigned

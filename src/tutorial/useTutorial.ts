@@ -25,7 +25,7 @@ import {
   legalActions,
   preview,
 } from '../engine';
-import { makeAgent } from '../ai';
+import { GreedyAgent } from '../ai';
 import type { Session, Selection } from '../game/useGameSession';
 import {
   type MoveStep,
@@ -85,7 +85,9 @@ export function useTutorial(): Tutorial {
   const step = STEPS[stepIndex];
   const done = stepIndex >= STEPS.length - 1;
 
-  const opponent = useMemo(() => makeAgent('greedy', TUTORIAL_SEED ^ 0x5f3759df), []);
+  // Plain greedy, not a difficulty level: the scripted deal was authored
+  // against its replies, so the tutorial must not drift when the levels move.
+  const opponent = useMemo(() => new GreedyAgent(TUTORIAL_SEED ^ 0x5f3759df), []);
 
   // ---- gating -------------------------------------------------------
 

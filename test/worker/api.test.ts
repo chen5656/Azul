@@ -50,7 +50,7 @@ describe('GET /api/daily', () => {
     expect(response.status).toBe(200);
     const body = await response.json<{ puzzle_id: string; seed: number; opponent: string; next_rollover_ms: number }>();
     expect(body.puzzle_id).toBe(TODAY);
-    expect(body.opponent).toBe('mcts');
+    expect(body.opponent).toBe('extreme');
     expect(Number.isInteger(body.seed)).toBe(true);
     expect(body.next_rollover_ms).toBeGreaterThan(Date.now());
   });

@@ -1,5 +1,6 @@
 /**
- * Level 2 — alpha-beta within the round.
+ * Alpha-beta within the round — every level from `medium` up to `master`, which
+ * differ only in how deep and how wide they are allowed to look.
  *
  * Once the displays are dealt, the rest of the round is a pure
  * perfect-information zero-sum game: no hidden tiles, no chance events until the
@@ -17,7 +18,7 @@ import {
   settleRound,
   undoAction,
 } from '../engine';
-import { type Agent, AgentError, choice } from './base';
+import { type Agent, type AgentLevel, AgentError, choice } from './base';
 import { now } from './clock';
 import { DEFAULT_WEIGHTS, type Weights, evaluate } from './evaluate';
 import { actionValue } from './greedyAgent';
@@ -27,8 +28,30 @@ const INF = Infinity;
 /** Thrown to unwind the search when the deadline passes mid-node. */
 class SearchTimeout extends Error {}
 
+/** Search depth per alpha-beta level. */
+export const MINIMAX_DEPTHS = { medium: 2, hard: 3, expert: 4, master: 5 } as const;
+export type MinimaxLevel = keyof typeof MINIMAX_DEPTHS;
+
+/**
+ * Children searched per node, where the whole tree is too wide to finish.
+ *
+ * Only `master` narrows. At a branching factor of 30-80 a full-width depth 5
+ * cannot complete inside the move budget, so it would time out and hand back
+ * the depth 4 answer — the same move `expert` already played, one level down.
+ * Searching the eight best-ordered moves buys the extra ply instead, and the
+ * bench says the trade is worth it in both directions: narrowing beats
+ * full-width at equal depth, and the deeper narrow search beats both.
+ */
+export const MINIMAX_WIDTHS: Partial<Record<MinimaxLevel, number>> = { master: 8 };
+
+function levelForDepth(depth: number): AgentLevel {
+  if (depth <= 2) return 'medium';
+  if (depth === 3) return 'hard';
+  return depth === 4 ? 'expert' : 'master';
+}
+
 export class MinimaxAgent implements Agent {
-  readonly level = 'minimax' as const;
+  readonly level: AgentLevel;
   nodes = 0;
   reachedDepth = 0;
 
@@ -41,8 +64,12 @@ export class MinimaxAgent implements Agent {
     /** seconds, matching the Python agent's `time_budget` */
     private readonly timeBudget = 0.45,
     private readonly weights: Weights = DEFAULT_WEIGHTS,
+    level: AgentLevel = levelForDepth(depth),
+    /** children searched per node; the whole tree is searched by default */
+    private readonly width = Infinity,
   ) {
     this.rng = new Rng(seed);
+    this.level = level;
   }
 
   // ---- search ------------------------------------------------------
@@ -59,7 +86,8 @@ export class MinimaxAgent implements Agent {
       (a) => [actionValue(state, a, mover, this.weights), a] as const,
     );
     scored.sort((x, y) => y[0] - x[0]);
-    return scored.map(([, a]) => a);
+    const ordered = scored.map(([, a]) => a);
+    return Number.isFinite(this.width) ? ordered.slice(0, this.width) : ordered;
   }
 
   /** Value of a round-final node: settle a copy, then evaluate. */

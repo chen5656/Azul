@@ -47,7 +47,7 @@ export function Practice() {
 function PracticeSetup({ onStart }: { onStart: (setup: Setup) => void }) {
   const remembered = storage.practiceLevel() as AgentLevel | null;
   const [level, setLevel] = useState<AgentLevel>(
-    remembered && LEVELS.includes(remembered) ? remembered : 'greedy',
+    remembered && LEVELS.includes(remembered) ? remembered : 'medium',
   );
   const [seedText, setSeedText] = useState(storage.practiceSeed() ?? '');
   const seedValid = seedText.trim() === '' || isValidSeed(seedText);

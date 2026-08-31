@@ -27,7 +27,7 @@ self.onmessage = (event: MessageEvent<AiRequest>) => {
   const started = performance.now();
   try {
     if (init || agent === null) {
-      const spec = init ?? { level: 'greedy' as AgentLevel };
+      const spec = init ?? { level: 'medium' as AgentLevel };
       agent = makeAgent(spec.level, spec.seed, spec.timeBudget);
     }
     const action = agent.choose(GameState.fromDict(state), player);

@@ -16,11 +16,13 @@ import {
 } from '../../src/engine';
 import {
   DEFAULT_WEIGHTS,
+  EASY_EPSILON,
   GreedyAgent,
   LEVELS,
   MctsAgent,
+  MINIMAX_DEPTHS,
+  MINIMAX_WIDTHS,
   MinimaxAgent,
-  RandomAgent,
   actionValue,
   availableLevels,
   evaluate,
@@ -29,9 +31,11 @@ import {
 } from '../../src/ai';
 
 const AGENTS = () => [
-  new RandomAgent(1),
-  new GreedyAgent(1),
+  new GreedyAgent(1, EASY_EPSILON),
+  new MinimaxAgent(1, 2, 0.05),
+  new MinimaxAgent(1, 3, 0.05),
   new MinimaxAgent(1, 4, 0.05),
+  new MinimaxAgent(1, 5, 0.05, undefined, 'master', 8),
   new MctsAgent({ seed: 1, timeBudget: 0.05 }),
 ];
 
@@ -128,9 +132,14 @@ describe('search budgets (FR-009)', () => {
 });
 
 describe('registry', () => {
-  it('exposes exactly the four classic levels (FR-007)', () => {
-    expect(availableLevels()).toEqual(['random', 'greedy', 'minimax', 'mcts']);
+  it('exposes exactly the six difficulty levels, weakest first (FR-007)', () => {
+    expect(availableLevels()).toEqual(['easy', 'medium', 'hard', 'expert', 'master', 'extreme']);
     expect(LEVELS).not.toContain('azulzero');
+  });
+
+  it('separates the alpha-beta levels by depth, and gives master a narrow beam', () => {
+    expect(MINIMAX_DEPTHS).toEqual({ medium: 2, hard: 3, expert: 4, master: 5 });
+    expect(MINIMAX_WIDTHS).toEqual({ master: 8 });
   });
 
   it('builds an agent for every level', () => {
@@ -139,9 +148,9 @@ describe('registry', () => {
     }
   });
 
-  it('gives the mcts level the Daily budget of 450ms (AC-012)', () => {
-    const agent = makeAgent('mcts', 1) as MctsAgent;
-    expect(agent.level).toBe('mcts');
+  it('gives the extreme level the Daily budget of 450ms (AC-012)', () => {
+    const agent = makeAgent('extreme', 1) as MctsAgent;
+    expect(agent.level).toBe('extreme');
     const game = new QuadroGame(1);
     const started = performance.now();
     agent.choose(game.state, 0);

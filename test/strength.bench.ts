@@ -1,31 +1,21 @@
 /**
- * Agent strength bench (BUILD-SPEC §14.5, AC-030). Manual — not part of CI,
- * because a single mcts-vs-minimax pass runs for over an hour.
+ * Difficulty-ladder bench (BUILD-SPEC §14.5, AC-030). Manual — not part of CI,
+ * because a single extreme-vs-master pass runs for over an hour.
  *
- *   npm run bench                       # all three pairs, 120 games each
- *   npm run bench -- --games 20 --pairs greedy-vs-random
+ *   npm run bench                       # every rung, 120 games each
+ *   npm run bench -- --games 20 --pairs medium-vs-easy
  *
- * Seats are swapped every other game so neither agent keeps the first-player
- * advantage. Results are appended to `web/docs/ts_ai_benchmarks.md`.
- *
- * Targets, from `docs/ai_benchmarks.md`:
- *   greedy      > 90% vs random
- *   minimax(d4) > 65% vs greedy
- *   mcts(450ms) >= 55% vs minimax
+ * Each pair is one rung of the ladder: every level must beat the level directly
+ * below it, which is the whole promise the difficulty names make. Seats are
+ * swapped every other game so neither agent keeps the first-player advantage.
+ * Results are appended to `web/docs/ts_ai_benchmarks.md`.
  */
 
 import { appendFileSync, mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 import { QuadroGame } from '../src/engine';
-import {
-  type Agent,
-  type AgentLevel,
-  GreedyAgent,
-  MctsAgent,
-  MinimaxAgent,
-  RandomAgent,
-} from '../src/ai';
+import { type Agent, type AgentLevel, LEVELS, makeAgent } from '../src/ai';
 
 interface PairSpec {
   name: string;
@@ -35,23 +25,23 @@ interface PairSpec {
   target: number;
 }
 
-const PAIRS: PairSpec[] = [
-  { name: 'greedy-vs-random', challenger: 'greedy', incumbent: 'random', target: 0.9 },
-  { name: 'minimax-vs-greedy', challenger: 'minimax', incumbent: 'greedy', target: 0.65 },
-  { name: 'mcts-vs-minimax', challenger: 'mcts', incumbent: 'minimax', target: 0.55 },
-];
+/**
+ * Every adjacent pair on the ladder. The bar is 55% — a level that cannot clear
+ * a coin flip against the one below it is not a separate difficulty. The bottom
+ * rung is a wide gap (half-random play against a real opponent model), so it is
+ * held to more.
+ */
+const TARGETS: Partial<Record<AgentLevel, number>> = { medium: 0.75 };
+
+const PAIRS: PairSpec[] = LEVELS.slice(1).map((level, i) => ({
+  name: `${level}-vs-${LEVELS[i]}`,
+  challenger: level,
+  incumbent: LEVELS[i],
+  target: TARGETS[level] ?? 0.55,
+}));
 
 function build(level: AgentLevel, seed: number, budget: number): Agent {
-  switch (level) {
-    case 'random':
-      return new RandomAgent(seed);
-    case 'greedy':
-      return new GreedyAgent(seed);
-    case 'minimax':
-      return new MinimaxAgent(seed, 4, budget);
-    case 'mcts':
-      return new MctsAgent({ seed, timeBudget: budget });
-  }
+  return makeAgent(level, seed, budget);
 }
 
 interface Outcome {

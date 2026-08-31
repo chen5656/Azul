@@ -1,4 +1,10 @@
-/** Level 1 — one-ply search over `evaluate`. Fast, and the rollout policy for MCTS. */
+/**
+ * One-ply search over `evaluate`. Fast, and the rollout policy for MCTS.
+ *
+ * Only `easy` plays it as a level, and only with an exploration rate; played
+ * straight it is a shade too strong for the bottom rung. It stays the ordering
+ * heuristic for alpha-beta and the rollout policy for MCTS.
+ */
 
 import {
   type Action,
@@ -9,7 +15,7 @@ import {
   settleRound,
   undoAction,
 } from '../engine';
-import { type Agent, AgentError, choice } from './base';
+import { type Agent, type AgentLevel, AgentError, choice } from './base';
 import { DEFAULT_WEIGHTS, type Weights, evaluate } from './evaluate';
 
 /**
@@ -40,16 +46,21 @@ export function actionValue(
   }
 }
 
+/** How often `easy` abandons the greedy pick for a uniform random legal move. */
+export const EASY_EPSILON = 0.5;
+
 export class GreedyAgent implements Agent {
-  readonly level = 'greedy' as const;
+  readonly level: AgentLevel;
   private readonly rng: Rng;
 
   constructor(
     seed?: number,
     private readonly epsilon = 0,
     private readonly weights: Weights = DEFAULT_WEIGHTS,
+    level: AgentLevel = 'easy',
   ) {
     this.rng = new Rng(seed);
+    this.level = level;
   }
 
   choose(state: GameState, player: number): Action {

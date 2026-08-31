@@ -14,11 +14,18 @@ import { Leaderboard } from '../components/Leaderboard';
 import { puzzleIdFor } from '../daily/puzzle';
 import { Link, useRouter } from '../router';
 
-const BOARD_LEVELS: readonly AgentLevel[] = ['mcts', 'minimax', 'greedy', 'random'] as const;
+const BOARD_LEVELS: readonly AgentLevel[] = [
+  'extreme',
+  'master',
+  'expert',
+  'hard',
+  'medium',
+  'easy',
+] as const;
 
 function levelFromSearch(search: string): AgentLevel {
   const ai = new URLSearchParams(search).get('ai');
-  return ai && (LEVELS as readonly string[]).includes(ai) ? (ai as AgentLevel) : 'mcts';
+  return ai && (LEVELS as readonly string[]).includes(ai) ? (ai as AgentLevel) : 'extreme';
 }
 
 export function LeaderboardPage() {
@@ -29,7 +36,7 @@ export function LeaderboardPage() {
     (next: AgentLevel) => {
       if (next === level) return;
       const base = window.location.pathname.replace(/\/+$/, '') || '/leaderboard';
-      navigate(next === 'mcts' ? base : `${base}?ai=${next}`);
+      navigate(next === 'extreme' ? base : `${base}?ai=${next}`);
     },
     [level, navigate],
   );

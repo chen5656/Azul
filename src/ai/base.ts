@@ -13,8 +13,18 @@ export interface Agent {
   choose(state: GameState, player: number): Action;
 }
 
-/** The four classic levels. The learned agent is out of scope here (D-004). */
-export const LEVELS = ['random', 'greedy', 'minimax', 'mcts'] as const;
+/**
+ * The six difficulty levels, weakest first. The learned agent is out of scope
+ * here (D-004).
+ *
+ *   easy    ε-greedy — one-ply, and half its moves are thrown away
+ *   medium  alpha-beta, depth 2 — the first level with an opponent model
+ *   hard    alpha-beta, depth 3
+ *   expert  alpha-beta, depth 4
+ *   master  alpha-beta, depth 5, narrowed to the 8 best-ordered moves per node
+ *   extreme open-loop UCT within the move budget
+ */
+export const LEVELS = ['easy', 'medium', 'hard', 'expert', 'master', 'extreme'] as const;
 export type AgentLevel = (typeof LEVELS)[number];
 
 /** `random.Random.choice`: uniform pick from a non-empty sequence. */

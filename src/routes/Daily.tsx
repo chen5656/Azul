@@ -28,7 +28,15 @@ import { useSubmission } from '../game/useSubmission';
 import { useRouter } from '../router';
 import { storage } from '../storage';
 
-const DAILY_LEVELS: readonly AgentLevel[] = ['mcts', 'minimax', 'greedy', 'random'] as const;
+// Strongest first: the Daily's default opponent leads the row.
+const DAILY_LEVELS: readonly AgentLevel[] = [
+  'extreme',
+  'master',
+  'expert',
+  'hard',
+  'medium',
+  'easy',
+] as const;
 
 function getLevelFromSearch(search: string): AgentLevel {
   const params = new URLSearchParams(search);
@@ -36,7 +44,7 @@ function getLevelFromSearch(search: string): AgentLevel {
   if (ai && (LEVELS as readonly string[]).includes(ai)) {
     return ai as AgentLevel;
   }
-  return 'mcts';
+  return 'extreme';
 }
 
 export function Daily() {
@@ -66,7 +74,7 @@ export function Daily() {
     (nextLevel: AgentLevel) => {
       if (nextLevel !== level) {
         const params = new URLSearchParams(window.location.search);
-        if (nextLevel === 'mcts') {
+        if (nextLevel === 'extreme') {
           params.delete('ai');
           params.delete('level');
         } else {
@@ -175,7 +183,7 @@ function DailyAttempt({
   };
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[1fr_20rem]">
+    <div className="grid gap-4 2xl:grid-cols-[1fr_20rem]">
       <div className="flex flex-col gap-3">
         <header className="flex flex-wrap items-center justify-between gap-3">
           <div>
