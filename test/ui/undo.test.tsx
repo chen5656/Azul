@@ -77,4 +77,37 @@ describe('useGameSession undo functionality', () => {
     expect(result.current.undosRemaining).toBe(0);
     expect(result.current.canUndo).toBe(false);
   });
+
+  it('disables undo once a round is scored', async () => {
+    const { result } = renderHook(() =>
+      useGameSession({
+        newGame: () => new QuadroGame(42, 0),
+        ai: { level: 'easy' },
+        humanSeat: 0,
+        timed: false,
+      }),
+    );
+
+    // Play until round 1 finishes and round 2 starts
+    while (result.current.game.state.round_num === 1 && !result.current.game.isOver()) {
+      if (result.current.status === 'your-turn' || result.current.status === 'idle') {
+        const legal = result.current.game.legalActions();
+        if (legal.length === 0) break;
+        const move = legal[0];
+        act(() => {
+          result.current.select(move.source, move.color);
+        });
+        act(() => {
+          result.current.place(move.dest);
+        });
+      }
+      await waitFor(() => expect(result.current.status).not.toBe('ai-thinking'), {
+        timeout: 2000,
+      });
+    }
+
+    expect(result.current.game.state.round_num).toBe(2);
+    // Undo must not work after a round is scored
+    expect(result.current.canUndo).toBe(false);
+  });
 });

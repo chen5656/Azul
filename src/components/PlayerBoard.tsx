@@ -42,26 +42,41 @@ export function PlayerBoard({
     spotlight?.kind === kind &&
     (index === undefined || ('index' in spotlight && spotlight.index === index));
   const penaltyTotal = PENALTY_TOTALS[board.penalty_tiles.length];
+  const isHuman = interactive || label.toLowerCase().includes('you');
 
   return (
     <section
       aria-label={label}
-      className={`azul-board min-w-0 rounded-xl border p-3 ${
-        active ? 'border-sky-400 bg-neutral-800/70' : 'border-neutral-700 bg-neutral-800/30'
+      className={`azul-board flex flex-col justify-between rounded-xl border p-2.5 sm:p-3 shadow-md backdrop-blur-sm transition-all max-w-[390px] w-full ${
+        active
+          ? isHuman
+            ? 'border-sky-400/80 bg-neutral-900/80 ring-1 ring-sky-500/40 shadow-sky-500/10'
+            : 'border-rose-400/80 bg-neutral-900/80 ring-1 ring-rose-500/40 shadow-rose-500/10'
+          : 'border-neutral-700/60 bg-neutral-900/60'
       }`}
     >
-      <header className="mb-2 flex items-baseline justify-between gap-2">
-        <span className="font-semibold">
-          {label}
+      <header className="mb-2 sm:mb-2.5 flex items-baseline justify-between gap-2">
+        <span
+          className={`text-sm font-semibold tracking-wide ${
+            isHuman ? 'text-sky-400' : 'text-rose-400'
+          }`}
+        >
+          {isHuman ? 'Your Board' : 'Opponent Board'}
           {board.has_first_token && (
-            <span className="ml-2 text-xs font-normal text-sky-300">goes first next round</span>
+            <span className="ml-2 rounded bg-sky-950/70 px-1.5 py-0.5 text-[10px] font-normal text-sky-300 ring-1 ring-sky-400/40">
+              goes first next round
+            </span>
           )}
         </span>
-        <span className="tabular-nums text-lg">{board.score}</span>
+        <span className="tabular-nums text-base font-bold text-neutral-300">
+          {board.score} pts
+        </span>
       </header>
 
-      <div className="flex gap-3">
-        <div className="flex flex-col gap-1">
+      {/* Staging Rows & 5x5 Grid */}
+      <div className="flex items-center justify-between gap-2 sm:gap-3">
+        {/* Staging Rows (1 to 5) */}
+        <div className="flex flex-col gap-1.5">
           {Array.from({ length: NUM_ROWS }, (_, row) => {
             const capacity = STAGING_CAPACITY[row];
             const color = board.staging_colors[row];
@@ -76,12 +91,12 @@ export function PlayerBoard({
                 onClick={() => place(row)}
                 aria-label={`Staging row ${row + 1}${p ? `, places ${p.placed} tiles` : ''}`}
                 title={p ? `${p.placed} on the row, ${p.overflow} to the penalty row` : undefined}
-                className={`flex justify-end gap-1 rounded p-1.5 ${
-                  ok ? 'bg-sky-900/40 ring-1 ring-sky-500 hover:bg-sky-800/60' : ''
-                } ${interactive && selection && !ok ? 'opacity-50' : ''} ${
-                  lit('row', row)
-                    ? 'ring-2 ring-sky-400'
+                className={`flex justify-end gap-1 rounded-md p-1 transition-all ${
+                  ok
+                    ? 'bg-sky-900/50 ring-2 ring-sky-400 shadow-sm hover:bg-sky-800/70'
                     : ''
+                } ${interactive && selection && !ok ? 'opacity-40' : ''} ${
+                  lit('row', row) ? 'ring-2 ring-sky-400' : ''
                 }`}
               >
                 {Array.from({ length: capacity }, (_, slot) => {
@@ -100,14 +115,15 @@ export function PlayerBoard({
           })}
         </div>
 
+        {/* 5x5 Grid */}
         <div
-          className={`flex flex-col gap-1 rounded ${
+          className={`flex flex-col gap-1.5 rounded-lg border border-neutral-700/40 bg-neutral-950/40 p-1.5 ${
             lit('wall') ? 'ring-2 ring-sky-400' : ''
           }`}
           aria-label="Grid"
         >
           {Array.from({ length: NUM_ROWS }, (_, row) => (
-            <div key={row} className="flex gap-1 p-1">
+            <div key={row} className="flex gap-1">
               {Array.from({ length: GRID_SIZE }, (_, col) => {
                 const color = GRID_COLOR[row][col];
                 return board.grid[row][col] ? (
@@ -115,7 +131,7 @@ export function PlayerBoard({
                 ) : (
                   <div
                     key={col}
-                    className="azul-tile grid place-items-center rounded border border-neutral-800 text-neutral-600"
+                    className="azul-tile grid place-items-center rounded border border-neutral-800/80 bg-neutral-900/20 text-neutral-600 font-semibold"
                   >
                     {['B', 'Y', 'R', 'K', 'W'][color]}
                   </div>
@@ -126,29 +142,39 @@ export function PlayerBoard({
         </div>
       </div>
 
+      {/* Penalty / Floor Row */}
       <button
         type="button"
         disabled={!drop(PENALTY_DEST)}
         onClick={() => place(PENALTY_DEST)}
         aria-label="Penalty row — discard the whole group here"
-        className={`mt-3 flex w-full items-center gap-1 rounded p-1.5 ${
+        className={`mt-2 sm:mt-2.5 flex w-full items-center justify-between rounded-lg border border-neutral-700/50 bg-neutral-950/40 p-1.5 transition-all ${
           drop(PENALTY_DEST)
-            ? 'bg-red-900/40 ring-1 ring-red-500 hover:bg-red-800/60'
+            ? 'border-red-500 bg-red-950/50 ring-2 ring-red-500 shadow-sm hover:bg-red-900/60'
             : interactive && selection
-              ? 'opacity-50'
-              : ''
+            ? 'opacity-40'
+            : ''
         } ${lit('floor') ? 'ring-2 ring-sky-400' : ''}`}
       >
-        {PENALTIES.map((points, i) => (
-          <span key={i} className="flex flex-col items-center">
-            <PenaltySlot tile={board.penalty_tiles[i]} />
-            <span className="text-[10px] text-neutral-500">{points}</span>
-          </span>
-        ))}
-        <span className="ml-auto pr-1 text-xs tabular-nums text-red-300">
+        <div className="flex items-center gap-1 sm:gap-1.5">
+          {PENALTIES.map((points, i) => (
+            <div
+              key={i}
+              className="flex flex-col items-center justify-center rounded border border-neutral-700/60 bg-neutral-900/60 px-1 py-0.5"
+            >
+              <PenaltySlot tile={board.penalty_tiles[i]} size="sm" />
+              <span className="mt-0.5 text-[10px] font-medium text-neutral-400">
+                {points}
+              </span>
+            </div>
+          ))}
+        </div>
+        <span className="pr-1 text-xs tabular-nums text-red-400 font-semibold">
           {board.penalty_tiles.length > 0 && penaltyTotal}
           {board.penalty_overflow > 0 && (
-            <span className="ml-1 text-neutral-500">+{board.penalty_overflow} discarded</span>
+            <span className="ml-1 text-[10px] text-neutral-400">
+              +{board.penalty_overflow}
+            </span>
           )}
         </span>
       </button>

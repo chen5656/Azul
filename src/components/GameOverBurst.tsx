@@ -42,8 +42,6 @@ export function GameOverBurst({ text, tone }: { text: string; tone: 'win' | 'los
     [],
   );
 
-  if (phase === 'done') return null;
-
   const color =
     tone === 'win' ? 'text-sky-300' : tone === 'lose' ? 'text-rose-400' : 'text-neutral-200';
   const letters = [...text];
@@ -55,18 +53,18 @@ export function GameOverBurst({ text, tone }: { text: string; tone: 'win' | 'los
     >
       {phase === 'grow' ? (
         <span
-          className={`azul-burst-grow whitespace-nowrap text-6xl font-black uppercase tracking-tight sm:text-7xl ${color}`}
+          className={`azul-burst-grow whitespace-nowrap text-6xl font-black uppercase tracking-tight drop-shadow-[0_0_25px_rgba(0,0,0,0.8)] sm:text-7xl ${color}`}
         >
           {text}
         </span>
-      ) : (
+      ) : phase === 'boom' ? (
         <>
-          <span className="azul-burst-flash absolute h-40 w-40 rounded-full bg-white/70" />
+          <span className="azul-burst-flash absolute h-40 w-40 rounded-full bg-white/70 blur-2xl" />
           <span className="flex whitespace-nowrap text-6xl font-black uppercase tracking-tight sm:text-7xl">
             {letters.map((ch, i) => (
               <span
                 key={i}
-                className={`azul-burst-letter inline-block ${color}`}
+                className={`azul-burst-letter inline-block drop-shadow-[0_0_25px_rgba(0,0,0,0.8)] ${color}`}
                 style={
                   {
                     '--dx': `${(i - (letters.length - 1) / 2) * 60 + (Math.random() - 0.5) * 80}px`,
@@ -96,6 +94,14 @@ export function GameOverBurst({ text, tone }: { text: string; tone: 'win' | 'los
             />
           ))}
         </>
+      ) : (
+        <div className="azul-burst-settle flex items-center justify-center">
+          <span
+            className={`whitespace-nowrap text-5xl font-black uppercase tracking-wider drop-shadow-[0_0_25px_rgba(0,0,0,0.85)] sm:text-6xl ${color}`}
+          >
+            {text}
+          </span>
+        </div>
       )}
     </div>
   );

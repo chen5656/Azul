@@ -7,6 +7,11 @@
     color-scheme: dark;
   }
 
+  html {
+    overflow-y: scroll;
+    scrollbar-gutter: stable;
+  }
+
   body {
     @apply bg-neutral-950 text-neutral-100 antialiased;
   }
@@ -35,13 +40,17 @@
     animation: azul-burst-flash 0.45s ease-out forwards;
   }
 
+  .azul-burst-settle {
+    animation: azul-burst-settle 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .azul-burst-grow,
   .azul-burst-letter,
   .azul-burst-spark,
-  .azul-burst-flash {
+  .azul-burst-flash,
+  .azul-burst-settle {
     animation: none;
   }
 }
@@ -113,48 +122,119 @@
   }
 }
 
+@keyframes azul-burst-settle {
+  0% {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Visible custom scrollbars for dark theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(23, 23, 23, 0.6);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(115, 115, 115, 0.5);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(163, 163, 163, 0.7);
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(115, 115, 115, 0.5) rgba(23, 23, 23, 0.6);
+}
+
 /*
- * A factory tile: as big as the viewport height allows, never past 3.5rem.
+ * Display Area: Factory Discs and Center Pool scale up when room is bigger
+ */
+.azul-display-area {
+  container-type: inline-size;
+  width: 100%;
+}
+
+.azul-display-area .azul-tile {
+  --azul-tile: clamp(1.4rem, 7cqi, 2.75rem);
+}
+
+/*
+ * Factory tile: follows viewport height and container constraints.
  */
 .azul-tile-lg {
-  --azul-lg: clamp(2.25rem, calc((100dvh - 420px) / 12), 3.5rem);
+  --azul-lg: clamp(1.45rem, 7.5cqi, 2.85rem);
   width: var(--azul-lg);
   height: var(--azul-lg);
-  font-size: clamp(0.75rem, calc(var(--azul-lg) * 0.4), 1.125rem);
+  font-size: clamp(0.7rem, calc(var(--azul-lg) * 0.45), 1.05rem);
 }
 
 /* The "empty" placeholder stands in for a 2x2 block of factory tiles. */
 .azul-factory-empty {
-  --azul-lg: clamp(2.25rem, calc((100dvh - 420px) / 12), 3.5rem);
-  width: calc(var(--azul-lg) * 2 + 0.375rem);
-  height: calc(var(--azul-lg) * 2 + 0.375rem);
+  --azul-empty-tile: var(--azul-tile, 1.85rem);
+  width: calc(var(--azul-empty-tile) * 2 + 0.5rem);
+  height: calc(var(--azul-empty-tile) * 2 + 0.5rem);
 }
 
 /*
- * A player board never scrolls: the staging rows and the grid are ten tiles
- * wide, so the tile size follows the board's own width instead of being fixed.
- * 10 tiles + the gaps and padding between them = 100cqi - 4rem.
+ * Circular Factory Discs and Center Pool
+ */
+.azul-factory-disc {
+  width: clamp(6rem, 39cqi, 11.5rem);
+  height: clamp(6rem, 39cqi, 11.5rem);
+}
+
+.azul-center-pool {
+  width: clamp(8.5rem, 88cqi, 28rem);
+  min-height: clamp(7rem, 48cqi, 15rem);
+  min-width: 6.5rem;
+  border-radius: 1.5rem;
+  transition: width 0.3s cubic-bezier(0.2, 0.8, 0.2, 1), min-height 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.azul-center-pool.azul-center-pool-large {
+  width: clamp(10rem, 94cqi, 30rem);
+  min-height: clamp(8rem, 56cqi, 17rem);
+}
+
+.azul-center-pool.azul-center-pool-huge {
+  width: clamp(11.5rem, 98cqi, 34rem);
+  min-height: clamp(9rem, 65cqi, 20rem);
+}
+
+/*
+ * A player board: fluid sizing following container and viewport height.
+ * Bounded by max-width so side boards do not stretch excessively.
  */
 .azul-board {
   container-type: inline-size;
+  max-width: 390px;
+  width: 100%;
 }
 
 .azul-board .azul-tile {
-  --azul-tile: clamp(1.5rem, calc((100cqi - 4rem) / 10), 4rem);
+  --azul-tile: clamp(1.2rem, calc((100cqi - 3.5rem) / 10), 2.25rem);
 }
 
 .azul-tile {
-  width: var(--azul-tile, 2rem);
-  height: var(--azul-tile, 2rem);
-  font-size: clamp(0.5rem, calc(var(--azul-tile, 2rem) * 0.38), 1.125rem);
+  width: var(--azul-tile, 1.75rem);
+  height: var(--azul-tile, 1.75rem);
+  font-size: clamp(0.5rem, calc(var(--azul-tile, 1.75rem) * 0.4), 0.95rem);
 }
 
 /*
- * Side by side (xl and up) the whole table should fit one screen, so the tile
- * also follows the viewport height: 6.4 tile rows plus ~420px of chrome.
+ * Desktop viewport height adjustment: ensures the entire 3-column table
+ * fits on a standard PC screen without requiring vertical scrolling.
  */
-@media (min-width: 1280px) {
+@media (min-width: 1024px) {
   .azul-board .azul-tile {
-    --azul-tile: clamp(2rem, min(calc((100cqi - 4rem) / 10), calc((100dvh - 620px) / 6.4)), 4rem);
+    --azul-tile: clamp(1.15rem, min(calc((100cqi - 3rem) / 10), calc((100dvh - 420px) / 14)), 2.25rem);
   }
 }

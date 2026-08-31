@@ -19,27 +19,21 @@ export function Tutorial() {
   const { session, step, stepIndex, stepCount, phase, body, canAdvance, next, restart, done } =
     useTutorial();
 
-  return (
-    <div className="flex flex-col gap-4">
-      <header className="flex flex-wrap items-baseline justify-between gap-2">
-        <div>
-          <h1 className="text-xl font-semibold">Learn to play</h1>
-          <p className="text-xs text-neutral-500">
-            One scripted round · nothing here is timed or recorded
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={restart}
-          className="rounded-lg border border-neutral-700 px-3 py-1.5 text-sm hover:bg-neutral-800"
-        >
-          Start over
-        </button>
-      </header>
+  const topRight = (
+    <button
+      type="button"
+      onClick={restart}
+      className="rounded-lg border border-neutral-700 px-3 py-1 text-xs sm:text-sm hover:bg-neutral-800"
+    >
+      Start over
+    </button>
+  );
 
+  return (
+    <div className="flex flex-col gap-3 sm:gap-4">
       <section
         aria-label="Lesson"
-        className="rounded-xl border border-sky-800 bg-sky-950/30 p-4"
+        className="rounded-xl border border-sky-800 bg-sky-950/30 p-3 sm:p-4"
         // The panel is the tutorial's running commentary: announce each new step
         // rather than leaving screen-reader users to hunt for what changed.
         aria-live="polite"
@@ -95,7 +89,12 @@ export function Tutorial() {
         </div>
       </section>
 
-      <Board session={session} humanLabel="You" opponentLabel={OPPONENT_LABEL} />
+      <Board
+        session={session}
+        humanLabel="You"
+        opponentLabel={OPPONENT_LABEL}
+        topRight={topRight}
+      />
     </div>
   );
 }

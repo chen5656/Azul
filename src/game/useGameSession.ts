@@ -164,12 +164,16 @@ export function useGameSession(options: SessionOptions): Session {
         !gameRef.current.isOver() &&
         gameRef.current.state.current !== humanSeat
       ) {
+        const roundBefore = gameRef.current.state.round_num;
         const move = await getAi().choose(
           gameRef.current.state,
           gameRef.current.state.current,
         );
         if (generation.current !== myGeneration) return; // restarted mid-search
         gameRef.current.step(move.action);
+        if (gameRef.current.state.round_num !== roundBefore || gameRef.current.isOver()) {
+          historyRef.current = [];
+        }
         bump();
       }
     } catch (err) {
@@ -260,7 +264,11 @@ export function useGameSession(options: SessionOptions): Session {
         });
       }
 
+      const roundBefore = game.state.round_num;
       game.step(new Action(selection.source, selection.color, dest));
+      if (game.state.round_num !== roundBefore || game.isOver()) {
+        historyRef.current = [];
+      }
       setSelection(null);
       bump();
 

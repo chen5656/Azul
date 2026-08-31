@@ -10,7 +10,6 @@ import { useCallback, useMemo, useState } from 'react';
 import { QuadroGame } from '../engine';
 import { LEVELS, LEVEL_LABELS, type AgentLevel } from '../ai';
 import { Board } from '../components/Board';
-import { StatusLine } from '../components/StatusLine';
 import { useGameSession } from '../game/useGameSession';
 import { storage } from '../storage';
 
@@ -141,57 +140,43 @@ function PracticeGame({
   const session = useGameSession({ newGame, ai, timed: false });
   const opponentLabel = LEVEL_LABELS[setup.level];
 
-  return (
-    <div className="flex flex-col gap-4">
-      <header className="flex flex-wrap items-baseline justify-between gap-2">
-        <div>
-          <h1 className="text-xl font-semibold">
-            Practice <span className="text-neutral-500">vs {opponentLabel}</span>
-          </h1>
-          <p className="text-xs text-neutral-500">
-            Seed {deal} · nothing on this screen is recorded or submitted
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={session.undo}
-            disabled={!session.canUndo}
-            className="rounded-lg border border-neutral-700 px-3 py-1.5 text-sm hover:bg-neutral-800 disabled:opacity-50"
-            title={`Undo last move (${session.undosRemaining} remaining)`}
-          >
-            Undo ({session.undosRemaining})
-          </button>
-          <button
-            type="button"
-            onClick={session.restart}
-            className="rounded-lg border border-neutral-700 px-3 py-1.5 text-sm hover:bg-neutral-800"
-          >
-            Restart
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              const next = randomSeed();
-              storage.setPracticeSeed(String(next));
-              onNewDeal(next);
-            }}
-            className="rounded-lg border border-neutral-700 px-3 py-1.5 text-sm hover:bg-neutral-800"
-          >
-            New deal
-          </button>
-          <button
-            type="button"
-            onClick={onExit}
-            className="rounded-lg border border-neutral-700 px-3 py-1.5 text-sm hover:bg-neutral-800"
-          >
-            Change setup
-          </button>
-        </div>
-      </header>
-
-      <StatusLine session={session} opponentLabel={opponentLabel} />
-      <Board session={session} humanLabel="You" opponentLabel={opponentLabel} />
+  const topRight = (
+    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+      <span className="text-xs text-neutral-500 font-mono mr-1">Seed {deal}</span>
+      <button
+        type="button"
+        onClick={session.restart}
+        className="rounded-lg border border-neutral-700 px-2.5 py-1 text-xs sm:text-sm hover:bg-neutral-800"
+      >
+        Restart
+      </button>
+      <button
+        type="button"
+        onClick={() => {
+          const next = randomSeed();
+          storage.setPracticeSeed(String(next));
+          onNewDeal(next);
+        }}
+        className="rounded-lg border border-neutral-700 px-2.5 py-1 text-xs sm:text-sm hover:bg-neutral-800"
+      >
+        New deal
+      </button>
+      <button
+        type="button"
+        onClick={onExit}
+        className="rounded-lg border border-neutral-700 px-2.5 py-1 text-xs sm:text-sm hover:bg-neutral-800"
+      >
+        Change setup
+      </button>
     </div>
+  );
+
+  return (
+    <Board
+      session={session}
+      humanLabel="You"
+      opponentLabel={opponentLabel}
+      topRight={topRight}
+    />
   );
 }

@@ -47,7 +47,7 @@ export function App() {
     <div className="min-h-dvh">
       <AppBanners blockUpdates={attemptRunning} />
       <header className="border-b border-neutral-800">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 py-3">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 py-3">
           <Link to="/" className="font-semibold tracking-tight">
             Quadro
           </Link>
@@ -58,7 +58,7 @@ export function App() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl px-4 py-6 xl:max-w-[100rem]">
+      <main className="mx-auto max-w-7xl px-2 sm:px-4 py-3 w-full">
         {route === '/' && <Home />}
         {route === '/tutorial' && <Tutorial />}
         {route === '/practice' && <Practice />}

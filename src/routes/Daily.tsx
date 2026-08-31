@@ -13,7 +13,6 @@ import { DAILY_TIME_BUDGET, LEVELS, LEVEL_LABELS, type AgentLevel } from '../ai'
 import { useIdentity } from '../auth/clerk';
 import { Board } from '../components/Board';
 import { Leaderboard } from '../components/Leaderboard';
-import { StatusLine } from '../components/StatusLine';
 import { SubmitPanel } from '../components/SubmitPanel';
 import { Timer } from '../components/Timer';
 import {
@@ -188,69 +187,55 @@ function DailyAttempt({
     session.restart();
   };
 
+  const topRight = (
+    <div className="flex items-center gap-2">
+      <Timer
+        ms={session.elapsedMs}
+        running={session.status !== 'idle' && session.status !== 'game-over'}
+        done={session.status === 'game-over'}
+      />
+      <button
+        type="button"
+        onClick={restart}
+        className="rounded-lg border border-neutral-700 px-2.5 py-1 text-xs sm:text-sm hover:bg-neutral-800"
+      >
+        Restart
+      </button>
+    </div>
+  );
+
   return (
-    <div className="grid gap-4 2xl:grid-cols-[1fr_20rem]">
-      <div className="flex flex-col gap-3">
-        <header className="flex flex-wrap items-center justify-between gap-3">
+    <div className="grid gap-3 sm:gap-4 2xl:grid-cols-[1fr_20rem]">
+      <div className="flex flex-col gap-2.5 sm:gap-3">
+        {/* Difficulty Picker & Challenge Info */}
+        <div className="flex flex-wrap items-center justify-between gap-2.5 rounded-xl border border-neutral-800 bg-neutral-900/60 p-2 sm:p-2.5">
           <div>
-            <h1 className="text-xl font-semibold">
+            <h1 className="text-sm sm:text-base font-semibold">
               Daily Challenge <span className="text-neutral-500">vs {opponentLabel}</span>
             </h1>
-            <p className="text-xs text-neutral-500">{puzzleId} · everyone gets this deal</p>
+            <p className="text-[11px] sm:text-xs text-neutral-500">{puzzleId} · everyone gets this deal</p>
           </div>
-          <div className="flex items-center gap-3">
-            <Timer
-              ms={session.elapsedMs}
-              running={session.status !== 'idle' && session.status !== 'game-over'}
-              done={session.status === 'game-over'}
-            />
-            <button
-              type="button"
-              onClick={handleUndo}
-              disabled={!session.canUndo}
-              className="rounded-lg border border-neutral-700 px-3 py-1.5 text-sm hover:bg-neutral-800 disabled:opacity-50"
-              title={`Undo last move (${session.undosRemaining} remaining)`}
-            >
-              Undo ({session.undosRemaining})
-            </button>
-            <button
-              type="button"
-              onClick={restart}
-              className="rounded-lg border border-neutral-700 px-3 py-1.5 text-sm hover:bg-neutral-800"
-            >
-              Restart
-            </button>
-          </div>
-        </header>
-
-        {/* Difficulty Picker */}
-        <div className="flex flex-wrap items-center gap-3 rounded-lg border border-neutral-800 bg-neutral-900/60 p-2.5">
-          <span className="text-xs font-semibold uppercase tracking-wider text-neutral-400">AI Opponent:</span>
-          <div className="flex flex-wrap gap-1.5">
-            {DAILY_LEVELS.map((candidate) => (
-              <button
-                key={candidate}
-                type="button"
-                onClick={() => onSelectLevel(candidate)}
-                aria-pressed={level === candidate}
-                className={`rounded-md px-3 py-1.5 text-xs font-medium transition cursor-pointer ${
-                  level === candidate
-                    ? 'bg-sky-600 font-semibold text-white shadow-sm ring-1 ring-sky-400'
-                    : 'border border-neutral-700 bg-neutral-800 text-neutral-300 hover:bg-neutral-700 hover:text-white'
-                }`}
-              >
-                {LEVEL_LABELS[candidate]}
-              </button>
-            ))}
+          <div className="flex flex-wrap items-center gap-1.5 shrink-0">
+            <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-neutral-400">AI:</span>
+            <div className="flex flex-wrap items-center gap-1">
+              {DAILY_LEVELS.map((candidate) => (
+                <button
+                  key={candidate}
+                  type="button"
+                  onClick={() => onSelectLevel(candidate)}
+                  aria-pressed={level === candidate}
+                  className={`rounded px-2 py-0.5 text-xs font-medium transition cursor-pointer whitespace-nowrap ${
+                    level === candidate
+                      ? 'bg-sky-600 font-semibold text-white shadow-sm ring-1 ring-sky-400'
+                      : 'border border-neutral-700 bg-neutral-800 text-neutral-300 hover:bg-neutral-700 hover:text-white'
+                  }`}
+                >
+                  {LEVEL_LABELS[candidate]}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
-
-        <p className="text-xs text-neutral-500">
-          Your clock includes the opponent's thinking time. It thinks for a fixed 450ms a move, so
-          its choices can vary slightly with how fast your device is.
-        </p>
-
-        <StatusLine session={session} opponentLabel={opponentLabel} />
 
         {session.status === 'game-over' && (
           <SubmitPanel
@@ -266,7 +251,13 @@ function DailyAttempt({
           />
         )}
 
-        <Board session={session} humanLabel="You" opponentLabel={opponentLabel} />
+        <Board
+          session={session}
+          humanLabel="You"
+          opponentLabel={opponentLabel}
+          onUndo={handleUndo}
+          topRight={topRight}
+        />
       </div>
 
       <aside>
