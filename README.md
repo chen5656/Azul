@@ -35,7 +35,7 @@ Six levels share one zero-sum heuristic evaluation function (`src/ai/evaluate.ts
 
 ### The ladder is measured, not assumed
 
-A difficulty name is only worth something if the level behind it actually wins. `npm run bench` plays every level against the one below it, swapping seats each game so the first-player edge cancels out, and fails the run if any rung falls below its target. Latest results (450 ms budget, 60 games per rung, full history in `docs/ts_ai_benchmarks.md`):
+A difficulty name is only worth something if the level behind it actually wins. `npm run bench` plays every level against the one below it, swapping seats each game so the first-player edge cancels out, and fails the run if any rung falls below its target. Latest results (450 ms budget, 60 games per rung — 40 for the slowest, full history in `docs/ts_ai_benchmarks.md`):
 
 | Rung | Win rate | Target |
 |:---|:---|:---|
@@ -44,8 +44,6 @@ A difficulty name is only worth something if the level behind it actually wins. 
 | `expert` vs `hard` | 61.7% | 55% |
 | `master` vs `expert` | 63.3% | 55% |
 | `extreme` vs `master` | 87.5% † | 55% |
-
-† Measured against the previous full-width depth-4 `master`; the re-run against depth 5 is pending.
 
 Two of these results shaped the design rather than confirming it. Full-width depth 5 loses to depth 4, because it cannot finish inside the move budget and falls back to the depth 4 answer — hence `master`'s narrow beam. And narrowing helps enough that a width-8 depth 4 *beat* full-width depth 4 outright, which is why width is not used as a difficulty knob anywhere below `master`.
 

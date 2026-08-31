@@ -71,3 +71,11 @@ Node v25.8.2 on darwin/arm64. 60 games per pair, 450ms budget, seats swapped eve
 | pair | games | W | L | D | win rate | target | result | max move | mean move |
 |---|---|---|---|---|---|---|---|---|---|
 | master-vs-expert | 60 | 38 | 19 | 3 | 63.3% | 55% | pass | 457ms | 84.5ms |
+
+## Run 2026-08-31T05:12:06.094Z
+
+Node v25.8.2 on darwin/arm64. 40 games per pair, 450ms budget, seats swapped every game.
+
+| pair | games | W | L | D | win rate | target | result | max move | mean move |
+|---|---|---|---|---|---|---|---|---|---|
+| extreme-vs-master | 40 | 29 | 10 | 1 | 72.5% | 55% | pass | 487ms | 239.8ms |
