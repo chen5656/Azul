@@ -35,4 +35,8 @@ export const storage = {
   /** The last Daily the player finished, for the home screen's marker. */
   lastDailyPlayed: () => read('lastDailyPlayed'),
   setLastDailyPlayed: (puzzleId: string) => write('lastDailyPlayed', puzzleId),
+
+  /** UI display scale / zoom percentage (e.g. 100, 90, 80, 110, 120). */
+  displayScale: () => read('displayScale'),
+  setDisplayScale: (scale: string) => write('displayScale', scale),
 };

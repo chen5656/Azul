@@ -30,7 +30,7 @@ export function Tutorial() {
   } = useTutorial();
 
   return (
-    <div className="relative flex flex-col gap-3 sm:gap-4 w-full">
+    <div className="relative w-full">
       <TutorialPopover
         step={step}
         stepIndex={stepIndex}

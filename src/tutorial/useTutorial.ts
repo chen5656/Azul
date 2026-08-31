@@ -218,7 +218,7 @@ export function useTutorial(): Tutorial {
   const spotlight: Spotlight | undefined = useMemo(() => {
     if (step.kind === 'talk') return step.spotlight;
     if (phase === 'pick') return { kind: 'source', index: step.source };
-    if (phase === 'place') {
+    if (phase === 'place' || phase === 'replying' || phase === 'after') {
       return step.dest === 5 ? { kind: 'floor' } : { kind: 'row', index: step.dest };
     }
     return undefined;
