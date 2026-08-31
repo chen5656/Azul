@@ -43,7 +43,7 @@ A difficulty name is only worth something if the level behind it actually wins. 
 | `hard` vs `medium` | 73.3% | 55% |
 | `expert` vs `hard` | 61.7% | 55% |
 | `master` vs `expert` | 63.3% | 55% |
-| `extreme` vs `master` | 87.5% † | 55% |
+| `extreme` vs `master` | 72.5% | 55% |
 
 Two of these results shaped the design rather than confirming it. Full-width depth 5 loses to depth 4, because it cannot finish inside the move budget and falls back to the depth 4 answer — hence `master`'s narrow beam. And narrowing helps enough that a width-8 depth 4 *beat* full-width depth 4 outright, which is why width is not used as a difficulty knob anywhere below `master`.
 
