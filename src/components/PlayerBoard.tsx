@@ -9,6 +9,7 @@ import {
   type PlayerBoard as PlayerBoardState,
 } from '../engine';
 import type { Session } from '../game/useGameSession';
+import type { Spotlight } from '../tutorial/script';
 import { PenaltySlot, Tile } from './Tile';
 
 /**
@@ -30,8 +31,16 @@ export function PlayerBoard({
   interactive: boolean;
   session: Session;
 }) {
-  const { canPlace, place, previewFor, selection } = session;
+  const { canPlace, place, previewFor, selection, spotlight } = session;
   const drop = (dest: number) => interactive && canPlace(dest);
+  /**
+   * The tutorial rings one part of the board at a time. A real game leaves
+   * `spotlight` unset, so this is always false there.
+   */
+  const lit = (kind: Spotlight['kind'], index?: number) =>
+    interactive &&
+    spotlight?.kind === kind &&
+    (index === undefined || ('index' in spotlight && spotlight.index === index));
   const penaltyTotal = PENALTY_TOTALS[board.penalty_tiles.length];
 
   return (
@@ -69,7 +78,11 @@ export function PlayerBoard({
                 title={p ? `${p.placed} on the row, ${p.overflow} to the penalty row` : undefined}
                 className={`flex justify-end gap-1 rounded p-1.5 ${
                   ok ? 'bg-sky-900/40 ring-1 ring-sky-500 hover:bg-sky-800/60' : ''
-                } ${interactive && selection && !ok ? 'opacity-50' : ''}`}
+                } ${interactive && selection && !ok ? 'opacity-50' : ''} ${
+                  lit('row', row)
+                    ? 'animate-pulse-ring ring-2 ring-sky-400'
+                    : ''
+                }`}
               >
                 {Array.from({ length: capacity }, (_, slot) => {
                   const filled = slot >= capacity - count;
@@ -87,7 +100,12 @@ export function PlayerBoard({
           })}
         </div>
 
-        <div className="flex flex-col gap-1" aria-label="Grid">
+        <div
+          className={`flex flex-col gap-1 rounded ${
+            lit('wall') ? 'animate-pulse-ring ring-2 ring-sky-400' : ''
+          }`}
+          aria-label="Grid"
+        >
           {Array.from({ length: NUM_ROWS }, (_, row) => (
             <div key={row} className="flex gap-1 p-1">
               {Array.from({ length: GRID_SIZE }, (_, col) => {
@@ -119,7 +137,7 @@ export function PlayerBoard({
             : interactive && selection
               ? 'opacity-50'
               : ''
-        }`}
+        } ${lit('floor') ? 'animate-pulse-ring ring-2 ring-sky-400' : ''}`}
       >
         {PENALTIES.map((points, i) => (
           <span key={i} className="flex flex-col items-center">

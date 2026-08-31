@@ -22,7 +22,7 @@
   // precedence over Pages for the paths it matches, so /api/* lands here and
   // everything else is served as the SPA.
   "routes": [
-    { "pattern": "games.aclogics.com/api/*", "zone_name": "aclogics.com" }
+    { "pattern": "acgame.win/api/*", "zone_name": "acgame.win" }
   ],
 
   // ~midnight New York year-round; deletes rows older than 90 days (BR-014).
@@ -32,6 +32,6 @@
     // Public, non-secret configuration. CLERK_SECRET_KEY is a Worker secret and
     // never appears here (NFR-010).
     "CLERK_ISSUER": "https://clerk.games.aclogics.com",
-    "ALLOWED_ORIGIN": "https://games.aclogics.com"
+    "ALLOWED_ORIGIN": "https://acgame.win"
   }
 }

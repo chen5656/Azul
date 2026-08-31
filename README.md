@@ -4,7 +4,7 @@ A full-stack, browser-native implementation of the tile-drafting board game (Azu
 
 The game runs **100% client-side** in the browser using Web Workers for AI computations, featuring offline **Practice** modes and a competitive **Daily Challenge** with a global leaderboard.
 
-Play live at: **[games.aclogics.com](https://games.aclogics.com)**
+Play live at: **[acgame.win](https://acgame.win)**
 
 ---
 

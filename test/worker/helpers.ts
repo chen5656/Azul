@@ -12,7 +12,7 @@ import SCHEMA from '../../worker/schema.sql?raw';
 import { resetJwksCache } from '../../worker/auth';
 
 export const ISSUER = 'https://clerk.test.example';
-export const ORIGIN = 'https://games.aclogics.com';
+export const ORIGIN = 'https://acgame.win';
 
 /** Applies `worker/schema.sql` to the isolated per-test database. */
 export async function migrate(): Promise<void> {
@@ -97,7 +97,7 @@ export function apiRequest(
   init: RequestInit & { token?: string } = {},
 ): Request {
   const { token, ...rest } = init;
-  return new Request(`https://games.aclogics.com${path}`, {
+  return new Request(`https://acgame.win${path}`, {
     ...rest,
     headers: {
       ...(rest.body ? { 'content-type': 'application/json' } : {}),

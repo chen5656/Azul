@@ -5,11 +5,12 @@ import { Daily } from './routes/Daily';
 import { Home } from './routes/Home';
 import { LeaderboardPage } from './routes/LeaderboardPage';
 import { Practice } from './routes/Practice';
+import { Tutorial } from './routes/Tutorial';
 import { Link, useRouter } from './router';
 
 function Nav() {
   const { route } = useRouter();
-  const item = (to: '/' | '/daily' | '/practice' | '/leaderboard', label: string) => (
+  const item = (to: '/' | '/tutorial' | '/daily' | '/practice' | '/leaderboard', label: string) => (
     <Link
       to={to}
       className={`rounded px-2 py-1 text-sm ${
@@ -25,6 +26,7 @@ function Nav() {
   return (
     <nav aria-label="Main" className="flex items-center gap-1">
       {item('/', 'Home')}
+      {item('/tutorial', 'Learn')}
       {item('/daily', 'Daily')}
       {item('/practice', 'Practice')}
       {item('/leaderboard', 'Leaderboard')}
@@ -53,6 +55,7 @@ export function App() {
 
       <main className="mx-auto max-w-5xl px-4 py-6">
         {route === '/' && <Home />}
+        {route === '/tutorial' && <Tutorial />}
         {route === '/practice' && <Practice />}
         {route === '/daily' && <Daily />}
         {(route === '/leaderboard' || route === '/leaderboard/today') && <LeaderboardPage />}

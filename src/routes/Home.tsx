@@ -43,6 +43,17 @@ export function Home() {
         </Link>
       </div>
 
+      <Link
+        to="/tutorial"
+        className="mt-3 block rounded-xl border border-neutral-800 bg-neutral-900/40 p-4 transition hover:border-neutral-600"
+      >
+        <h2 className="text-lg font-semibold">Learn to play</h2>
+        <p className="mt-1 text-sm text-neutral-400">
+          Never played? A guided round on the real board walks you through drafting, pattern
+          lines, the floor line and scoring. Two minutes.
+        </p>
+      </Link>
+
       <p className="mt-8 text-sm text-neutral-500">
         <Link to="/leaderboard" className="underline hover:text-neutral-300">
           Today's leaderboard

@@ -12,23 +12,28 @@ function sourceLabel(source: number): string {
  * (§9.2).
  */
 export function DisplayArea({ session }: { session: Session }) {
-  const { game, selection, select, canSelect } = session;
+  const { game, selection, select, canSelect, spotlight } = session;
   const state = game.state;
 
   const group = (source: number, counts: number[]) => {
     const colors = counts.map((n, c) => [c, n] as const).filter(([, n]) => n > 0);
     const isCenter = source === CENTER;
+    const lit = spotlight?.kind === 'source' && spotlight.index === source;
 
     return (
       <div
         key={source}
-        className="rounded-lg border border-neutral-700 bg-neutral-800/60 p-2"
+        className={`rounded-lg border bg-neutral-800/60 p-2 ${
+          lit
+            ? 'animate-pulse-ring border-sky-400 ring-2 ring-sky-400/70'
+            : 'border-neutral-700'
+        }`}
         aria-label={sourceLabel(source)}
       >
         <div className="mb-1 text-xs text-neutral-400">{sourceLabel(source)}</div>
         <div
-          className={`flex items-center gap-1 ${
-            isCenter ? 'min-h-[6.5rem] flex-wrap content-start' : 'min-h-[3.25rem] flex-nowrap'
+          className={`flex flex-wrap content-start items-center gap-1 ${
+            isCenter ? 'min-h-[6.5rem]' : 'min-h-[3.25rem]'
           }`}
         >
           {colors.map(([color, n]) => {
@@ -42,7 +47,7 @@ export function DisplayArea({ session }: { session: Session }) {
                 onClick={() => select(source, color)}
                 aria-pressed={active}
                 aria-label={`Take ${n} ${COLOR_NAMES[color]} from ${sourceLabel(source)}`}
-                className={`flex gap-1 rounded p-1.5 ${
+                className={`flex max-w-full flex-wrap gap-1 rounded p-1.5 ${
                   enabled ? 'hover:bg-neutral-700' : 'cursor-not-allowed opacity-40'
                 } ${active ? 'bg-sky-900/60' : ''}`}
               >

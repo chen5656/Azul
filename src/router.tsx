@@ -1,16 +1,29 @@
 /**
  * A ~50-line history router.
  *
- * Four static routes and no nested layouts (§9.1), so a routing library would
+ * A handful of static routes and no nested layouts (§9.1), so a routing library would
  * cost more bundle than it saves (NFR-001). Cloudflare Pages serves index.html
  * for unknown paths, which is what makes the deep links work (AC-036).
  */
 
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 
-export type Route = '/' | '/daily' | '/practice' | '/leaderboard' | '/leaderboard/today';
+export type Route =
+  | '/'
+  | '/tutorial'
+  | '/daily'
+  | '/practice'
+  | '/leaderboard'
+  | '/leaderboard/today';
 
-const ROUTES: Route[] = ['/', '/daily', '/practice', '/leaderboard', '/leaderboard/today'];
+const ROUTES: Route[] = [
+  '/',
+  '/tutorial',
+  '/daily',
+  '/practice',
+  '/leaderboard',
+  '/leaderboard/today',
+];
 
 function normalize(pathname: string): Route {
   const trimmed = pathname.replace(/\/+$/, '') || '/';

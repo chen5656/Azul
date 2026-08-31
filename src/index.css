@@ -34,6 +34,21 @@
   .azul-burst-flash {
     animation: azul-burst-flash 0.45s ease-out forwards;
   }
+
+  /* Tutorial spotlight: a slow breathing ring on the one thing to look at. */
+  .animate-pulse-ring {
+    animation: azul-pulse-ring 1.8s ease-in-out infinite;
+  }
+}
+
+@keyframes azul-pulse-ring {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgb(56 189 248 / 0.45);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgb(56 189 248 / 0);
+  }
 }
 
 @keyframes azul-burst-grow {
@@ -107,7 +122,8 @@
   .azul-burst-grow,
   .azul-burst-letter,
   .azul-burst-spark,
-  .azul-burst-flash {
+  .azul-burst-flash,
+  .animate-pulse-ring {
     animation: none;
   }
 }

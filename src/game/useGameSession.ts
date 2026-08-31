@@ -23,6 +23,7 @@ import {
   preview,
 } from '../engine';
 import { AiClient, AiDisposed, type AiMode, type AiSpec } from './aiClient';
+import type { Spotlight } from '../tutorial/script';
 
 export type SessionStatus =
   | 'idle' // dealt, waiting for the player's first move; the clock has not started
@@ -67,6 +68,12 @@ export interface Session {
   aiMode: AiMode;
   /** Set when the AI could not produce a move at all; the attempt is dead. */
   error: string | null;
+  /**
+   * Set only by the tutorial (`src/tutorial`), which rings one part of the board
+   * while a lesson step is open. A real game never sets it and the board falls
+   * back to its normal appearance.
+   */
+  spotlight?: Spotlight;
 }
 
 export function useGameSession(options: SessionOptions): Session {

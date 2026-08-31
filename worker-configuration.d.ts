@@ -4,7 +4,7 @@
 interface __BaseEnv_Env {
 	DB: D1Database;
 	CLERK_ISSUER: "https://clerk.games.aclogics.com";
-	ALLOWED_ORIGIN: "https://games.aclogics.com";
+	ALLOWED_ORIGIN: "https://acgame.win";
 }
 declare namespace Cloudflare {
 	interface GlobalProps {

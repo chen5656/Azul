@@ -274,7 +274,7 @@ describe('routing', () => {
   it('answers a preflight with the allowed origin', async () => {
     const response = await call(apiRequest('/api/scores', { method: 'OPTIONS' }));
     expect(response.status).toBe(204);
-    expect(response.headers.get('access-control-allow-origin')).toBe('https://games.aclogics.com');
+    expect(response.headers.get('access-control-allow-origin')).toBe('https://acgame.win');
   });
 
   it('404s an unknown endpoint in the standard error shape', async () => {

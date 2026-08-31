@@ -15,7 +15,7 @@ export default defineWorkersConfig({
           d1Databases: ['DB'],
           bindings: {
             CLERK_ISSUER: 'https://clerk.test.example',
-            ALLOWED_ORIGIN: 'https://games.aclogics.com',
+            ALLOWED_ORIGIN: 'https://acgame.win',
           },
         },
       },
