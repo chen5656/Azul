@@ -21,6 +21,7 @@ export interface LeaderboardEntry {
 
 export interface Leaderboard {
   puzzle_id: string;
+  ai_level: string;
   entries: LeaderboardEntry[];
   total_entries: number;
   me: {
@@ -44,6 +45,7 @@ export interface ScoreSubmission {
   final_score: number;
   opponent_score: number;
   rounds: number;
+  ai_level: string;
   client_version: string;
 }
 
@@ -109,9 +111,13 @@ export function getDaily(): Promise<DailyDescriptor> {
   return request<DailyDescriptor>('/daily');
 }
 
-export function getLeaderboard(puzzleId: string, token?: string): Promise<Leaderboard> {
+export function getLeaderboard(
+  puzzleId: string,
+  aiLevel: string,
+  token?: string,
+): Promise<Leaderboard> {
   return request<Leaderboard>(
-    `/leaderboard?puzzle_id=${encodeURIComponent(puzzleId)}&limit=100`,
+    `/leaderboard?puzzle_id=${encodeURIComponent(puzzleId)}&ai=${encodeURIComponent(aiLevel)}&limit=100`,
     { token },
   );
 }

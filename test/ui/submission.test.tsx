@@ -18,7 +18,7 @@ const ATTEMPT = {
   elapsed_ms: 461_230,
   final_score: 64,
   opponent_score: 51,
-  rounds: 5,
+  rounds: 5, ai_level: 'mcts',
 };
 
 function identity(overrides: Partial<Identity> = {}): Identity {

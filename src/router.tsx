@@ -8,9 +8,9 @@
 
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 
-export type Route = '/' | '/daily' | '/practice' | '/leaderboard';
+export type Route = '/' | '/daily' | '/practice' | '/leaderboard' | '/leaderboard/today';
 
-const ROUTES: Route[] = ['/', '/daily', '/practice', '/leaderboard'];
+const ROUTES: Route[] = ['/', '/daily', '/practice', '/leaderboard', '/leaderboard/today'];
 
 function normalize(pathname: string): Route {
   const trimmed = pathname.replace(/\/+$/, '') || '/';

@@ -9,7 +9,7 @@ import { verifyRequest } from './auth';
 import { purgeOldRows } from './cron';
 import { currentPuzzleId, isPuzzleId, nextRolloverMs, seedForPuzzle } from './daily';
 import { HttpError, corsHeaders, fail, json } from './http';
-import { leaderboard } from './leaderboard';
+import { DEFAULT_AI_LEVEL, isAiLevel, leaderboard } from './leaderboard';
 import { deleteMe, submitScore } from './scores';
 
 export default {
@@ -66,12 +66,17 @@ async function route(request: Request, env: Env): Promise<Response> {
     }
     // Auth is optional here: the board reads without it, and `me` is simply
     // absent (FR-036, AC-025).
+    const ai = url.searchParams.get('ai');
+    if (ai !== null && !isAiLevel(ai)) {
+      throw new HttpError(422, 'INVALID_PAYLOAD', 'ai must be one of mcts, minimax, greedy, random');
+    }
     const session = await verifyRequest(request, env).catch(() => null);
     return leaderboard(
       env.DB,
       requested ?? currentPuzzleId(),
       Number(url.searchParams.get('limit') ?? 100),
       session,
+      ai ?? DEFAULT_AI_LEVEL,
     );
   }
 

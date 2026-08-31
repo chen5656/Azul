@@ -10,15 +10,16 @@ CREATE TABLE IF NOT EXISTS scores (
   elapsed_ms    INTEGER NOT NULL,
   final_score   INTEGER NOT NULL,
   opponent_score INTEGER NOT NULL,
+  ai_level      TEXT    NOT NULL DEFAULT 'mcts',  -- opponent agent the attempt was played against
   rounds        INTEGER NOT NULL,
   client_version TEXT   NOT NULL,
   created_at    INTEGER NOT NULL,          -- epoch ms, server-assigned
   updated_at    INTEGER NOT NULL,
-  UNIQUE (puzzle_id, user_id)
+  UNIQUE (puzzle_id, user_id, ai_level)
 );
 
 CREATE INDEX IF NOT EXISTS idx_scores_board
-  ON scores (puzzle_id, (final_score - opponent_score) DESC, elapsed_ms ASC, created_at ASC);
+  ON scores (puzzle_id, ai_level, (final_score - opponent_score) DESC, elapsed_ms ASC, created_at ASC);
 
 -- Append-only. Makes the per-user rate limit enforceable without a KV counter
 -- and leaves a forensic trail if the board is ever polluted.

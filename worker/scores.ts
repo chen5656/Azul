@@ -9,7 +9,7 @@
 import type { Session } from './auth';
 import { currentPuzzleId, isPuzzleId } from './daily';
 import { HttpError, json } from './http';
-import { rankOf } from './leaderboard';
+import { DEFAULT_AI_LEVEL, type AiLevel, isAiLevel, rankOf } from './leaderboard';
 
 /** BR-011: a five-round game against a 450ms agent cannot be won in 20 seconds. */
 export const MIN_ELAPSED_MS = 20_000;
@@ -24,6 +24,7 @@ export interface SubmissionPayload {
   final_score: number;
   opponent_score: number;
   rounds: number;
+  ai_level: AiLevel;
   client_version: string;
 }
 
@@ -34,6 +35,8 @@ function isInteger(value: unknown, min: number, max: number): value is number {
 /** Validates shape only; the plausibility rules are applied by the caller. */
 function parsePayload(body: unknown): SubmissionPayload {
   const p = body as Partial<SubmissionPayload> | null;
+  // `ai_level` is optional for older clients, which only ever played Monte Carlo.
+  const level = p?.ai_level === undefined ? DEFAULT_AI_LEVEL : p.ai_level;
   const valid =
     p !== null &&
     typeof p === 'object' &&
@@ -42,10 +45,11 @@ function parsePayload(body: unknown): SubmissionPayload {
     isInteger(p.final_score, 0, 10_000) &&
     isInteger(p.opponent_score, 0, 10_000) &&
     isInteger(p.rounds, 1, 150) &&
+    isAiLevel(level) &&
     typeof p.client_version === 'string' &&
     p.client_version.length <= 32;
   if (!valid) throw new HttpError(422, 'INVALID_PAYLOAD', 'Malformed submission');
-  return p as SubmissionPayload;
+  return { ...(p as SubmissionPayload), ai_level: level as AiLevel };
 }
 
 async function audit(
@@ -120,8 +124,10 @@ export async function submitScore(
   }
 
   const existing = await db
-    .prepare('SELECT elapsed_ms, final_score, opponent_score, created_at FROM scores WHERE puzzle_id = ? AND user_id = ?')
-    .bind(payload.puzzle_id, session.userId)
+    .prepare(
+      'SELECT elapsed_ms, final_score, opponent_score, created_at FROM scores WHERE puzzle_id = ? AND user_id = ? AND ai_level = ?',
+    )
+    .bind(payload.puzzle_id, session.userId, payload.ai_level)
     .first<{ elapsed_ms: number; final_score: number; opponent_score: number; created_at: number }>();
 
   let improved: boolean;
@@ -136,13 +142,13 @@ export async function submitScore(
     await db
       .prepare(
         `INSERT INTO scores (puzzle_id, user_id, display_name, elapsed_ms, final_score,
-                             opponent_score, rounds, client_version, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                             opponent_score, ai_level, rounds, client_version, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .bind(
         payload.puzzle_id, session.userId, session.displayName, payload.elapsed_ms,
-        payload.final_score, payload.opponent_score, payload.rounds, payload.client_version,
-        now, now,
+        payload.final_score, payload.opponent_score, payload.ai_level, payload.rounds,
+        payload.client_version, now, now,
       )
       .run();
     improved = true;
@@ -162,11 +168,12 @@ export async function submitScore(
           `UPDATE scores
               SET display_name = ?, elapsed_ms = ?, final_score = ?, opponent_score = ?,
                   rounds = ?, client_version = ?, updated_at = ?
-            WHERE puzzle_id = ? AND user_id = ?`,
+            WHERE puzzle_id = ? AND user_id = ? AND ai_level = ?`,
         )
         .bind(
           session.displayName, payload.elapsed_ms, payload.final_score, payload.opponent_score,
           payload.rounds, payload.client_version, now, payload.puzzle_id, session.userId,
+          payload.ai_level,
         )
         .run();
       improved = true;
@@ -189,8 +196,8 @@ export async function submitScore(
   });
 
   const total = await db
-    .prepare('SELECT COUNT(*) AS n FROM scores WHERE puzzle_id = ?')
-    .bind(payload.puzzle_id)
+    .prepare('SELECT COUNT(*) AS n FROM scores WHERE puzzle_id = ? AND ai_level = ?')
+    .bind(payload.puzzle_id, payload.ai_level)
     .first<{ n: number }>();
 
   const bestDiff = bestFinalScore - bestOpponentScore;
@@ -201,7 +208,8 @@ export async function submitScore(
     best_elapsed_ms: bestElapsedMs,
     best_final_score: bestFinalScore,
     best_opponent_score: bestOpponentScore,
-    rank: await rankOf(db, payload.puzzle_id, bestDiff, bestElapsedMs, createdAt),
+    ai_level: payload.ai_level,
+    rank: await rankOf(db, payload.puzzle_id, payload.ai_level, bestDiff, bestElapsedMs, createdAt),
     total_entries: Number(total?.n ?? 0),
   });
 }

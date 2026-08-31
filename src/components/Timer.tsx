@@ -15,6 +15,14 @@ export function formatElapsed(ms: number): string {
   ).padStart(3, '0')}`;
 }
 
+/** Whole seconds, for the boards — a leaderboard doesn't need milliseconds. */
+export function formatElapsedSeconds(ms: number): string {
+  const total = Math.floor(Math.max(0, ms) / 1000);
+  const minutes = Math.floor(total / 60);
+  const seconds = total % 60;
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
 export function Timer({ ms, running, done }: { ms: number; running: boolean; done: boolean }) {
   return (
     <div

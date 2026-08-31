@@ -13,7 +13,9 @@ function Nav() {
     <Link
       to={to}
       className={`rounded px-2 py-1 text-sm ${
-        route === to ? 'bg-neutral-800 text-neutral-100' : 'text-neutral-400 hover:text-neutral-100'
+        route === to || (to === '/leaderboard' && route === '/leaderboard/today')
+          ? 'bg-neutral-800 text-neutral-100'
+          : 'text-neutral-400 hover:text-neutral-100'
       }`}
     >
       {label}
@@ -53,7 +55,7 @@ export function App() {
         {route === '/' && <Home />}
         {route === '/practice' && <Practice />}
         {route === '/daily' && <Daily />}
-        {route === '/leaderboard' && <LeaderboardPage />}
+        {(route === '/leaderboard' || route === '/leaderboard/today') && <LeaderboardPage />}
       </main>
     </div>
   );

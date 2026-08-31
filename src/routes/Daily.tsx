@@ -157,10 +157,11 @@ function DailyAttempt({
       final_score: result.scores[HUMAN_SEAT],
       opponent_score: result.scores[1 - HUMAN_SEAT],
       rounds: result.rounds,
+      ai_level: level,
     });
     // `submission` is rebuilt every render; the completion edge is the trigger.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [done, puzzleId]);
+  }, [done, puzzleId, level]);
 
   // Once a time is posted, the board the player is looking at is out of date.
   useEffect(() => {
@@ -246,7 +247,7 @@ function DailyAttempt({
       </div>
 
       <aside>
-        <Leaderboard puzzleId={puzzleId} refreshKey={boardRefresh} />
+        <Leaderboard puzzleId={puzzleId} aiLevel={level} refreshKey={boardRefresh} />
       </aside>
     </div>
   );

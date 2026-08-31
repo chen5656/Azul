@@ -33,12 +33,13 @@ function respond(body: unknown) {
 describe('leaderboard', () => {
   it("renders today's entries with rank, name, scores and time (FR-034)", async () => {
     respond({ puzzle_id: '2026-08-28', entries: [ENTRY], total_entries: 1, me: null });
-    render(<Leaderboard puzzleId="2026-08-28" />);
+    render(<Leaderboard aiLevel="mcts" puzzleId="2026-08-28" />);
     await waitFor(() => expect(screen.getByText('ada')).toBeInTheDocument());
-    expect(screen.getByText('07:41.230')).toBeInTheDocument();
-    expect(screen.getByText('64')).toBeInTheDocument();
-    expect(screen.getByText('51')).toBeInTheDocument();
-    expect(screen.getByText('(+13)')).toBeInTheDocument();
+    // Beside the game the score is the margin, and the time is whole seconds.
+    expect(screen.getByText('07:41')).toBeInTheDocument();
+    expect(screen.getByText('+13')).toBeInTheDocument();
+    expect(screen.queryByText('64')).not.toBeInTheDocument();
+    expect(screen.queryByText('51')).not.toBeInTheDocument();
   });
 
   it('pins the player below the list when they are outside it (AC-026)', async () => {
@@ -48,18 +49,28 @@ describe('leaderboard', () => {
       total_entries: 112,
       me: { rank: 112, elapsed_ms: 903_118, final_score: 55, opponent_score: 50 },
     });
-    render(<Leaderboard puzzleId="2026-08-28" />);
+    render(<Leaderboard aiLevel="mcts" puzzleId="2026-08-28" />);
     await waitFor(() => expect(screen.getByText('You')).toBeInTheDocument());
     expect(screen.getByText('112')).toBeInTheDocument();
-    expect(screen.getByText('15:03.118')).toBeInTheDocument();
-    expect(screen.getByText('55')).toBeInTheDocument();
-    expect(screen.getByText('50')).toBeInTheDocument();
-    expect(screen.getByText('(+5)')).toBeInTheDocument();
+    expect(screen.getByText('15:03')).toBeInTheDocument();
+    expect(screen.getByText('+5')).toBeInTheDocument();
+  });
+
+  it('breaks the margin out into both scores in the full variant', async () => {
+    respond({ puzzle_id: '2026-08-28', entries: [ENTRY], total_entries: 1, me: null });
+    render(<Leaderboard aiLevel="mcts" puzzleId="2026-08-28" variant="full" />);
+    await waitFor(() => expect(screen.getByText('ada')).toBeInTheDocument());
+    expect(screen.getByRole('columnheader', { name: 'Score' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'User score' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Agent score' })).toBeInTheDocument();
+    expect(screen.getByText('+13')).toBeInTheDocument();
+    expect(screen.getByText('64')).toBeInTheDocument();
+    expect(screen.getByText('51')).toBeInTheDocument();
   });
 
   it('renders an empty board as a sentence, not a spinner (AC-028)', async () => {
     respond({ puzzle_id: '2026-08-28', entries: [], total_entries: 0, me: null });
-    render(<Leaderboard puzzleId="2026-08-28" />);
+    render(<Leaderboard aiLevel="mcts" puzzleId="2026-08-28" />);
     await waitFor(() =>
       expect(screen.getByText(/Nobody has played it yet today/i)).toBeInTheDocument(),
     );
@@ -67,7 +78,7 @@ describe('leaderboard', () => {
 
   it('shows an offline state rather than an error (FR-037)', async () => {
     fetchMock.mockRejectedValue(new TypeError('offline'));
-    render(<Leaderboard puzzleId="2026-08-28" />);
+    render(<Leaderboard aiLevel="mcts" puzzleId="2026-08-28" />);
     await waitFor(() =>
       expect(screen.getByText(/scores aren't recorded right now/i)).toBeInTheDocument(),
     );
@@ -81,7 +92,7 @@ describe('leaderboard', () => {
         headers: { 'content-type': 'application/json' },
       }),
     );
-    render(<Leaderboard puzzleId="2026-08-28" />);
+    render(<Leaderboard aiLevel="mcts" puzzleId="2026-08-28" />);
     await waitFor(() =>
       expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument(),
     );

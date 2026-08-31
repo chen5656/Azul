@@ -3,13 +3,18 @@
  *
  * Readable without signing in. Offline is a state, not an error, and never
  * blocks play (FR-037).
+ *
+ * Two shapes: `compact` beside the game, where the only number that matters is
+ * the margin, and `full` on `/leaderboard/today`, which also breaks the margin
+ * out into the player's own score and the agent's.
  */
 
 import { useCallback, useEffect, useState } from 'react';
 
+import { LEVEL_LABELS, type AgentLevel } from '../ai';
 import { ApiError, type Leaderboard as Board, getLeaderboard } from '../api/client';
 import { useIdentity } from '../auth/clerk';
-import { formatElapsed } from './Timer';
+import { formatElapsedSeconds } from './Timer';
 
 type State =
   | { kind: 'loading' }
@@ -19,10 +24,14 @@ type State =
 
 export function Leaderboard({
   puzzleId,
+  aiLevel,
+  variant = 'compact',
   /** Bump to refetch — the Daily does this after a successful submission. */
   refreshKey = 0,
 }: {
   puzzleId: string;
+  aiLevel: AgentLevel;
+  variant?: 'compact' | 'full';
   refreshKey?: number;
 }) {
   const identity = useIdentity();
@@ -32,7 +41,7 @@ export function Leaderboard({
     setState({ kind: 'loading' });
     try {
       const token = (await identity.getToken()) ?? undefined;
-      setState({ kind: 'ready', board: await getLeaderboard(puzzleId, token) });
+      setState({ kind: 'ready', board: await getLeaderboard(puzzleId, aiLevel, token) });
     } catch (err) {
       const apiError = err instanceof ApiError ? err : null;
       setState(
@@ -41,23 +50,38 @@ export function Leaderboard({
           : { kind: 'failed', message: apiError?.message ?? 'Could not load the board' },
       );
     }
-    // identity.getToken is a fresh closure each render; the puzzle and the
-    // refresh counter are what should actually trigger a reload.
+    // identity.getToken is a fresh closure each render; the puzzle, the agent
+    // and the refresh counter are what should actually trigger a reload.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [puzzleId, refreshKey]);
+  }, [puzzleId, aiLevel, refreshKey]);
 
   useEffect(() => {
     void load();
   }, [load]);
 
   return (
-    <section aria-label="Leaderboard" className="rounded-xl border border-neutral-800 p-3">
+    <section
+      aria-label={`Leaderboard vs ${LEVEL_LABELS[aiLevel]}`}
+      className="rounded-xl border border-neutral-800 p-3"
+    >
       <header className="mb-2 flex items-baseline justify-between">
-        <h2 className="font-semibold">Today's top scores</h2>
+        <h2 className="font-semibold">
+          Today's top scores <span className="text-neutral-500">vs {LEVEL_LABELS[aiLevel]}</span>
+        </h2>
         <span className="text-xs text-neutral-500">{puzzleId}</span>
       </header>
-      <Body state={state} onRetry={load} signedIn={identity.signedIn} />
+      <Body state={state} onRetry={load} signedIn={identity.signedIn} variant={variant} />
     </section>
+  );
+}
+
+/** The margin is the score. Sign it so a loss reads as one at a glance. */
+function Score({ diff }: { diff: number }) {
+  const tone = diff > 0 ? 'text-emerald-400' : diff < 0 ? 'text-rose-400' : 'text-neutral-300';
+  return (
+    <span className={`font-medium tabular-nums ${tone}`}>
+      {diff > 0 ? `+${diff}` : diff}
+    </span>
   );
 }
 
@@ -65,10 +89,12 @@ function Body({
   state,
   onRetry,
   signedIn,
+  variant,
 }: {
   state: State;
   onRetry: () => void;
   signedIn: boolean;
+  variant: 'compact' | 'full';
 }) {
   if (state.kind === 'loading') {
     return <p className="text-sm text-neutral-500">Loading…</p>;
@@ -102,70 +128,73 @@ function Body({
     return <p className="text-sm text-neutral-400">Nobody has played it yet today.</p>;
   }
 
+  const full = variant === 'full';
   const meInList =
     board.me !== null && board.entries.some((entry) => entry.rank === board.me!.rank);
 
-  const formatDiff = (diff: number) => {
-    if (diff > 0) {
-      return <span className="ml-1 text-xs font-medium text-emerald-400">(+{diff})</span>;
-    }
-    if (diff < 0) {
-      return <span className="ml-1 text-xs font-medium text-rose-400">({diff})</span>;
-    }
-    return <span className="ml-1 text-xs font-medium text-neutral-400">(0)</span>;
-  };
+  const rows = [
+    ...board.entries.map((entry) => ({ ...entry, isMe: board.me?.rank === entry.rank })),
+    ...(board.me !== null && !meInList
+      ? [{ ...board.me, display_name: 'You', isMe: true }]
+      : []),
+  ];
 
   return (
     <>
-      <div className="mb-1 flex items-center gap-2 text-xs font-medium text-neutral-500 px-1">
-        <span className="w-6">#</span>
-        <span className="flex-1">Player</span>
-        <span className="w-24 text-right">Score (Diff)</span>
-        <span className="w-16 text-right">Time</span>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-xs font-medium text-neutral-500">
+              <th scope="col" className="w-8 px-1 pb-1 text-left">
+                #
+              </th>
+              <th scope="col" className="px-1 pb-1 text-left">
+                Player
+              </th>
+              <th scope="col" className="w-16 px-1 pb-1 text-right">
+                Score
+              </th>
+              {full && (
+                <>
+                  <th scope="col" className="w-24 px-1 pb-1 text-right">
+                    User score
+                  </th>
+                  <th scope="col" className="w-24 px-1 pb-1 text-right">
+                    Agent score
+                  </th>
+                </>
+              )}
+              <th scope="col" className="w-16 px-1 pb-1 text-right">
+                Time
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-neutral-800">
+            {rows.map((row) => (
+              <tr key={row.rank} className={row.isMe ? 'text-sky-300' : ''}>
+                <td className="px-1 py-1.5 tabular-nums text-neutral-500">{row.rank}</td>
+                <td className="max-w-0 truncate px-1 py-1.5">{row.display_name}</td>
+                <td className="px-1 py-1.5 text-right">
+                  <Score diff={row.final_score - row.opponent_score} />
+                </td>
+                {full && (
+                  <>
+                    <td className="px-1 py-1.5 text-right tabular-nums text-neutral-300">
+                      {row.final_score}
+                    </td>
+                    <td className="px-1 py-1.5 text-right tabular-nums text-neutral-400">
+                      {row.opponent_score}
+                    </td>
+                  </>
+                )}
+                <td className="px-1 py-1.5 text-right font-mono text-xs tabular-nums text-neutral-400">
+                  {formatElapsedSeconds(row.elapsed_ms)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
-      <ol className="divide-y divide-neutral-800 text-sm">
-        {board.entries.map((entry) => {
-          const diff = entry.final_score - entry.opponent_score;
-          return (
-            <li
-              key={entry.rank}
-              className={`flex items-baseline gap-2 py-1.5 px-1 ${
-                board.me?.rank === entry.rank ? 'text-sky-300' : ''
-              }`}
-            >
-              <span className="w-6 tabular-nums text-neutral-500">{entry.rank}</span>
-              <span className="min-w-0 flex-1 truncate">{entry.display_name}</span>
-              <span className="w-24 text-right tabular-nums text-neutral-300">
-                <span>{entry.final_score}</span>
-                <span className="text-neutral-500"> - </span>
-                <span className="text-neutral-400">{entry.opponent_score}</span>
-                {formatDiff(diff)}
-              </span>
-              <span className="w-16 text-right font-mono text-xs tabular-nums text-neutral-400">
-                {formatElapsed(entry.elapsed_ms)}
-              </span>
-            </li>
-          );
-        })}
-      </ol>
-
-      {board.me !== null && !meInList && (
-        <div className="mt-2 border-t border-neutral-700 pt-2 text-sm text-sky-300">
-          <div className="flex items-baseline gap-2 px-1">
-            <span className="w-6 tabular-nums">{board.me.rank}</span>
-            <span className="flex-1 truncate">You</span>
-            <span className="w-24 text-right tabular-nums">
-              <span>{board.me.final_score}</span>
-              <span className="text-sky-400/60"> - </span>
-              <span>{board.me.opponent_score}</span>
-              {formatDiff(board.me.final_score - board.me.opponent_score)}
-            </span>
-            <span className="w-16 text-right font-mono text-xs tabular-nums">
-              {formatElapsed(board.me.elapsed_ms)}
-            </span>
-          </div>
-        </div>
-      )}
 
       <p className="mt-2 text-xs text-neutral-500">
         {board.total_entries} {board.total_entries === 1 ? 'player has' : 'players have'} played
