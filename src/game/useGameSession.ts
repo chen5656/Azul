@@ -24,6 +24,7 @@ import {
 } from '../engine';
 import { AiClient, AiDisposed, type AiMode, type AiSpec } from './aiClient';
 import type { Spotlight } from '../tutorial/script';
+import config from '../config';
 
 export type SessionStatus =
   | 'idle' // dealt, waiting for the player's first move; the clock has not started
@@ -43,6 +44,8 @@ export interface SessionOptions {
   humanSeat?: number;
   /** Practice does not need the clock; the Daily does (FR-018). */
   timed?: boolean;
+  /** Maximum number of undos allowed per game. Defaults to config.json. */
+  maxUndos?: number;
 }
 
 export interface Session {
@@ -60,6 +63,10 @@ export interface Session {
   canSelect: (source: number, color: number) => boolean;
   canPlace: (dest: number) => boolean;
   restart: () => void;
+  undo: () => void;
+  canUndo: boolean;
+  undosRemaining: number;
+  maxUndos: number;
   /** Elapsed milliseconds; frozen once the game ends (FR-019). */
   elapsedMs: number;
   humanSeat: number;
@@ -97,6 +104,8 @@ export function useGameSession(options: SessionOptions): Session {
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [stoppedAt, setStoppedAt] = useState<number | null>(null);
   const [elapsedMs, setElapsedMs] = useState(0);
+  const [undosRemaining, setUndosRemaining] = useState(options.maxUndos ?? config.maxUndos);
+  const historyRef = useRef<Array<{ game: QuadroGame; status: SessionStatus }>>([]);
   /** Guards against a stale AI reply landing after a restart. */
   const generation = useRef(0);
   /** Guards against two overlapping AI turns (StrictMode runs effects twice). */
@@ -244,6 +253,13 @@ export function useGameSession(options: SessionOptions): Session {
       // (FR-018, AC-013).
       if (startedAt === null) setStartedAt(performance.now());
 
+      if (gameRef.current) {
+        historyRef.current.push({
+          game: gameRef.current.clone(),
+          status: status === 'idle' ? 'idle' : 'your-turn',
+        });
+      }
+
       game.step(new Action(selection.source, selection.color, dest));
       setSelection(null);
       bump();
@@ -252,8 +268,36 @@ export function useGameSession(options: SessionOptions): Session {
       else if (game.state.current !== humanSeat) void runAiTurn();
       else setStatus('your-turn');
     },
-    [bump, canPlace, finish, game, humanSeat, runAiTurn, selection, startedAt],
+    [bump, canPlace, finish, game, humanSeat, runAiTurn, selection, startedAt, status],
   );
+
+  // ---- undo ----------------------------------------------------------
+
+  const canUndo =
+    undosRemaining > 0 && historyRef.current.length > 0 && status !== 'ai-thinking';
+
+  const undo = useCallback(() => {
+    if (undosRemaining <= 0 || historyRef.current.length === 0 || status === 'ai-thinking') {
+      return;
+    }
+    const previous = historyRef.current.pop();
+    if (!previous) return;
+
+    generation.current += 1;
+    aiRef.current?.dispose();
+    aiRef.current = null;
+    aiRunning.current = false;
+
+    gameRef.current = previous.game;
+    setUndosRemaining((prev) => Math.max(0, prev - 1));
+    setSelection(null);
+    setError(null);
+    if (status === 'game-over') {
+      setStoppedAt(null);
+    }
+    setStatus(previous.status);
+    bump();
+  }, [bump, status, undosRemaining]);
 
   // ---- restart -------------------------------------------------------
 
@@ -261,7 +305,10 @@ export function useGameSession(options: SessionOptions): Session {
     generation.current += 1;
     aiRef.current?.dispose();
     aiRef.current = null;
+    aiRunning.current = false;
     gameRef.current = newGame();
+    historyRef.current = [];
+    setUndosRemaining(options.maxUndos ?? config.maxUndos);
     setSelection(null);
     setError(null);
     setStartedAt(null);
@@ -269,7 +316,7 @@ export function useGameSession(options: SessionOptions): Session {
     setElapsedMs(0);
     setStatus('idle');
     bump();
-  }, [bump, newGame]);
+  }, [bump, newGame, options.maxUndos]);
 
   const result = game.isOver() ? game.result() : null;
 
@@ -285,6 +332,10 @@ export function useGameSession(options: SessionOptions): Session {
     canSelect,
     canPlace,
     restart,
+    undo,
+    canUndo,
+    undosRemaining,
+    maxUndos: options.maxUndos ?? config.maxUndos,
     elapsedMs,
     humanSeat,
     humanWon: result !== null && !result.draw && result.winner === humanSeat,

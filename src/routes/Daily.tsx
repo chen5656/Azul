@@ -176,6 +176,12 @@ function DailyAttempt({
     if (submission.state.kind === 'posted') setBoardRefresh((n) => n + 1);
   }, [submission.state.kind]);
 
+  const handleUndo = () => {
+    submission.reset();
+    offered.current = false;
+    session.undo();
+  };
+
   const restart = () => {
     submission.reset();
     offered.current = false;
@@ -198,6 +204,15 @@ function DailyAttempt({
               running={session.status !== 'idle' && session.status !== 'game-over'}
               done={session.status === 'game-over'}
             />
+            <button
+              type="button"
+              onClick={handleUndo}
+              disabled={!session.canUndo}
+              className="rounded-lg border border-neutral-700 px-3 py-1.5 text-sm hover:bg-neutral-800 disabled:opacity-50"
+              title={`Undo last move (${session.undosRemaining} remaining)`}
+            >
+              Undo ({session.undosRemaining})
+            </button>
             <button
               type="button"
               onClick={restart}

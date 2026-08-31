@@ -160,4 +160,14 @@ export class QuadroGame {
     this.events.push(...events);
     return events;
   }
+
+  clone(): QuadroGame {
+    const copy = new QuadroGame(this.seed, this.state.first_player);
+    (copy as { state: GameState }).state = this.state.clone();
+    (copy as { history: Action[] }).history = this.history.map(
+      (a) => new Action(a.source, a.color, a.dest),
+    );
+    (copy as { events: GameEvent[] }).events = this.events.slice();
+    return copy;
+  }
 }

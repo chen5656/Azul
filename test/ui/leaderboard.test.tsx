@@ -5,6 +5,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Leaderboard } from '../../src/components/Leaderboard';
 
+vi.mock('../../src/auth/clerk', () => ({
+  useIdentity: () => ({
+    signedIn: false,
+    available: false,
+    displayName: null,
+    getToken: async () => null,
+  }),
+}));
+
 const ENTRY = {
   rank: 1, display_name: 'ada', elapsed_ms: 461_230, final_score: 64, opponent_score: 51,
 };

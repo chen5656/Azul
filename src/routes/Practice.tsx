@@ -155,6 +155,15 @@ function PracticeGame({
         <div className="flex gap-2">
           <button
             type="button"
+            onClick={session.undo}
+            disabled={!session.canUndo}
+            className="rounded-lg border border-neutral-700 px-3 py-1.5 text-sm hover:bg-neutral-800 disabled:opacity-50"
+            title={`Undo last move (${session.undosRemaining} remaining)`}
+          >
+            Undo ({session.undosRemaining})
+          </button>
+          <button
+            type="button"
             onClick={session.restart}
             className="rounded-lg border border-neutral-700 px-3 py-1.5 text-sm hover:bg-neutral-800"
           >

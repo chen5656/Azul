@@ -120,10 +120,28 @@ describe('board interaction', () => {
     expect(staged || penalised.textContent !== '-1-1-2-2-2-3-3').toBe(true);
   });
 
-  it('offers no undo control (AC-008)', async () => {
-    await startPractice();
-    expect(screen.queryByRole('button', { name: /undo/i })).not.toBeInTheDocument();
+  it('offers undo control up to 3 times per game', async () => {
+    const user = await startPractice();
+    const undoButton = screen.getByRole('button', { name: /undo/i });
+    expect(undoButton).toBeInTheDocument();
+    expect(undoButton).toHaveTextContent('Undo (3)');
+    expect(undoButton).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Restart' })).toBeInTheDocument();
+
+    // Make a move
+    await user.click(screen.getAllByRole('button', { name: /^Take \d/ })[0]);
+    const myBoard = screen.getByRole('region', { name: 'You' });
+    const target = within(myBoard)
+      .getAllByRole('button', { name: /Staging row/ })
+      .find((row) => !row.hasAttribute('disabled'))!;
+    await user.click(target);
+
+    await waitFor(() => expect(undoButton).not.toBeDisabled());
+    expect(undoButton).toHaveTextContent('Undo (3)');
+
+    // Click Undo
+    await user.click(undoButton);
+    expect(undoButton).toHaveTextContent('Undo (2)');
   });
 
   it('makes no network request while playing (AC-007)', async () => {

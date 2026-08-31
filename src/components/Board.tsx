@@ -32,6 +32,21 @@ export function Board({
         clearSelection();
         return;
       }
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
+        if (session.canUndo) {
+          event.preventDefault();
+          session.undo();
+        }
+        return;
+      }
+      if (event.key === 'u' || event.key === 'U') {
+        const tag = (document.activeElement as HTMLElement)?.tagName?.toLowerCase();
+        if (tag !== 'input' && tag !== 'textarea' && session.canUndo) {
+          event.preventDefault();
+          session.undo();
+          return;
+        }
+      }
       if (!event.key.startsWith('Arrow')) return;
 
       const focusable = Array.from(
@@ -51,7 +66,7 @@ export function Board({
 
     node.addEventListener('keydown', onKeyDown);
     return () => node.removeEventListener('keydown', onKeyDown);
-  }, [clearSelection]);
+  }, [clearSelection, session]);
 
   const opponentSeat = 1 - humanSeat;
 
