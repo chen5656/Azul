@@ -46,7 +46,7 @@ export function PlayerBoard({
   return (
     <section
       aria-label={label}
-      className={`min-w-0 rounded-xl border p-3 ${
+      className={`azul-board min-w-0 rounded-xl border p-3 ${
         active ? 'border-sky-400 bg-neutral-800/70' : 'border-neutral-700 bg-neutral-800/30'
       }`}
     >
@@ -60,7 +60,7 @@ export function PlayerBoard({
         <span className="tabular-nums text-lg">{board.score}</span>
       </header>
 
-      <div className="flex gap-3 overflow-x-auto">
+      <div className="flex gap-3">
         <div className="flex flex-col gap-1">
           {Array.from({ length: NUM_ROWS }, (_, row) => {
             const capacity = STAGING_CAPACITY[row];
@@ -115,7 +115,7 @@ export function PlayerBoard({
                 ) : (
                   <div
                     key={col}
-                    className="grid h-8 w-8 place-items-center rounded border border-neutral-800 text-[10px] text-neutral-600"
+                    className="azul-tile grid place-items-center rounded border border-neutral-800 text-neutral-600"
                   >
                     {['B', 'Y', 'R', 'K', 'W'][color]}
                   </div>

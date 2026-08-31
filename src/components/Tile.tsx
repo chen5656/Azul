@@ -9,8 +9,9 @@ const FILL = [
 ];
 
 const SIZES = {
-  sm: 'w-8 h-8 text-xs',
-  md: 'w-10 h-10 text-sm',
+  /** Fluid: follows the width of the enclosing `.azul-board` (see index.css). */
+  sm: 'azul-tile',
+  md: 'azul-tile-lg',
 };
 
 /**
