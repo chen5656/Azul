@@ -24,7 +24,7 @@ export function DisplayArea({ session }: { session: Session }) {
         key={source}
         className={`flex flex-col items-center rounded-lg border bg-neutral-800/60 p-2 ${
           lit
-            ? 'animate-pulse-ring border-sky-400 ring-2 ring-sky-400/70'
+            ? 'border-sky-400 ring-2 ring-sky-400/70'
             : 'border-neutral-700'
         }`}
         aria-label={sourceLabel(source)}
@@ -72,7 +72,7 @@ export function DisplayArea({ session }: { session: Session }) {
         key={CENTER}
         className={`rounded-lg border bg-neutral-800/60 p-2.5 ${
           lit
-            ? 'animate-pulse-ring border-sky-400 ring-2 ring-sky-400/70'
+            ? 'border-sky-400 ring-2 ring-sky-400/70'
             : 'border-neutral-700'
         }`}
         aria-label={sourceLabel(CENTER)}

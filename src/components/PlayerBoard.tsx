@@ -80,7 +80,7 @@ export function PlayerBoard({
                   ok ? 'bg-sky-900/40 ring-1 ring-sky-500 hover:bg-sky-800/60' : ''
                 } ${interactive && selection && !ok ? 'opacity-50' : ''} ${
                   lit('row', row)
-                    ? 'animate-pulse-ring ring-2 ring-sky-400'
+                    ? 'ring-2 ring-sky-400'
                     : ''
                 }`}
               >
@@ -102,7 +102,7 @@ export function PlayerBoard({
 
         <div
           className={`flex flex-col gap-1 rounded ${
-            lit('wall') ? 'animate-pulse-ring ring-2 ring-sky-400' : ''
+            lit('wall') ? 'ring-2 ring-sky-400' : ''
           }`}
           aria-label="Grid"
         >
@@ -137,7 +137,7 @@ export function PlayerBoard({
             : interactive && selection
               ? 'opacity-50'
               : ''
-        } ${lit('floor') ? 'animate-pulse-ring ring-2 ring-sky-400' : ''}`}
+        } ${lit('floor') ? 'ring-2 ring-sky-400' : ''}`}
       >
         {PENALTIES.map((points, i) => (
           <span key={i} className="flex flex-col items-center">

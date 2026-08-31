@@ -55,13 +55,13 @@ export function GameOverBurst({ text, tone }: { text: string; tone: 'win' | 'los
     >
       {phase === 'grow' ? (
         <span
-          className={`azul-burst-grow whitespace-nowrap text-6xl font-black uppercase tracking-tight drop-shadow-[0_0_25px_rgba(0,0,0,0.8)] sm:text-7xl ${color}`}
+          className={`azul-burst-grow whitespace-nowrap text-6xl font-black uppercase tracking-tight sm:text-7xl ${color}`}
         >
           {text}
         </span>
       ) : (
         <>
-          <span className="azul-burst-flash absolute h-40 w-40 rounded-full bg-white/70 blur-2xl" />
+          <span className="azul-burst-flash absolute h-40 w-40 rounded-full bg-white/70" />
           <span className="flex whitespace-nowrap text-6xl font-black uppercase tracking-tight sm:text-7xl">
             {letters.map((ch, i) => (
               <span
