@@ -177,6 +177,7 @@ function PracticeGame({
       humanLabel="You"
       opponentLabel={opponentLabel}
       topRight={topRight}
+      title="Practice"
     />
   );
 }

@@ -87,6 +87,7 @@ export function PlayerBoard({
               <button
                 key={row}
                 type="button"
+                data-tutorial-target={interactive ? `row-${row}` : undefined}
                 disabled={!ok}
                 onClick={() => place(row)}
                 aria-label={`Staging row ${row + 1}${p ? `, places ${p.placed} tiles` : ''}`}
@@ -117,6 +118,7 @@ export function PlayerBoard({
 
         {/* 5x5 Grid */}
         <div
+          data-tutorial-target={interactive ? 'wall' : undefined}
           className={`flex flex-col gap-1.5 rounded-lg border border-neutral-700/40 bg-neutral-950/40 p-1.5 ${
             lit('wall') ? 'ring-2 ring-sky-400' : ''
           }`}
@@ -145,6 +147,7 @@ export function PlayerBoard({
       {/* Penalty / Floor Row */}
       <button
         type="button"
+        data-tutorial-target={interactive ? 'floor' : undefined}
         disabled={!drop(PENALTY_DEST)}
         onClick={() => place(PENALTY_DEST)}
         aria-label="Penalty row — discard the whole group here"

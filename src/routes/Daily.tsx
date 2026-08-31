@@ -10,9 +10,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { DAILY_TIME_BUDGET, LEVELS, LEVEL_LABELS, type AgentLevel } from '../ai';
+import { getLeaderboard } from '../api/client';
 import { useIdentity } from '../auth/clerk';
 import { Board } from '../components/Board';
 import { Leaderboard } from '../components/Leaderboard';
+import { Modal } from '../components/Modal';
 import { SubmitPanel } from '../components/SubmitPanel';
 import { Timer } from '../components/Timer';
 import {
@@ -36,6 +38,15 @@ const DAILY_LEVELS: readonly AgentLevel[] = [
   'medium',
   'easy',
 ] as const;
+
+const LEVEL_DESCRIPTIONS: Record<AgentLevel, string> = {
+  extreme: 'Deep Monte Carlo Tree Search (MCTS)',
+  master: 'Minimax search with advanced heuristic evaluation',
+  expert: 'Lookahead minimax tree evaluation',
+  hard: 'Aggressive heuristic scoring & line planning',
+  medium: 'Standard heuristic pattern matching',
+  easy: 'Greedy local tile selections',
+};
 
 function getLevelFromSearch(search: string): AgentLevel {
   const params = new URLSearchParams(search);
@@ -128,7 +139,32 @@ function DailyAttempt({
   const identity = useIdentity();
   const submission = useSubmission(identity);
   const [boardRefresh, setBoardRefresh] = useState(0);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [totalEntries, setTotalEntries] = useState<number | null>(null);
   const opponentLabel = LEVEL_LABELS[level];
+
+  // Fetch leaderboard player count for current puzzle & level
+  useEffect(() => {
+    let active = true;
+    async function loadCount() {
+      try {
+        const token = (await identity.getToken()) ?? undefined;
+        const data = await getLeaderboard(puzzleId, level, token);
+        if (active) {
+          setTotalEntries(data.total_entries);
+        }
+      } catch {
+        if (active && totalEntries === null) {
+          setTotalEntries(0);
+        }
+      }
+    }
+    void loadCount();
+    return () => {
+      active = false;
+    };
+  }, [puzzleId, level, boardRefresh, identity]);
 
   const newGame = useCallback(() => newDailyGame(puzzleId), [puzzleId]);
   const ai = useMemo(
@@ -187,8 +223,10 @@ function DailyAttempt({
     session.restart();
   };
 
+  const countDisplay = totalEntries === null ? '0' : totalEntries > 100 ? '100+' : String(totalEntries);
+
   const topRight = (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center justify-end gap-1.5 sm:gap-2">
       <Timer
         ms={session.elapsedMs}
         running={session.status !== 'idle' && session.status !== 'game-over'}
@@ -196,8 +234,54 @@ function DailyAttempt({
       />
       <button
         type="button"
+        onClick={() => setShowLeaderboard(true)}
+        aria-label={`View Leaderboard (${countDisplay} players)`}
+        title={`View Today's Leaderboard (${countDisplay} players)`}
+        className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-700 bg-neutral-800/80 px-2.5 py-1 text-xs sm:text-sm font-medium hover:bg-neutral-700 text-neutral-200 transition"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          className="h-3.5 w-3.5 stroke-current text-amber-400"
+          fill="none"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+          <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+          <path d="M4 22h16" />
+          <path d="M10 14.66V17c0 .55-.45 1-1 1H7v4h10v-4h-2c-.55 0-1-.45-1-1v-2.34" />
+          <path d="M6 4h12v7a6 6 0 0 1-12 0V4z" />
+        </svg>
+        <span>Top scores</span>
+        <span className="rounded-full bg-amber-500/20 border border-amber-500/30 px-1.5 py-0.5 text-[10px] sm:text-[11px] font-mono font-bold text-amber-300 leading-none">
+          {countDisplay}
+        </span>
+      </button>
+      <button
+        type="button"
+        onClick={() => setShowSettings(true)}
+        aria-label="Difficulty Settings"
+        title="Change Difficulty"
+        className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-700 bg-neutral-800/80 px-2.5 py-1 text-xs sm:text-sm font-medium hover:bg-neutral-700 text-neutral-200 transition"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          className="h-3.5 w-3.5 stroke-current text-neutral-400"
+          fill="none"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <circle cx="12" cy="12" r="3" />
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+        </svg>
+        <span>Level - {opponentLabel}</span>
+      </button>
+      <button
+        type="button"
         onClick={restart}
-        className="rounded-lg border border-neutral-700 px-2.5 py-1 text-xs sm:text-sm hover:bg-neutral-800"
+        className="rounded-lg border border-neutral-700 px-2.5 py-1 text-xs sm:text-sm hover:bg-neutral-800 transition"
       >
         Restart
       </button>
@@ -205,64 +289,96 @@ function DailyAttempt({
   );
 
   return (
-    <div className="grid gap-3 sm:gap-4 2xl:grid-cols-[1fr_20rem]">
-      <div className="flex flex-col gap-2.5 sm:gap-3">
-        {/* Difficulty Picker & Challenge Info */}
-        <div className="flex flex-wrap items-center justify-between gap-2.5 rounded-xl border border-neutral-800 bg-neutral-900/60 p-2 sm:p-2.5">
-          <div>
-            <h1 className="text-sm sm:text-base font-semibold">
-              Daily Challenge <span className="text-neutral-500">vs {opponentLabel}</span>
-            </h1>
-            <p className="text-[11px] sm:text-xs text-neutral-500">{puzzleId} · everyone gets this deal</p>
-          </div>
-          <div className="flex flex-wrap items-center gap-1.5 shrink-0">
-            <span className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-wider text-neutral-400">AI:</span>
-            <div className="flex flex-wrap items-center gap-1">
-              {DAILY_LEVELS.map((candidate) => (
+    <div className="flex flex-col gap-3 sm:gap-4 w-full">
+      {session.status === 'game-over' && (
+        <SubmitPanel
+          admissible={true}
+          humanWon={session.humanWon}
+          draw={session.game.result().draw}
+          elapsedMs={session.elapsedMs}
+          opponentLabel={opponentLabel}
+          state={submission.state}
+          onRetry={() => void submission.retry()}
+          onDiscard={submission.discard}
+          onPlayAgain={onPlayAgain}
+        />
+      )}
+
+      <Board
+        session={session}
+        humanLabel="You"
+        opponentLabel={opponentLabel}
+        onUndo={handleUndo}
+        topRight={topRight}
+        title={`Daily Challenge (${puzzleId})`}
+      />
+
+      {/* Difficulty Settings Modal */}
+      <Modal
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+        title="Difficulty Settings"
+        maxWidth="max-w-md"
+      >
+        <div className="flex flex-col gap-3">
+          <p className="text-xs text-neutral-400">
+            Select the opponent difficulty for the Daily Challenge. Each difficulty has its own independent leaderboard.
+          </p>
+          <div className="grid grid-cols-1 gap-2 pt-1">
+            {DAILY_LEVELS.map((candidate) => {
+              const isSelected = level === candidate;
+              return (
                 <button
                   key={candidate}
                   type="button"
-                  onClick={() => onSelectLevel(candidate)}
-                  aria-pressed={level === candidate}
-                  className={`rounded px-2 py-0.5 text-xs font-medium transition cursor-pointer whitespace-nowrap ${
-                    level === candidate
-                      ? 'bg-sky-600 font-semibold text-white shadow-sm ring-1 ring-sky-400'
-                      : 'border border-neutral-700 bg-neutral-800 text-neutral-300 hover:bg-neutral-700 hover:text-white'
+                  onClick={() => {
+                    onSelectLevel(candidate);
+                    setShowSettings(false);
+                  }}
+                  className={`flex items-center justify-between rounded-xl border p-3 text-left transition ${
+                    isSelected
+                      ? 'border-sky-500 bg-sky-950/50 ring-1 ring-sky-500/50'
+                      : 'border-neutral-800 bg-neutral-900/60 hover:border-neutral-700 hover:bg-neutral-800/80'
                   }`}
                 >
-                  {LEVEL_LABELS[candidate]}
+                  <div className="flex flex-col gap-0.5">
+                    <span className={`text-sm font-semibold ${isSelected ? 'text-sky-300' : 'text-neutral-200'}`}>
+                      {LEVEL_LABELS[candidate]}
+                    </span>
+                    <span className="text-xs text-neutral-400">
+                      {LEVEL_DESCRIPTIONS[candidate]}
+                    </span>
+                  </div>
+                  {isSelected && (
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-sky-500 text-neutral-950">
+                      <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 stroke-current" fill="none" strokeWidth="3">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  )}
                 </button>
-              ))}
-            </div>
+              );
+            })}
           </div>
         </div>
+      </Modal>
 
-        {session.status === 'game-over' && (
-          <SubmitPanel
-            admissible={true}
-            humanWon={session.humanWon}
-            draw={session.game.result().draw}
-            elapsedMs={session.elapsedMs}
-            opponentLabel={opponentLabel}
-            state={submission.state}
-            onRetry={() => void submission.retry()}
-            onDiscard={submission.discard}
-            onPlayAgain={onPlayAgain}
-          />
-        )}
-
-        <Board
-          session={session}
-          humanLabel="You"
-          opponentLabel={opponentLabel}
-          onUndo={handleUndo}
-          topRight={topRight}
+      {/* Leaderboard Modal */}
+      <Modal
+        isOpen={showLeaderboard}
+        onClose={() => setShowLeaderboard(false)}
+        title={`Today's Top Scores (${puzzleId})`}
+        maxWidth="max-w-2xl"
+      >
+        <Leaderboard
+          puzzleId={puzzleId}
+          aiLevel={level}
+          refreshKey={boardRefresh}
+          variant="full"
+          onLoaded={(b) => setTotalEntries(b.total_entries)}
         />
-      </div>
-
-      <aside>
-        <Leaderboard puzzleId={puzzleId} aiLevel={level} refreshKey={boardRefresh} />
-      </aside>
+      </Modal>
     </div>
   );
 }
+

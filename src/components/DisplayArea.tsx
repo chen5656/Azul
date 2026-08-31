@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { CENTER, COLOR_NAMES, NUM_COLORS, NUM_DISPLAYS } from '../engine';
 import type { Session } from '../game/useGameSession';
 import { FirstToken, Tile } from './Tile';
@@ -11,7 +12,13 @@ function sourceLabel(source: number): string {
  * Layout matches image_pc.png with circular discs arranged 2x2 + 1 centered,
  * and an elliptical center pool with abundant room for accumulating tiles.
  */
-export function DisplayArea({ session }: { session: Session }) {
+export function DisplayArea({
+  session,
+  title = 'Factories',
+}: {
+  session: Session;
+  title?: ReactNode;
+}) {
   const { game, selection, select, canSelect, spotlight } = session;
   const state = game.state;
 
@@ -29,6 +36,7 @@ export function DisplayArea({ session }: { session: Session }) {
           {sourceLabel(source)}
         </span>
         <div
+          data-tutorial-target={`source-${source}`}
           className={`azul-factory-disc relative flex aspect-square items-center justify-center rounded-full border border-neutral-700/80 bg-neutral-900/70 p-1.5 sm:p-2 shadow-md backdrop-blur-sm transition-all ${
             lit
               ? 'border-sky-400 ring-2 ring-sky-400/80 shadow-sky-500/20'
@@ -91,6 +99,7 @@ export function DisplayArea({ session }: { session: Session }) {
           Center
         </span>
         <div
+          data-tutorial-target={`source-${CENTER}`}
           className={`azul-center-pool ${sizeClass} relative flex flex-col items-center justify-center border border-neutral-700/80 bg-neutral-900/70 px-4 py-3 shadow-xl backdrop-blur-sm transition-all duration-300 ${
             lit
               ? 'border-sky-400 ring-2 ring-sky-400/80 shadow-sky-500/20'
@@ -143,9 +152,13 @@ export function DisplayArea({ session }: { session: Session }) {
     <div className="azul-display-area flex flex-col items-center gap-2 sm:gap-3 w-full py-0.5 sm:py-1">
       {/* Factories Section */}
       <div className="flex flex-col items-center gap-1.5 w-full">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-neutral-400">
-          Factories
-        </h2>
+        {typeof title === 'string' ? (
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-neutral-400">
+            {title}
+          </h2>
+        ) : (
+          title
+        )}
         {/* Discs 1 & 2 */}
         <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-6 w-full justify-items-center">
           {factoryGroup(0, displays[0] ?? new Array(NUM_COLORS).fill(0))}

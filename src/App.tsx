@@ -30,11 +30,6 @@ function Nav() {
       {item('/daily', 'Daily')}
       {item('/practice', 'Practice')}
       {item('/leaderboard', 'Leaderboard')}
-      {/* The guides are static HTML outside the SPA, so this is a real
-          navigation rather than a router Link. */}
-      <a href="/guide" className="rounded px-2 py-1 text-sm text-neutral-400 hover:text-neutral-100">
-        Guide
-      </a>
     </nav>
   );
 }

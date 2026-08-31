@@ -28,11 +28,13 @@ export function Leaderboard({
   variant = 'compact',
   /** Bump to refetch — the Daily does this after a successful submission. */
   refreshKey = 0,
+  onLoaded,
 }: {
   puzzleId: string;
   aiLevel: AgentLevel;
   variant?: 'compact' | 'full';
   refreshKey?: number;
+  onLoaded?: (board: Board) => void;
 }) {
   const identity = useIdentity();
   const [state, setState] = useState<State>({ kind: 'loading' });
@@ -41,7 +43,9 @@ export function Leaderboard({
     setState({ kind: 'loading' });
     try {
       const token = (await identity.getToken()) ?? undefined;
-      setState({ kind: 'ready', board: await getLeaderboard(puzzleId, aiLevel, token) });
+      const board = await getLeaderboard(puzzleId, aiLevel, token);
+      setState({ kind: 'ready', board });
+      onLoaded?.(board);
     } catch (err) {
       const apiError = err instanceof ApiError ? err : null;
       setState(

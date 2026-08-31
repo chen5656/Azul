@@ -11,89 +11,43 @@
  */
 
 import { Board } from '../components/Board';
-import { Link } from '../router';
+import { TutorialPopover } from '../components/TutorialPopover';
 import { OPPONENT_LABEL } from '../tutorial/script';
 import { useTutorial } from '../tutorial/useTutorial';
 
 export function Tutorial() {
-  const { session, step, stepIndex, stepCount, phase, body, canAdvance, next, restart, done } =
-    useTutorial();
-
-  const topRight = (
-    <button
-      type="button"
-      onClick={restart}
-      className="rounded-lg border border-neutral-700 px-3 py-1 text-xs sm:text-sm hover:bg-neutral-800"
-    >
-      Start over
-    </button>
-  );
+  const {
+    session,
+    step,
+    stepIndex,
+    stepCount,
+    phase,
+    body,
+    canAdvance,
+    next,
+    restart,
+    done,
+  } = useTutorial();
 
   return (
-    <div className="flex flex-col gap-3 sm:gap-4">
-      <section
-        aria-label="Lesson"
-        className="rounded-xl border border-sky-800 bg-sky-950/30 p-3 sm:p-4"
-        // The panel is the tutorial's running commentary: announce each new step
-        // rather than leaving screen-reader users to hunt for what changed.
-        aria-live="polite"
-      >
-        <div className="flex items-baseline justify-between gap-3">
-          <h2 className="font-semibold text-sky-100">{step.title}</h2>
-          <span className="shrink-0 text-xs tabular-nums text-neutral-500">
-            Step {stepIndex + 1} of {stepCount}
-          </span>
-        </div>
-
-        <div className="mt-2 space-y-2 text-sm leading-relaxed text-neutral-300">
-          {body.map((paragraph, i) => (
-            <p key={i}>{paragraph}</p>
-          ))}
-        </div>
-
-        <div className="mt-4 flex flex-wrap items-center gap-3">
-          {done ? (
-            <>
-              <Link
-                to="/practice"
-                className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium hover:bg-sky-500"
-              >
-                Play Practice
-              </Link>
-              <Link
-                to="/daily"
-                className="rounded-lg border border-neutral-700 px-4 py-2 text-sm hover:bg-neutral-800"
-              >
-                Today's Daily
-              </Link>
-            </>
-          ) : (
-            <button
-              type="button"
-              onClick={next}
-              disabled={!canAdvance}
-              className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium hover:bg-sky-500 disabled:opacity-40"
-            >
-              Next
-            </button>
-          )}
-          {!canAdvance && (
-            <span className="text-xs text-neutral-500">
-              {phase === 'replying'
-                ? `${OPPONENT_LABEL} is answering…`
-                : phase === 'pick'
-                  ? 'Take the highlighted tiles to continue.'
-                  : 'Place them on the highlighted row to continue.'}
-            </span>
-          )}
-        </div>
-      </section>
+    <div className="relative flex flex-col gap-3 sm:gap-4 w-full">
+      <TutorialPopover
+        step={step}
+        stepIndex={stepIndex}
+        stepCount={stepCount}
+        phase={phase}
+        body={body}
+        canAdvance={canAdvance}
+        next={next}
+        restart={restart}
+        done={done}
+        spotlight={session.spotlight}
+      />
 
       <Board
         session={session}
         humanLabel="You"
         opponentLabel={OPPONENT_LABEL}
-        topRight={topRight}
       />
     </div>
   );

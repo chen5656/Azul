@@ -22,6 +22,7 @@ export function Board({
   onUndo,
   topLeft,
   topRight,
+  title,
 }: {
   session: Session;
   humanLabel?: string;
@@ -29,6 +30,7 @@ export function Board({
   onUndo?: () => void;
   topLeft?: ReactNode;
   topRight?: ReactNode;
+  title?: ReactNode;
 }) {
   const root = useRef<HTMLDivElement>(null);
   const { clearSelection, humanSeat, game, status } = session;
@@ -207,7 +209,7 @@ export function Board({
 
         {/* Center Column: Factories & Center Pool */}
         <div className="flex flex-col items-center gap-2 sm:gap-3 min-w-0 w-full">
-          <DisplayArea session={session} />
+          <DisplayArea session={session} title={title} />
         </div>
 
         {/* Right Column: Action controls + Opponent Profile + Opponent Board + Score Breakdown */}
