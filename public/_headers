@@ -1,6 +1,6 @@
 # Content Security Policy: self, the Worker origin, Clerk, and the Cloudflare
 # Turnstile host Clerk's bot check loads from (NFR-009).
 /*
-  Content-Security-Policy: default-src 'self'; script-src 'self' https://*.clerk.accounts.dev https://clerk.games.aclogics.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com https://*.clerk.accounts.dev https://img.clerk.com; img-src 'self' data: https://img.clerk.com; connect-src 'self' https://clerk.games.aclogics.com https://*.clerk.accounts.dev https://challenges.cloudflare.com; worker-src 'self' blob:; frame-src https://clerk.games.aclogics.com https://challenges.cloudflare.com; base-uri 'none'; form-action 'self'; object-src 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://*.clerk.accounts.dev https://clerk.acgame.win https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com https://*.clerk.accounts.dev https://img.clerk.com; img-src 'self' data: https://img.clerk.com; connect-src 'self' https://clerk.acgame.win https://*.clerk.accounts.dev https://challenges.cloudflare.com; worker-src 'self' blob:; frame-src https://clerk.acgame.win https://challenges.cloudflare.com; base-uri 'none'; form-action 'self'; object-src 'none'
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin

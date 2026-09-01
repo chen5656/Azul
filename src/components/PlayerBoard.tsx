@@ -68,7 +68,10 @@ export function PlayerBoard({
   const accent = isFocus ? 'text-neutral-400' : isHuman ? 'text-sky-400' : 'text-rose-400';
 
   const stagingRows = (
-    <div className="flex flex-col gap-1.5">
+    // Same vertical rhythm as the wall (transparent border + p-1.5 frame, and a
+    // per-row box of py-0.5 + gap-0.5 == the wall's gap-1.5), so staging row N
+    // lines up with wall row N instead of drifting down the board.
+    <div className="flex flex-col gap-0.5 rounded-lg border border-transparent p-1.5">
       {Array.from({ length: NUM_ROWS }, (_, row) => {
         const capacity = STAGING_CAPACITY[row];
         const color = board.staging_colors[row];
@@ -85,7 +88,7 @@ export function PlayerBoard({
             onClick={() => place(row)}
             aria-label={`Staging row ${row + 1}${p ? `, places ${p.placed} tiles` : ''}`}
             title={p ? `${p.placed} on the row, ${p.overflow} to the penalty row` : undefined}
-            className={`flex justify-end gap-1 rounded-md p-1 transition-all ${
+            className={`flex justify-end gap-1 rounded-md px-1 py-0.5 transition-all ${
               !isFocus && ok
                 ? 'bg-sky-900/50 ring-2 ring-sky-400 shadow-sm hover:bg-sky-800/70'
                 : ''

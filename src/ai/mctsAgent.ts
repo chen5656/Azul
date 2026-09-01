@@ -32,6 +32,19 @@ import { actionValue } from './greedyAgent';
  */
 export const VALUE_SCALE = 25.0;
 
+/**
+ * How much of a terminal reward the final margin is allowed to move it.
+ *
+ * Pure win/loss makes the search indifferent between +1 and +50, so once a line
+ * is winning it wanders. Adding a bounded margin term orders wins by how big
+ * they are; keeping the term below 1 keeps the ordering lexicographic — the
+ * narrowest win (>= 1 - MARGIN_BONUS) still beats the widest loss.
+ */
+export const MARGIN_BONUS = 0.15;
+
+/** Point difference at which the margin term is most of the way to saturated. */
+export const MARGIN_SCALE = 30.0;
+
 class Node {
   visits = 0;
   /** summed reward from the root player's view */
@@ -52,6 +65,8 @@ export interface MctsOptions {
   rolloutEpsilon?: number;
   rolloutWidth?: number;
   rolloutRounds?: number;
+  /** 0 disables margin awareness and restores pure win/loss rewards. */
+  marginBonus?: number;
   maxSimulations?: number;
   weights?: Weights;
 }
@@ -67,6 +82,7 @@ export class MctsAgent implements Agent {
   private readonly rolloutEpsilon: number;
   private readonly rolloutWidth: number;
   private readonly rolloutRounds: number;
+  private readonly marginBonus: number;
   private readonly maxSimulations: number | null;
   private readonly weights: Weights;
   private rootPlayer = 0;
@@ -79,6 +95,7 @@ export class MctsAgent implements Agent {
     this.rolloutEpsilon = options.rolloutEpsilon ?? 0.15;
     this.rolloutWidth = options.rolloutWidth ?? 6;
     this.rolloutRounds = options.rolloutRounds ?? 2;
+    this.marginBonus = options.marginBonus ?? MARGIN_BONUS;
     this.maxSimulations = options.maxSimulations ?? null;
     this.weights = options.weights ?? DEFAULT_WEIGHTS;
   }
@@ -128,13 +145,18 @@ export class MctsAgent implements Agent {
     return best as Action;
   }
 
-  /** Terminal games score ±1; cut-off positions use a squashed evaluation. */
+  /**
+   * Terminal games score ±1 nudged by the final margin; cut-off positions use a
+   * squashed evaluation. The nudge never crosses zero, so winning always
+   * outranks losing and the margin only orders same-result outcomes.
+   */
   private reward(state: GameState): number {
     if (state.phase === GAME_OVER) {
       const me = this.rootPlayer;
       const mine = state.players[me].score;
       const theirs = state.players[1 - me].score;
-      if (mine !== theirs) return mine > theirs ? 1 : -1;
+      const margin = this.marginBonus * Math.tanh((mine - theirs) / MARGIN_SCALE);
+      if (mine !== theirs) return (mine > theirs ? 1 : -1) + margin;
       const myRows = state.players[me].completeRows();
       const theirRows = state.players[1 - me].completeRows();
       if (myRows !== theirRows) return myRows > theirRows ? 1 : -1;
@@ -246,13 +268,19 @@ export class MctsAgent implements Agent {
     }
 
     // Robust child: most visited, not highest mean — it is far less noisy.
+    // Equal visits are common at a 450ms budget; break those on mean value so
+    // the tie goes to the higher-scoring line rather than to map order.
     let best: Action | null = null;
     let bestVisits = -1;
+    let bestMean = -Infinity;
     for (const action of actions) {
       const child = root.children.get(action.actionId);
-      if (child && child.visits > bestVisits) {
+      if (!child) continue;
+      const mean = child.visits ? child.value / child.visits : -Infinity;
+      if (child.visits > bestVisits || (child.visits === bestVisits && mean > bestMean)) {
         best = action;
         bestVisits = child.visits;
+        bestMean = mean;
       }
     }
     // An expired budget before the first simulation still yields a legal move.

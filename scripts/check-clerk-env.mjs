@@ -69,4 +69,19 @@ if (host !== issuerHost) {
   );
 }
 
-console.log(`Clerk config OK: ${host} (from ${key.file}) matches CLERK_ISSUER.`);
+// The CSP must allow the same host, or Clerk's script never loads and the app
+// renders with sign-in permanently unavailable.
+const headers = readFileSync(resolve(root, 'public/_headers'), 'utf8');
+const csp = headers.match(/Content-Security-Policy:\s*(.+)/)?.[1] ?? '';
+const missing = ['script-src', 'connect-src', 'frame-src'].filter((directive) => {
+  const values = csp.match(new RegExp(`${directive}([^;]*)`))?.[1] ?? '';
+  return !values.includes(`https://${host}`);
+});
+if (missing.length) {
+  fail(
+    `public/_headers CSP does not allow https://${host} in: ${missing.join(', ')}.\n` +
+      "  Clerk's script would be blocked and sign-in would be unavailable in production.",
+  );
+}
+
+console.log(`Clerk config OK: ${host} (from ${key.file}) matches CLERK_ISSUER and the CSP.`);

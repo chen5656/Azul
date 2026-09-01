@@ -23,7 +23,7 @@ export const clerkConfigured = Boolean(PUBLISHABLE_KEY);
 export function AuthProvider({ children }: { children: ReactNode }) {
   if (!clerkConfigured) return <>{children}</>;
   return (
-    <ClerkProvider publishableKey={PUBLISHABLE_KEY!} afterSignOutUrl="/quadro/">
+    <ClerkProvider publishableKey={PUBLISHABLE_KEY!} afterSignOutUrl="/">
       {children}
     </ClerkProvider>
   );
