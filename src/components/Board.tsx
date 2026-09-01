@@ -72,14 +72,24 @@ export function Board({
   const isOpponentTurn = status === 'ai-thinking';
   const { style } = useGameStyle();
 
+  /**
+   * `useGameSession` returns a fresh object every render, so depending on
+   * `session` here tore the animator down and rebuilt it on *every* render —
+   * and `clear()` yanks the tiles that are mid-flight. Selecting a tile, the
+   * state bump after a move and the timer tick all render during an animation,
+   * so almost every flight was destroyed a frame or two after it started.
+   * `setAnimator` is the stable identity to hold on to.
+   */
+  const { setAnimator } = session;
   useEffect(() => {
+    if (!setAnimator) return;
     const animator = createAnimator(root, style);
-    session.setAnimator?.(animator);
+    setAnimator(animator);
     return () => {
       animator.clear();
-      session.setAnimator?.(null);
+      setAnimator(null);
     };
-  }, [session, style]);
+  }, [setAnimator, style]);
 
   // Render player avatar based on style
   const renderHumanAvatar = () => {

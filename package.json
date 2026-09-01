@@ -11,7 +11,7 @@
     "dev": "vite",
     "dev:api": "wrangler dev --port 8787",
     "db:local": "wrangler d1 execute quadro --local --file worker/schema.sql",
-    "build": "npm run typecheck && vite build && node scripts/seo-build.mjs",
+    "build": "node scripts/check-clerk-env.mjs && npm run typecheck && vite build && node scripts/seo-build.mjs",
     "preview": "vite preview",
     "test:worker": "vitest run --config test/worker/vitest.config.ts",
     "deploy": "wrangler deploy"
