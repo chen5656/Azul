@@ -171,7 +171,7 @@ function PracticeGame({
 
   const topRight = (
     <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-      <span className="text-xs text-neutral-500 font-mono mr-1">Seed {deal}</span>
+      <span className="azul-meta text-xs text-neutral-500 font-mono mr-1">Seed {deal}</span>
       <button
         type="button"
         onClick={session.restart}

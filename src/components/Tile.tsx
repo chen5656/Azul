@@ -17,6 +17,21 @@ export const FILL_FOCUS = [
   'bg-slate-700/40 text-slate-100 border-slate-300/50 font-black',
 ];
 
+/**
+ * The wall's empty cells carry a whisper of the colour that belongs there, so
+ * you can read where a tile can still go without counting letters. Focus style
+ * drops it along with the rest of the colour cues.
+ */
+export const WALL_TINT = [
+  'border-blue-500/25 bg-blue-500/[0.07] text-blue-300/50',
+  'border-amber-400/25 bg-amber-400/[0.07] text-amber-200/50',
+  'border-rose-500/25 bg-rose-500/[0.07] text-rose-300/50',
+  'border-neutral-500/30 bg-neutral-400/[0.07] text-neutral-300/50',
+  'border-slate-300/25 bg-slate-200/[0.07] text-slate-200/55',
+];
+
+export const WALL_PLAIN = 'border-neutral-800/80 bg-neutral-900/20 text-neutral-600';
+
 const SIZES = {
   /** Fluid: follows the width of the enclosing `.azul-board` (see index.css). */
   sm: 'azul-tile',
@@ -41,17 +56,20 @@ export function Tile({
   empty = false,
   size = 'md',
   selected = false,
+  animId,
 }: {
   color?: number;
   empty?: boolean;
   size?: keyof typeof SIZES;
   selected?: boolean;
+  animId?: string;
 }) {
   const { style } = useGameStyle();
 
   if (empty || color === undefined || color < 0) {
     return (
       <div
+        data-anim-id={animId}
         className={`${SIZES[size]} grid place-items-center rounded border border-neutral-700/50 bg-neutral-900/30 shadow-inner`}
         aria-hidden="true"
       >
@@ -63,6 +81,7 @@ export function Tile({
   const ring = selected ? 'ring-2 ring-offset-1 ring-offset-neutral-900 ring-sky-300 shadow-md shadow-sky-400/40' : '';
   return (
     <div
+      data-anim-id={animId}
       className={`${SIZES[size]} ${fillClass} ${ring} grid place-items-center rounded border font-bold transition-transform`}
       title={COLOR_NAMES[color]}
     >
@@ -72,9 +91,10 @@ export function Tile({
 }
 
 /** The first-player token: a marker, not a tile. */
-export function FirstToken({ size = 'md' }: { size?: keyof typeof SIZES }) {
+export function FirstToken({ size = 'md', animId }: { size?: keyof typeof SIZES; animId?: string }) {
   return (
     <div
+      data-anim-id={animId}
       className={`${SIZES[size]} grid place-items-center rounded-full border-2 border-sky-400 bg-sky-950/60 font-bold text-sky-200 shadow-sm`}
       title="First-player token"
     >
@@ -84,8 +104,8 @@ export function FirstToken({ size = 'md' }: { size?: keyof typeof SIZES }) {
 }
 
 /** Renders whatever sits in a penalty-row slot: a tile, the token, or nothing. */
-export function PenaltySlot({ tile, size = 'sm' }: { tile?: number; size?: keyof typeof SIZES }) {
-  if (tile === undefined) return <Tile empty size={size} />;
-  if (tile === FIRST_TOKEN) return <FirstToken size={size} />;
-  return <Tile color={tile} size={size} />;
+export function PenaltySlot({ tile, size = 'sm', animId }: { tile?: number; size?: keyof typeof SIZES; animId?: string }) {
+  if (tile === undefined) return <Tile empty size={size} animId={animId} />;
+  if (tile === FIRST_TOKEN) return <FirstToken size={size} animId={animId} />;
+  return <Tile color={tile} size={size} animId={animId} />;
 }

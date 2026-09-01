@@ -25,6 +25,7 @@ import {
 import { AiClient, AiDisposed, type AiMode, type AiSpec } from './aiClient';
 import type { Spotlight } from '../tutorial/script';
 import config from '../config';
+import { type Animator, animateDraft, animateSettlement } from '../components/animator';
 
 export type SessionStatus =
   | 'idle' // dealt, waiting for the player's first move; the clock has not started
@@ -75,6 +76,8 @@ export interface Session {
   aiMode: AiMode;
   /** Set when the AI could not produce a move at all; the attempt is dead. */
   error: string | null;
+  /** Attach animator for turn and settlement animations. */
+  setAnimator?: (animator: Animator | null) => void;
   /**
    * Set only by the tutorial (`src/tutorial`), which rings one part of the board
    * while a lesson step is open. A real game never sets it and the board falls
@@ -88,6 +91,11 @@ export function useGameSession(options: SessionOptions): Session {
 
   const gameRef = useRef<QuadroGame | null>(null);
   if (gameRef.current === null) gameRef.current = newGame();
+
+  const animatorRef = useRef<Animator | null>(null);
+  const setAnimator = useCallback((animator: Animator | null) => {
+    animatorRef.current = animator;
+  }, []);
 
   const aiRef = useRef<AiClient | null>(null);
   /**
@@ -165,16 +173,29 @@ export function useGameSession(options: SessionOptions): Session {
         gameRef.current.state.current !== humanSeat
       ) {
         const roundBefore = gameRef.current.state.round_num;
+        const currentSeat = gameRef.current.state.current;
         const move = await getAi().choose(
           gameRef.current.state,
-          gameRef.current.state.current,
+          currentSeat,
         );
         if (generation.current !== myGeneration) return; // restarted mid-search
-        gameRef.current.step(move.action);
+
+        const beforeState = gameRef.current.state.clone();
+        if (animatorRef.current?.isEnabled()) {
+          await animateDraft(animatorRef.current, beforeState, move.action, currentSeat);
+          if (generation.current !== myGeneration) return;
+        }
+
+        const events = gameRef.current.step(move.action);
         if (gameRef.current.state.round_num !== roundBefore || gameRef.current.isOver()) {
           historyRef.current = [];
         }
         bump();
+
+        if (animatorRef.current?.isEnabled()) {
+          await animateSettlement(animatorRef.current, events);
+          if (generation.current !== myGeneration) return;
+        }
       }
     } catch (err) {
       if (err instanceof AiDisposed || generation.current !== myGeneration) return;
@@ -251,8 +272,11 @@ export function useGameSession(options: SessionOptions): Session {
   );
 
   const place = useCallback(
-    (dest: number) => {
+    async (dest: number) => {
       if (!selection || !canPlace(dest)) return;
+      const myGeneration = generation.current;
+      const action = new Action(selection.source, selection.color, dest);
+
       // The clock starts on the player's first committed action, never before
       // (FR-018, AC-013).
       if (startedAt === null) setStartedAt(performance.now());
@@ -265,12 +289,24 @@ export function useGameSession(options: SessionOptions): Session {
       }
 
       const roundBefore = game.state.round_num;
-      game.step(new Action(selection.source, selection.color, dest));
+      const beforeState = game.state.clone();
+      setSelection(null);
+
+      if (animatorRef.current?.isEnabled()) {
+        await animateDraft(animatorRef.current, beforeState, action, humanSeat);
+        if (generation.current !== myGeneration) return;
+      }
+
+      const events = game.step(action);
       if (game.state.round_num !== roundBefore || game.isOver()) {
         historyRef.current = [];
       }
-      setSelection(null);
       bump();
+
+      if (animatorRef.current?.isEnabled()) {
+        await animateSettlement(animatorRef.current, events);
+        if (generation.current !== myGeneration) return;
+      }
 
       if (game.isOver()) finish();
       else if (game.state.current !== humanSeat) void runAiTurn();
@@ -292,6 +328,7 @@ export function useGameSession(options: SessionOptions): Session {
     if (!previous) return;
 
     generation.current += 1;
+    animatorRef.current?.clear();
     aiRef.current?.dispose();
     aiRef.current = null;
     aiRunning.current = false;
@@ -311,6 +348,7 @@ export function useGameSession(options: SessionOptions): Session {
 
   const restart = useCallback(() => {
     generation.current += 1;
+    animatorRef.current?.clear();
     aiRef.current?.dispose();
     aiRef.current = null;
     aiRunning.current = false;
@@ -350,6 +388,7 @@ export function useGameSession(options: SessionOptions): Session {
     events: game.events,
     aiMode: aiRef.current?.mode ?? 'worker',
     error,
+    setAnimator,
   };
 }
 

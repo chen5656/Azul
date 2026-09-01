@@ -176,6 +176,7 @@ export class MinimaxAgent implements Agent {
     // Depth 1 is already answered by the ordering pass, so an expired budget
     // still leaves a legal, non-arbitrary move to return (FR-009).
     let chosen = ordering.slice(0, 1);
+    this.reachedDepth = 1;
 
     // Iterative deepening: every completed depth replaces the answer, and the
     // previous depth's values reorder the root for the next one.

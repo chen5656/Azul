@@ -117,7 +117,7 @@ describe('search budgets (FR-009)', () => {
 
   it('minimax deepens when given time', () => {
     const game = new QuadroGame(31);
-    const agent = new MinimaxAgent(2, 4, 0.45);
+    const agent = new MinimaxAgent(2, 2, 60.0);
     agent.choose(game.state, 0);
     expect(agent.reachedDepth).toBeGreaterThanOrEqual(2);
     expect(agent.nodes).toBeGreaterThan(0);

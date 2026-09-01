@@ -6,22 +6,14 @@
  */
 
 export function formatElapsed(ms: number): string {
-  const clamped = Math.max(0, ms);
-  const minutes = Math.floor(clamped / 60_000);
-  const seconds = Math.floor((clamped % 60_000) / 1000);
-  const millis = Math.floor(clamped % 1000);
-  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(
-    millis,
-  ).padStart(3, '0')}`;
-}
-
-/** Whole seconds, for the boards — a leaderboard doesn't need milliseconds. */
-export function formatElapsedSeconds(ms: number): string {
   const total = Math.floor(Math.max(0, ms) / 1000);
   const minutes = Math.floor(total / 60);
   const seconds = total % 60;
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 }
+
+/** Whole seconds, for the boards — alias of formatElapsed. */
+export const formatElapsedSeconds = formatElapsed;
 
 export function Timer({ ms, running, done }: { ms: number; running: boolean; done: boolean }) {
   return (

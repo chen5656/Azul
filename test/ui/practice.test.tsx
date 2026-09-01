@@ -184,10 +184,10 @@ describe('board interaction', () => {
 });
 
 describe('formatElapsed', () => {
-  it('formats as mm:ss.mmm (FR-019)', () => {
-    expect(formatElapsed(0)).toBe('00:00.000');
-    expect(formatElapsed(461_230)).toBe('07:41.230');
-    expect(formatElapsed(59_999)).toBe('00:59.999');
-    expect(formatElapsed(-5)).toBe('00:00.000');
+  it('formats as mm:ss', () => {
+    expect(formatElapsed(0)).toBe('00:00');
+    expect(formatElapsed(461_230)).toBe('07:41');
+    expect(formatElapsed(59_999)).toBe('00:59');
+    expect(formatElapsed(-5)).toBe('00:00');
   });
 });

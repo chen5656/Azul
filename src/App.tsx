@@ -9,6 +9,10 @@ import { LeaderboardPage } from './routes/LeaderboardPage';
 import { Practice } from './routes/Practice';
 import { Tutorial } from './routes/Tutorial';
 import { Link, useRouter } from './router';
+import { useLayoutMode } from './components/useLayoutMode';
+
+/** Routes that are a game surface: on phones and tablets they own the screen. */
+const GAME_ROUTES = new Set(['/tutorial', '/practice', '/daily']);
 
 function Nav() {
   const { route } = useRouter();
@@ -46,10 +50,17 @@ function Nav() {
 export function App() {
   const { route } = useRouter();
   const attemptRunning = useAttemptRunning();
+  /**
+   * On a phone or tablet the nav, style/scale pickers and auth control cost a
+   * whole band of screen for something you only touch between games. The game
+   * surface hides them and offers its own back link instead.
+   */
+  const immersive = useLayoutMode() === 'stacked' && GAME_ROUTES.has(route);
 
   return (
     <div className="min-h-dvh">
       <AppBanners blockUpdates={attemptRunning} />
+      {!immersive && (
       <header className="border-b border-neutral-800">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 py-3">
           <Link to="/" className="font-semibold tracking-tight">
@@ -63,8 +74,13 @@ export function App() {
           </div>
         </div>
       </header>
+      )}
 
-      <main className="mx-auto max-w-7xl px-2 sm:px-4 py-3 w-full">
+      <main
+        className={`mx-auto w-full ${
+          GAME_ROUTES.has(route) ? 'max-w-[1600px]' : 'max-w-7xl'
+        } ${immersive ? 'px-1.5 pb-[env(safe-area-inset-bottom)] pt-1.5' : 'px-2 sm:px-4 py-3'}`}
+      >
         {route === '/' && <Home />}
         {route === '/tutorial' && <Tutorial />}
         {route === '/practice' && <Practice />}
