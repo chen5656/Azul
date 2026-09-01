@@ -7,7 +7,7 @@ faq: true
 
 ## Is Quadro free?
 
-Yes. Quadro is free to play, has no ads, and sells nothing. There is no paid tier and no in-game purchase.
+Yes. Quadro is free to play. There is no paid tier and no in-game purchase.
 
 ## Do I need an account?
 

@@ -1,13 +1,17 @@
 import type { ReactNode } from 'react';
 import { useEffect, useRef } from 'react';
 
+import { useIdentity } from '../auth/clerk';
 import { COLOR_NAMES, NUM_COLORS } from '../engine';
 import type { Session } from '../game/useGameSession';
 import { DisplayArea } from './DisplayArea';
-import { COLOR_DOTS, FoxAvatar, RaccoonAvatar } from './GameHeader';
+import { COLOR_DOTS } from './GameHeader';
 import { GameOverBurst } from './GameOverBurst';
 import { PlayerBoard } from './PlayerBoard';
+import { getBadgeSrc, HumanAvatar, RobotAvatar } from './RobotAvatar';
 import { ScoreBreakdown } from './ScoreBreakdown';
+
+
 
 /**
  * 3-Column Game Surface:
@@ -32,9 +36,13 @@ export function Board({
   topRight?: ReactNode;
   title?: ReactNode;
 }) {
+  const identity = useIdentity();
+  const playerDisplayName = humanLabel !== 'You' ? humanLabel : (identity.displayName || 'You');
   const root = useRef<HTMLDivElement>(null);
   const { clearSelection, humanSeat, game, status } = session;
   const triggerUndo = onUndo ?? session.undo;
+  // Undo is a Practice-only affordance; Daily runs without it (maxUndos: 0).
+  const undoEnabled = session.maxUndos > 0;
 
   useEffect(() => {
     const node = root.current;
@@ -103,138 +111,90 @@ export function Board({
         {status === 'game-over'
           ? (gameResult?.draw ? 'Draw' : session.humanWon ? 'You win' : `${opponentLabel} wins`)
           : isOpponentTurn
-          ? `${opponentLabel} is thinking…`
-          : isHumanTurn
-          ? 'Your turn'
-          : ''}
+            ? `${opponentLabel} is thinking…`
+            : isHumanTurn
+              ? 'Your turn'
+              : ''}
       </div>
 
-      {/* 3-Column Game Surface */}
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,390px)_1fr_minmax(0,390px)] gap-3 sm:gap-4 lg:gap-6 items-start w-full justify-center">
-        {/* Left Column: Round & Palette Badge + Your Profile + Your Board + Score Breakdown */}
-        <div className="flex flex-col gap-2.5 sm:gap-3 min-w-0 w-full max-w-[390px] mx-auto lg:mx-0 lg:justify-self-end">
-          {topLeft ? (
-            <div className="flex flex-col gap-1.5 w-full">{topLeft}</div>
-          ) : (
-            /* Round & Color Indicator Badge */
-            <div className="flex flex-wrap items-center justify-start gap-2 sm:gap-3 rounded-full border border-neutral-700/60 bg-neutral-900/60 px-3.5 py-1.5 shadow-sm backdrop-blur-sm w-fit">
-              <div className="rounded-full border border-sky-400/20 bg-sky-950/60 px-2.5 py-0.5 text-xs font-semibold tracking-wide text-sky-300 shadow-sm">
-                Round {currentRound}
-              </div>
-              {/* Progress dots for rounds */}
-              <div className="flex items-center gap-1">
-                {Array.from({ length: 5 }, (_, i) => {
-                  const active = i < Math.min(5, currentRound);
-                  const isCurrent = i === (currentRound - 1) % 5;
-                  return (
-                    <div
-                      key={i}
-                      className={`h-1.5 w-1.5 rounded-full transition-all ${
-                        isCurrent
-                          ? 'bg-sky-400 scale-125 shadow-sm shadow-sky-400/80'
-                          : active
-                          ? 'bg-sky-500/60'
-                          : 'bg-neutral-700/60'
-                      }`}
-                    />
-                  );
-                })}
-              </div>
-              <div className="h-3 w-px bg-neutral-700/60" />
-              {/* Color Palette Indicators */}
-              <div className="flex items-center gap-1.5">
-                {Array.from({ length: NUM_COLORS }, (_, c) => (
-                  <div
-                    key={c}
-                    className={`h-2.5 w-2.5 rounded-full shadow-sm ring-1 ${COLOR_DOTS[c]}`}
-                    title={COLOR_NAMES[c]}
-                  />
-                ))}
+      {/* Top Header / Controls Container */}
+      {(topLeft || topRight) && (
+        <div className="w-full max-w-7xl mx-auto mb-2 px-1 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div>{topLeft}</div>
+          <div>{topRight}</div>
+        </div>
+      )}
+
+      {/* Header Bar: Displays round, timer/controls, scores and avatars */}
+      <div className="w-full max-w-7xl mx-auto mb-3">
+        {/* Mobile / Compact Top Bar (< md) */}
+        <div className="flex md:hidden flex-col gap-2 w-full max-w-[420px] mx-auto">
+          <header className="flex w-full items-center justify-between px-1 py-1">
+            {/* Left: You */}
+            <div className="flex items-center gap-2">
+              <HumanAvatar />
+              <div className="flex flex-col">
+                <span className="text-xs font-semibold text-neutral-400 truncate max-w-[110px]">
+                  {playerDisplayName}
+                </span>
+                <span className="text-2xl font-black tabular-nums text-sky-400 leading-none">
+                  {humanBoard.score}
+                </span>
+                <div
+                  className={`h-1 w-7 rounded-full mt-1 transition-all ${isHumanTurn ? 'bg-sky-400 shadow-sm shadow-sky-400/80' : 'bg-transparent'
+                    }`}
+                />
               </div>
             </div>
-          )}
 
-          {/* Human Profile Card */}
-          <div className="flex items-center justify-between rounded-xl border border-neutral-700/60 bg-neutral-900/60 p-2.5 sm:p-3 shadow-sm backdrop-blur-sm">
-            <div className="flex items-center justify-between w-full gap-2">
-              <FoxAvatar />
-              <button
-                type="button"
-                onClick={triggerUndo}
-                disabled={!session.canUndo}
-                aria-label={`Undo last move (${session.undosRemaining} remaining)`}
-                title={`Undo last move (${session.undosRemaining} remaining)`}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-sky-400/30 bg-sky-950/40 px-3 py-1.5 text-xs font-medium text-sky-200 shadow-sm transition hover:bg-sky-900/60 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  className="h-3.5 w-3.5 stroke-current"
-                  fill="none"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M3 7v6h6" />
-                  <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
-                </svg>
-                <span>Undo ({session.undosRemaining})</span>
-              </button>
+            {/* Center: Round Badge */}
+            <div className="rounded-full border border-sky-400/20 bg-sky-950/40 px-3 py-1 text-xs font-semibold text-sky-300 backdrop-blur-sm shadow-sm">
+              Round {currentRound}
+            </div>
+
+            {/* Right: Opponent */}
+            <div className="flex items-center gap-2">
               <div className="flex flex-col items-end">
-                <span className="text-[11px] sm:text-xs font-semibold tracking-wide text-sky-400 uppercase">
-                  {humanLabel}
+                <span className="text-xs font-semibold text-neutral-400">{opponentLabel}</span>
+                <span className="text-2xl font-black tabular-nums text-rose-400 leading-none">
+                  {opponentBoard.score}
                 </span>
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-xl sm:text-2xl font-extrabold tabular-nums tracking-tight text-sky-400">
-                    {humanBoard.score}
-                  </span>
-                </div>
                 <div
-                  className={`h-0.5 sm:h-1 w-7 sm:w-8 rounded-full transition-all duration-300 ${
-                    isHumanTurn ? 'bg-sky-500 shadow-sm shadow-sky-400/50' : 'bg-transparent'
-                  }`}
+                  className={`h-1 w-7 rounded-full mt-1 transition-all ${isOpponentTurn ? 'bg-rose-500 shadow-sm shadow-rose-400/80' : 'bg-transparent'
+                    }`}
                 />
               </div>
+              <RobotAvatar level={opponentLabel} />
             </div>
-          </div>
-
-          <PlayerBoard
-            board={humanBoard}
-            label={humanLabel}
-            active={isHumanTurn}
-            interactive
-            session={session}
-          />
-          <ScoreBreakdown board={humanBoard} tone="sky" />
+          </header>
         </div>
+      </div>
 
-        {/* Center Column: Factories & Center Pool */}
-        <div className="flex flex-col items-center gap-2 sm:gap-3 min-w-0 w-full">
-          <DisplayArea session={session} title={title} />
-        </div>
+      {/* Main Game Grid: 3 columns on tablet/desktop (>= md), single column stacked on mobile (< md) */}
+      <div className="flex flex-col md:grid md:grid-cols-[minmax(0,390px)_1fr_minmax(0,390px)] gap-3 sm:gap-4 lg:gap-6 items-center md:items-start w-full justify-center max-w-[420px] md:max-w-none mx-auto">
 
-        {/* Right Column: Action controls + Opponent Profile + Opponent Board + Score Breakdown */}
-        <div className="flex flex-col gap-2.5 sm:gap-3 min-w-0 w-full max-w-[390px] mx-auto lg:mx-0 lg:justify-self-start">
-          {topRight && <div className="flex flex-wrap items-center justify-end gap-2 w-full">{topRight}</div>}
-
-          {/* Opponent Profile Card */}
-          <div className="flex items-center justify-between rounded-xl border border-neutral-700/60 bg-neutral-900/60 p-2.5 sm:p-3 shadow-sm backdrop-blur-sm">
-            <div className="flex items-center justify-between w-full">
-              <div className="flex flex-col items-start">
-                <span className="text-[11px] sm:text-xs font-semibold tracking-wide text-rose-400 uppercase">
-                  {opponentLabel}
-                </span>
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-xl sm:text-2xl font-extrabold tabular-nums tracking-tight text-rose-400">
-                    {opponentBoard.score}
+        {/* Opponent Section on Mobile (Top), Right Column on Desktop */}
+        <div className="flex flex-col gap-2.5 sm:gap-3 min-w-0 w-full max-w-[390px] order-1 lg:order-3 lg:justify-self-start">
+          {/* Desktop Opponent Header */}
+          <div className="hidden md:block lg:block w-full">
+            <div className="flex items-center justify-between rounded-xl border border-neutral-700/60 bg-neutral-900/60 p-2.5 sm:p-3 shadow-sm backdrop-blur-sm">
+              <div className="flex items-center justify-between w-full">
+                <div className="flex flex-col items-start">
+                  <span className="text-[11px] sm:text-xs font-semibold tracking-wide text-rose-400 uppercase">
+                    {opponentLabel}
                   </span>
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-xl sm:text-2xl font-extrabold tabular-nums tracking-tight text-rose-400">
+                      {opponentBoard.score}
+                    </span>
+                  </div>
+                  <div
+                    className={`h-0.5 sm:h-1 w-7 sm:w-8 rounded-full transition-all duration-300 ${isOpponentTurn ? 'bg-rose-500 shadow-sm shadow-rose-400/50' : 'bg-transparent'
+                      }`}
+                  />
                 </div>
-                <div
-                  className={`h-0.5 sm:h-1 w-7 sm:w-8 rounded-full transition-all duration-300 ${
-                    isOpponentTurn ? 'bg-rose-500 shadow-sm shadow-rose-400/50' : 'bg-transparent'
-                  }`}
-                />
+                <RobotAvatar level={opponentLabel} />
               </div>
-              <RaccoonAvatar />
             </div>
           </div>
 
@@ -244,8 +204,171 @@ export function Board({
             active={isOpponentTurn}
             interactive={false}
             session={session}
+            badgeOverlay={
+              /* Robot badge positioned as backdrop behind all board contents with 70% opacity, aligned right */
+              <div
+                className="hidden md:flex lg:flex absolute inset-0 items-center justify-end pointer-events-none select-none z-0 overflow-hidden pr-1"
+                aria-hidden="true"
+              >
+                <img
+                  src={getBadgeSrc(opponentLabel)}
+                  alt=""
+                  className="w-44 sm:w-52 h-auto max-w-none object-contain pr-9 opacity-70 drop-shadow-xl translate-x-2"
+                />
+              </div>
+            }
+
           />
-          <ScoreBreakdown board={opponentBoard} tone="rose" />
+          <div className="hidden md:block">
+            <ScoreBreakdown board={opponentBoard} tone="rose" />
+          </div>
+        </div>
+
+
+
+        {/* Human / Your Section: 2nd on Mobile, Left Column on Desktop (order-1 on desktop) */}
+        <div className="flex flex-col gap-2.5 sm:gap-3 min-w-0 w-full max-w-[390px] order-2 md:order-1">
+          {/* Desktop Left Info & Human Profile */}
+          <div className="hidden md:flex flex-col gap-2.5 w-full">
+            {topLeft ? (
+              <div className="flex flex-col gap-1.5 w-full">{topLeft}</div>
+            ) : (
+              <div className="flex flex-wrap items-center justify-start gap-2 sm:gap-3 rounded-full border border-neutral-700/60 bg-neutral-900/60 px-3.5 py-1.5 shadow-sm backdrop-blur-sm w-fit">
+                <div className="rounded-full border border-sky-400/20 bg-sky-950/60 px-2.5 py-0.5 text-xs font-semibold tracking-wide text-sky-300 shadow-sm">
+                  Round {currentRound}
+                </div>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: 5 }, (_, i) => {
+                    const active = i < Math.min(5, currentRound);
+                    const isCurrent = i === (currentRound - 1) % 5;
+                    return (
+                      <div
+                        key={i}
+                        className={`h-1.5 w-1.5 rounded-full transition-all ${isCurrent
+                          ? 'bg-sky-400 scale-125 shadow-sm shadow-sky-400/80'
+                          : active
+                            ? 'bg-sky-500/60'
+                            : 'bg-neutral-700/60'
+                          }`}
+                      />
+                    );
+                  })}
+                </div>
+                <div className="h-3 w-px bg-neutral-700/60" />
+                <div className="flex items-center gap-1.5">
+                  {Array.from({ length: NUM_COLORS }, (_, c) => (
+                    <div
+                      key={c}
+                      className={`h-2.5 w-2.5 rounded-full shadow-sm ring-1 ${COLOR_DOTS[c]}`}
+                      title={COLOR_NAMES[c]}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between rounded-xl border border-neutral-700/60 bg-neutral-900/60 p-2.5 sm:p-3 shadow-sm backdrop-blur-sm">
+              <div className="flex items-center justify-between w-full gap-2">
+                <HumanAvatar />
+                {undoEnabled && (
+                <button
+                  type="button"
+                  onClick={triggerUndo}
+                  disabled={!session.canUndo}
+                  aria-label={`Undo last move (${session.undosRemaining} remaining)`}
+                  title={`Undo last move (${session.undosRemaining} remaining)`}
+                  className="hidden md:inline-flex items-center gap-1.5 rounded-lg border border-sky-400/30 bg-sky-950/40 px-3 py-1.5 text-xs font-medium text-sky-200 shadow-sm transition hover:bg-sky-900/60 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="h-3.5 w-3.5 stroke-current"
+                    fill="none"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M3 7v6h6" />
+                    <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
+                  </svg>
+                  <span>Undo ({session.undosRemaining})</span>
+                </button>
+                )}
+                <div className="flex flex-col items-end">
+                  <span className="text-[11px] sm:text-xs font-semibold tracking-wide text-sky-400 uppercase truncate max-w-[160px]">
+                    {playerDisplayName}
+                  </span>
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-xl sm:text-2xl font-extrabold tabular-nums tracking-tight text-sky-400">
+                      {humanBoard.score}
+                    </span>
+                  </div>
+                  <div
+                    className={`h-0.5 sm:h-1 w-7 sm:w-8 rounded-full transition-all duration-300 ${isHumanTurn ? 'bg-sky-500 shadow-sm shadow-sky-400/50' : 'bg-transparent'
+                      }`}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <PlayerBoard
+            board={humanBoard}
+            label={playerDisplayName}
+            active={isHumanTurn}
+            interactive
+            session={session}
+          />
+          <div className="hidden md:block">
+            <ScoreBreakdown board={humanBoard} tone="sky" />
+          </div>
+        </div>
+
+        {/* Center / Factories Section: 3rd on Mobile, Center Column on Desktop (order-2 on desktop) */}
+        <div className="flex flex-col items-center gap-2 sm:gap-3 min-w-0 w-full order-3 md:order-2">
+          <DisplayArea session={session} title={title} />
+        </div>
+
+        {/* Mobile Turn / Action Card with Undo (order-4 on mobile, hidden on desktop) */}
+        <div className="flex md:hidden w-full max-w-[390px] order-4 rounded-2xl border border-sky-400/30 bg-sky-950/20 p-3 shadow-md backdrop-blur-sm items-center justify-between gap-3">
+          <div className="flex flex-col">
+            <h3 className="text-sm font-bold text-sky-300">
+              {status === 'ai-thinking'
+                ? `${opponentLabel}'s turn`
+                : session.selection
+                  ? 'Place Tiles'
+                  : 'Your turn'}
+            </h3>
+            <p className="text-xs text-neutral-300 mt-0.5">
+              {status === 'ai-thinking'
+                ? `${opponentLabel} is thinking…`
+                : session.selection
+                  ? 'Choose a staging row on your board or the floor line.'
+                  : 'Pick a tile from a factory or from the center.'}
+            </p>
+          </div>
+
+          {undoEnabled && (
+          <button
+            type="button"
+            onClick={triggerUndo}
+            disabled={!session.canUndo}
+            data-testid="mobile-undo-button"
+            className="inline-flex lg:hidden shrink-0 items-center gap-1 rounded-xl border border-sky-400/40 bg-sky-950/60 px-3 py-2 text-xs font-semibold text-sky-200 shadow-sm transition hover:bg-sky-900/60 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              className="h-3.5 w-3.5 stroke-current"
+              fill="none"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M3 7v6h6" />
+              <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
+            </svg>
+            <span>Revert ({session.undosRemaining})</span>
+          </button>
+          )}
         </div>
       </div>
     </div>

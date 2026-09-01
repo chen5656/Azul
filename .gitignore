@@ -22,3 +22,5 @@ web/dist/
 backend/runs/
 backend/zero/weights/*.npz
 backend/tests/test_game.py
+.wrangler/
+.dev.vars.example

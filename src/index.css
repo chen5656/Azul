@@ -162,6 +162,16 @@
   width: 100%;
 }
 
+/*
+ * Cap the factory/center cluster so a wide middle column does not push the
+ * factories apart (which used to shove the center pool out of view).
+ */
+.azul-display-grid {
+  container-type: inline-size;
+  max-width: 34rem;
+  margin-inline: auto;
+}
+
 .azul-display-area .azul-tile {
   --azul-tile: clamp(1.4rem, 7cqi, 2.75rem);
 }
@@ -230,6 +240,30 @@
 }
 
 /*
+ * Mobile specific factory and center discs (matching image_mobile.png)
+ */
+.azul-mobile-factory-disc {
+  width: clamp(2.6rem, 16vw, 3.5rem);
+  height: clamp(2.6rem, 16vw, 3.5rem);
+}
+
+.azul-mobile-factory-disc .azul-tile,
+.azul-mobile-center-disc .azul-tile {
+  --azul-tile: clamp(0.95rem, 6vw, 1.35rem);
+  border-radius: 0.25rem;
+}
+
+.azul-mobile-factory-empty {
+  width: calc(var(--azul-tile, 1.1rem) * 2 + 0.25rem);
+  height: calc(var(--azul-tile, 1.1rem) * 2 + 0.25rem);
+}
+
+.azul-mobile-center-disc {
+  width: clamp(3rem, 18vw, 4rem);
+  height: clamp(3rem, 18vw, 4rem);
+}
+
+/*
  * Desktop viewport height adjustment: ensures the entire 3-column table
  * fits on a standard PC screen without requiring vertical scrolling.
  */
@@ -238,3 +272,4 @@
     --azul-tile: clamp(1.15rem, min(calc((100cqi - 3rem) / 10), calc((100dvh - 420px) / 14)), 2.25rem);
   }
 }
+

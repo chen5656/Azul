@@ -24,12 +24,14 @@ export function PlayerBoard({
   active,
   interactive,
   session,
+  badgeOverlay,
 }: {
   board: PlayerBoardState;
   label: string;
   active: boolean;
   interactive: boolean;
   session: Session;
+  badgeOverlay?: React.ReactNode;
 }) {
   const { canPlace, place, previewFor, selection, spotlight } = session;
   const drop = (dest: number) => interactive && canPlace(dest);
@@ -47,7 +49,7 @@ export function PlayerBoard({
   return (
     <section
       aria-label={label}
-      className={`azul-board flex flex-col justify-between rounded-xl border p-2.5 sm:p-3 shadow-md backdrop-blur-sm transition-all max-w-[390px] w-full ${
+      className={`azul-board relative overflow-hidden flex flex-col justify-between rounded-xl border p-2.5 sm:p-3 shadow-md backdrop-blur-sm transition-all max-w-[390px] w-full ${
         active
           ? isHuman
             ? 'border-sky-400/80 bg-neutral-900/80 ring-1 ring-sky-500/40 shadow-sky-500/10'
@@ -55,6 +57,11 @@ export function PlayerBoard({
           : 'border-neutral-700/60 bg-neutral-900/60'
       }`}
     >
+      {/* Background layer (behind all board content) */}
+      {badgeOverlay}
+
+      {/* Board Content (z-10) */}
+      <div className="relative z-10 flex flex-col justify-between h-full">
       <header className="mb-2 sm:mb-2.5 flex items-baseline justify-between gap-2">
         <span
           className={`text-sm font-semibold tracking-wide ${
@@ -62,14 +69,6 @@ export function PlayerBoard({
           }`}
         >
           {isHuman ? 'Your Board' : 'Opponent Board'}
-          {board.has_first_token && (
-            <span className="ml-2 rounded bg-sky-950/70 px-1.5 py-0.5 text-[10px] font-normal text-sky-300 ring-1 ring-sky-400/40">
-              goes first next round
-            </span>
-          )}
-        </span>
-        <span className="tabular-nums text-base font-bold text-neutral-300">
-          {board.score} pts
         </span>
       </header>
 
@@ -181,6 +180,7 @@ export function PlayerBoard({
           )}
         </span>
       </button>
+      </div>
     </section>
   );
 }

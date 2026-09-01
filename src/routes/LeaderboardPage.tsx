@@ -11,6 +11,7 @@ import { useCallback, useMemo } from 'react';
 
 import { LEVELS, LEVEL_LABELS, type AgentLevel } from '../ai';
 import { Leaderboard } from '../components/Leaderboard';
+import { RobotAvatar } from '../components/RobotAvatar';
 import { puzzleIdFor } from '../daily/puzzle';
 import { Link, useRouter } from '../router';
 
@@ -56,17 +57,19 @@ export function LeaderboardPage() {
               type="button"
               onClick={() => select(candidate)}
               aria-pressed={level === candidate}
-              className={`cursor-pointer rounded-md px-3 py-1.5 text-xs font-medium transition ${
+              className={`inline-flex items-center gap-1.5 cursor-pointer rounded-md px-2.5 py-1 text-xs font-medium transition ${
                 level === candidate
                   ? 'bg-sky-600 font-semibold text-white shadow-sm ring-1 ring-sky-400'
                   : 'border border-neutral-700 bg-neutral-800 text-neutral-300 hover:bg-neutral-700 hover:text-white'
               }`}
             >
-              {LEVEL_LABELS[candidate]}
+              <RobotAvatar level={candidate} className="h-5 w-5" />
+              <span>{LEVEL_LABELS[candidate]}</span>
             </button>
           ))}
         </div>
       </div>
+
 
       <Leaderboard puzzleId={puzzleIdFor()} aiLevel={level} variant="full" />
 

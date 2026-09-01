@@ -19,9 +19,10 @@ import { readdir, readFile, mkdir, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { escapeHtml, parseFrontmatter, renderMarkdown } from '../seo/markdown.mjs';
-import { guidePage, head, jsonLd, absolute } from '../seo/template.mjs';
+import { escapeHtml } from '../seo/markdown.mjs';
+import { head, jsonLd, absolute } from '../seo/template.mjs';
 import { APP_ROUTES, GUIDES, ORIGIN, SITE_NAME, guidePath } from '../seo/site.mjs';
+import { renderGuide } from '../seo/guides.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const dist = join(root, 'dist');
@@ -61,7 +62,7 @@ function siteStructuredData() {
       name: SITE_NAME,
       url: ORIGIN,
       description:
-        'A daily tile-drafting puzzle played against an AI opponent in the browser. One deal a day, the same for everyone, scored on winning margin.',
+        'A free tile-drafting strategy game played one-on-one against an AI opponent in the browser. Draft tiles, build your wall, block your opponent. One deal a day, the same for everyone, scored on winning margin.',
       applicationCategory: 'GameApplication',
       genre: ['Puzzle', 'Board game', 'Abstract strategy'],
       gamePlatform: 'Web browser',
@@ -80,46 +81,6 @@ function siteStructuredData() {
       inLanguage: 'en',
     },
   ];
-}
-
-function breadcrumbs(path, title) {
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: [
-      { '@type': 'ListItem', position: 1, name: SITE_NAME, item: ORIGIN },
-      { '@type': 'ListItem', position: 2, name: 'Guide', item: absolute('/guide') },
-      ...(path === '/guide'
-        ? []
-        : [{ '@type': 'ListItem', position: 3, name: title, item: absolute(path) }]),
-    ],
-  };
-}
-
-/**
- * Turns `## question` + the HTML that follows into FAQPage entities. The answer
- * text is the rendered block with tags stripped, so the markup and the
- * structured data can never drift apart.
- */
-function faqStructuredData(html) {
-  const parts = html.split(/<h2 id="[^"]*">/).slice(1);
-  const entities = parts
-    .map((part) => {
-      const [question, ...rest] = part.split('</h2>');
-      const answer = rest
-        .join('</h2>')
-        .replace(/<[^>]+>/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
-      if (!question || !answer) return null;
-      return {
-        '@type': 'Question',
-        name: question.replace(/<[^>]+>/g, '').trim(),
-        acceptedAnswer: { '@type': 'Answer', text: answer },
-      };
-    })
-    .filter(Boolean);
-  return { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: entities };
 }
 
 async function buildAppRoutes(shell) {
@@ -150,32 +111,9 @@ async function buildGuides() {
   const files = new Set(await readdir(guidesDir));
   const written = [];
   for (const slug of GUIDES) {
-    const name = `${slug}.md`;
-    if (!files.has(name)) throw new Error(`seo: content/guides/${name} is missing`);
-    const source = await readFile(join(guidesDir, name), 'utf8');
-    const { data, body } = parseFrontmatter(source);
-    if (!data.title || !data.description) {
-      throw new Error(`seo: content/guides/${name} needs a title and a description`);
-    }
-    const path = guidePath(slug);
-    const { html, headings } = renderMarkdown(body);
-    const structuredData = [breadcrumbs(path, data.title)];
-    if (data.faq === 'true') structuredData.push(faqStructuredData(html));
-
-    written.push(
-      await emit(
-        path,
-        guidePage({
-          path,
-          title: data.title,
-          description: data.description,
-          headings,
-          html,
-          updated: data.updated ?? new Date().toISOString().slice(0, 10),
-          structuredData,
-        }),
-      ),
-    );
+    if (!files.has(`${slug}.md`)) throw new Error(`seo: content/guides/${slug}.md is missing`);
+    const { path, html } = await renderGuide(slug);
+    written.push(await emit(path, html));
   }
   return written;
 }

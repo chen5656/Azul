@@ -22,19 +22,23 @@ export const TWITTER_CARD = 'summary_large_image';
 export const APP_ROUTES = [
   {
     path: '/',
-    title: 'Quadro — a daily tile-drafting puzzle',
+    title: 'Quadro — a free tile-drafting strategy game you play in your browser',
     description:
-      'One tile-drafting deal a day, the same for everyone, played against an AI opponent. Score is your winning margin. Free, no install, works offline.',
+      'A free tile-drafting strategy game against an AI opponent. Draft tiles, build your wall, block your opponent. One shared deal every day, ranked by winning margin. No download, no sign-in, works offline.',
     prose: {
       h1: 'Quadro',
       lead:
-        'A tile-drafting duel. Draft a color, stage it on a pattern line, settle it onto your wall — and beat the machine by a wider margin than anyone else did today.',
+        'A fast tile-drafting strategy game, one-on-one against an AI opponent. Draft colored tiles from the factories, stage them on your pattern lines, settle them onto your wall — and take the colors your opponent needs before they can. Free, no download, plays in your browser. One deal a day, the same for everyone, scored on your winning margin.',
       links: [
         ['/daily', 'Daily Challenge — one deal for everyone, scored on margin'],
         ['/practice', 'Practice — any opponent, any deal, untimed'],
         ['/tutorial', 'Learn to play — a guided round on the real board'],
         ['/leaderboard', "Leaderboard — today's board, one per opponent"],
-        ['/guide', 'Rules, scoring and strategy guides'],
+        ['/guide/rules', 'The rules'],
+        ['/guide/scoring', 'How scoring works'],
+        ['/guide/strategy', 'Strategy guide'],
+        ['/guide/games-like-azul', 'Games like Azul — how Quadro compares'],
+        ['/guide', 'All the rules, scoring and strategy guides'],
       ],
     },
   },
@@ -107,6 +111,7 @@ export const GUIDES = [
   'scoring',
   'strategy',
   'difficulty',
+  'games-like-azul',
   'faq',
 ];
 

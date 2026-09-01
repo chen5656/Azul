@@ -25,12 +25,19 @@ function Nav() {
   );
 
   return (
-    <nav aria-label="Main" className="flex items-center gap-1">
+    <nav aria-label="Main" className="flex flex-wrap items-center gap-1">
       {item('/', 'Home')}
       {item('/tutorial', 'Learn')}
       {item('/daily', 'Daily')}
       {item('/practice', 'Practice')}
       {item('/leaderboard', 'Leaderboard')}
+      {/* Static pages emitted by the SEO build, outside the router. */}
+      <a
+        href="/guide"
+        className="rounded px-2 py-1 text-sm text-neutral-400 hover:text-neutral-100"
+      >
+        Guide
+      </a>
     </nav>
   );
 }

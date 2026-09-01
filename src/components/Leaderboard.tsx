@@ -14,6 +14,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { LEVEL_LABELS, type AgentLevel } from '../ai';
 import { ApiError, type Leaderboard as Board, getLeaderboard } from '../api/client';
 import { useIdentity } from '../auth/clerk';
+import { HumanAvatar } from './RobotAvatar';
 import { formatElapsedSeconds } from './Timer';
 
 type State =
@@ -100,6 +101,8 @@ function Body({
   signedIn: boolean;
   variant: 'compact' | 'full';
 }) {
+  const identity = useIdentity();
+
   if (state.kind === 'loading') {
     return <p className="text-sm text-neutral-500">Loading…</p>;
   }
@@ -139,7 +142,7 @@ function Body({
   const rows = [
     ...board.entries.map((entry) => ({ ...entry, isMe: board.me?.rank === entry.rank })),
     ...(board.me !== null && !meInList
-      ? [{ ...board.me, display_name: 'You', isMe: true }]
+      ? [{ ...board.me, display_name: identity.displayName || 'You', isMe: true }]
       : []),
   ];
 
@@ -174,28 +177,49 @@ function Body({
             </tr>
           </thead>
           <tbody className="divide-y divide-neutral-800">
-            {rows.map((row) => (
-              <tr key={row.rank} className={row.isMe ? 'text-sky-300' : ''}>
-                <td className="px-1 py-1.5 tabular-nums text-neutral-500">{row.rank}</td>
-                <td className="max-w-0 truncate px-1 py-1.5">{row.display_name}</td>
-                <td className="px-1 py-1.5 text-right">
-                  <Score diff={row.final_score - row.opponent_score} />
-                </td>
-                {full && (
-                  <>
-                    <td className="px-1 py-1.5 text-right tabular-nums text-neutral-300">
-                      {row.final_score}
-                    </td>
-                    <td className="px-1 py-1.5 text-right tabular-nums text-neutral-400">
-                      {row.opponent_score}
-                    </td>
-                  </>
-                )}
-                <td className="px-1 py-1.5 text-right font-mono text-xs tabular-nums text-neutral-400">
-                  {formatElapsedSeconds(row.elapsed_ms)}
-                </td>
-              </tr>
-            ))}
+            {rows.map((row) => {
+              const isMe = row.isMe;
+              const displayName = isMe
+                ? identity.displayName || row.display_name || 'You'
+                : row.display_name;
+              const avatarUrl = isMe ? identity.imageUrl : undefined;
+
+              return (
+                <tr key={row.rank} className={isMe ? 'text-sky-300 bg-sky-950/20' : ''}>
+                  <td className="px-1 py-1.5 tabular-nums text-neutral-500">{row.rank}</td>
+                  <td className="max-w-0 truncate px-1 py-1.5">
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                      <HumanAvatar
+                        imageUrl={avatarUrl}
+                        className="h-5 w-5 shrink-0 sm:h-6 sm:w-6"
+                      />
+                      <span className="truncate font-medium">{displayName}</span>
+                      {isMe && displayName !== 'You' && (
+                        <span className="shrink-0 rounded bg-sky-950/80 px-1.5 py-0.5 text-[10px] font-medium text-sky-300 ring-1 ring-sky-400/40">
+                          You
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-1 py-1.5 text-right">
+                    <Score diff={row.final_score - row.opponent_score} />
+                  </td>
+                  {full && (
+                    <>
+                      <td className="px-1 py-1.5 text-right tabular-nums text-neutral-300">
+                        {row.final_score}
+                      </td>
+                      <td className="px-1 py-1.5 text-right tabular-nums text-neutral-400">
+                        {row.opponent_score}
+                      </td>
+                    </>
+                  )}
+                  <td className="px-1 py-1.5 text-right font-mono text-xs tabular-nums text-neutral-400">
+                    {formatElapsedSeconds(row.elapsed_ms)}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

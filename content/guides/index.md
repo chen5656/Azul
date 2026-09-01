@@ -15,6 +15,7 @@ If you have never played a tile-drafting game before, start with [Learn to play]
 - [How scoring works](/guide/scoring) — why placing next to your own tiles is worth several times as much as placing in empty space, and what the end-game bonuses are worth.
 - [Strategy](/guide/strategy) — the handful of decisions that actually separate a 20-point game from a 60-point one.
 - [The six opponents](/guide/difficulty) — what Easy through Extreme actually do, and which board is worth chasing.
+- [Games like Azul](/guide/games-like-azul) — what Quadro keeps from the tile-drafting genre, what it changes, and what it is not.
 - [Frequently asked questions](/guide/faq) — sign-in, offline play, the daily reset, and how the board is ranked.
 
 ## The two ways to play

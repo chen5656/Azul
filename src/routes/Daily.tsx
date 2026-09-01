@@ -15,6 +15,7 @@ import { useIdentity } from '../auth/clerk';
 import { Board } from '../components/Board';
 import { Leaderboard } from '../components/Leaderboard';
 import { Modal } from '../components/Modal';
+import { RobotAvatar } from '../components/RobotAvatar';
 import { SubmitPanel } from '../components/SubmitPanel';
 import { Timer } from '../components/Timer';
 import {
@@ -175,7 +176,7 @@ function DailyAttempt({
     }),
     [puzzleId, level],
   );
-  const session = useGameSession({ newGame, ai, humanSeat: HUMAN_SEAT, timed: true });
+  const session = useGameSession({ newGame, ai, humanSeat: HUMAN_SEAT, timed: true, maxUndos: 0 });
 
   const done = session.status === 'game-over' && session.error === null;
   const offered = useRef(false);
@@ -341,13 +342,16 @@ function DailyAttempt({
                       : 'border-neutral-800 bg-neutral-900/60 hover:border-neutral-700 hover:bg-neutral-800/80'
                   }`}
                 >
-                  <div className="flex flex-col gap-0.5">
-                    <span className={`text-sm font-semibold ${isSelected ? 'text-sky-300' : 'text-neutral-200'}`}>
-                      {LEVEL_LABELS[candidate]}
-                    </span>
-                    <span className="text-xs text-neutral-400">
-                      {LEVEL_DESCRIPTIONS[candidate]}
-                    </span>
+                  <div className="flex items-center gap-3">
+                    <RobotAvatar level={candidate} className="h-10 w-10" />
+                    <div className="flex flex-col gap-0.5">
+                      <span className={`text-sm font-semibold ${isSelected ? 'text-sky-300' : 'text-neutral-200'}`}>
+                        {LEVEL_LABELS[candidate]}
+                      </span>
+                      <span className="text-xs text-neutral-400">
+                        {LEVEL_DESCRIPTIONS[candidate]}
+                      </span>
+                    </div>
                   </div>
                   {isSelected && (
                     <div className="flex h-5 w-5 items-center justify-center rounded-full bg-sky-500 text-neutral-950">
@@ -358,6 +362,7 @@ function DailyAttempt({
                   )}
                 </button>
               );
+
             })}
           </div>
         </div>

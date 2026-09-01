@@ -32,8 +32,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export interface Identity {
   signedIn: boolean;
   available: boolean;
-  /** The leaderboard name: username, then first name, then a truncated id (A-002). */
+  /** The leaderboard name: username, then full name, then first name, then a truncated id (A-002). */
   displayName: string | null;
+  /** User avatar/badge URL from Clerk */
+  imageUrl?: string | null;
   /** Fetches a fresh session JWT, or null when there is no session. */
   getToken: () => Promise<string | null>;
 }
@@ -44,6 +46,7 @@ export function useIdentity(): Identity {
       signedIn: false,
       available: false,
       displayName: null,
+      imageUrl: null,
       getToken: async () => null,
     };
   }
@@ -54,20 +57,46 @@ export function useIdentity(): Identity {
 }
 
 function useClerkIdentity(): Identity {
-  const { isSignedIn, getToken } = useAuth();
-  const { user } = useUser();
+  try {
+    const { isSignedIn, getToken } = useAuth();
+    const { user } = useUser();
 
-  return {
-    signedIn: Boolean(isSignedIn),
-    available: true,
-    displayName: displayNameFor(user),
-    getToken: () => getToken(),
-  };
+    return {
+      signedIn: Boolean(isSignedIn),
+      available: true,
+      displayName: displayNameFor(user),
+      imageUrl: user?.imageUrl ?? null,
+      getToken: () => getToken(),
+    };
+  } catch {
+    return {
+      signedIn: false,
+      available: false,
+      displayName: null,
+      imageUrl: null,
+      getToken: async () => null,
+    };
+  }
 }
 
-function displayNameFor(user: { username?: string | null; firstName?: string | null; id?: string } | null | undefined): string | null {
+function displayNameFor(
+  user:
+    | {
+        username?: string | null;
+        fullName?: string | null;
+        firstName?: string | null;
+        id?: string;
+      }
+    | null
+    | undefined,
+): string | null {
   if (!user) return null;
-  return user.username || user.firstName || (user.id ? `player-${user.id.slice(-6)}` : null);
+  return (
+    user.username ||
+    user.fullName ||
+    user.firstName ||
+    (user.id ? `player-${user.id.slice(-6)}` : null)
+  );
 }
 
 /** The header's sign-in / account control. */

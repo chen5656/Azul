@@ -32,9 +32,11 @@ export function DisplayArea({
         className="flex flex-col items-center gap-1"
         aria-label={sourceLabel(source)}
       >
-        <span className="text-[11px] font-medium text-neutral-400">
-          {sourceLabel(source)}
-        </span>
+        {source === CENTER && (
+          <span className="text-[11px] font-medium text-neutral-400">
+            {sourceLabel(source)}
+          </span>
+        )}
         <div
           data-tutorial-target={`source-${source}`}
           className={`azul-factory-disc relative flex aspect-square items-center justify-center rounded-full border border-neutral-700/80 bg-neutral-900/70 p-1.5 sm:p-2 shadow-md backdrop-blur-sm transition-all ${
@@ -150,33 +152,37 @@ export function DisplayArea({
 
   return (
     <div className="azul-display-area flex flex-col items-center gap-2 sm:gap-3 w-full py-0.5 sm:py-1">
-      {/* Factories Section */}
-      <div className="flex flex-col items-center gap-1.5 w-full">
-        {typeof title === 'string' ? (
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-neutral-400">
-            {title}
-          </h2>
-        ) : (
-          title
-        )}
-        {/* Discs 1 & 2 */}
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-6 w-full justify-items-center">
-          {factoryGroup(0, displays[0] ?? new Array(NUM_COLORS).fill(0))}
-          {factoryGroup(1, displays[1] ?? new Array(NUM_COLORS).fill(0))}
-        </div>
-        {/* Discs 3 & 4 */}
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 md:gap-6 w-full justify-items-center">
-          {factoryGroup(2, displays[2] ?? new Array(NUM_COLORS).fill(0))}
-          {factoryGroup(3, displays[3] ?? new Array(NUM_COLORS).fill(0))}
-        </div>
-        {/* Disc 5 (Centered) */}
-        <div className="flex justify-center w-full">
-          {NUM_DISPLAYS > 4 && factoryGroup(4, displays[4] ?? new Array(NUM_COLORS).fill(0))}
-        </div>
+      {/* Header labels */}
+      <div className="flex w-full items-center justify-between px-1 text-neutral-400">
+        <span className="text-xs font-semibold uppercase tracking-wider">
+          {typeof title === 'string' ? title : 'Factories'}
+        </span>
+        <span className="text-xs font-semibold uppercase tracking-wider lg:hidden">
+          Center
+        </span>
       </div>
 
-      {/* Center Pool Section */}
-      {centerGroup()}
+      {/* Main interactive row / grid responsive layout */}
+      <div className="flex flex-col lg:flex-col items-center w-full gap-2 sm:gap-4">
+        {/* Factories and Center: inline on mobile (< lg), grid + center pool below on desktop (>= lg) */}
+        <div className="azul-display-grid flex flex-wrap lg:grid lg:grid-cols-2 items-center justify-center lg:justify-items-center gap-1 sm:gap-1.5 lg:gap-4 w-full">
+          {/* Discs 0 to 3 */}
+          {Array.from({ length: Math.min(4, NUM_DISPLAYS) }, (_, source) =>
+            factoryGroup(source, displays[source] ?? new Array(NUM_COLORS).fill(0)),
+          )}
+          {/* Disc 4: Centered on desktop, 5th in row on mobile */}
+          {NUM_DISPLAYS > 4 && (
+            <div className="lg:col-span-2 flex justify-center order-5 lg:order-none">
+              {factoryGroup(4, displays[4] ?? new Array(NUM_COLORS).fill(0))}
+            </div>
+          )}
+
+          {/* Center pool: rendered once, placed inline at end of row on mobile, full width on desktop */}
+          <div className="order-6 lg:order-none lg:col-span-2 flex justify-center shrink-0 w-auto lg:w-full">
+            {centerGroup()}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

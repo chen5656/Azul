@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import type { Spotlight, Step } from '../tutorial/script';
 import { OPPONENT_LABEL } from '../tutorial/script';
 import type { Phase } from '../tutorial/useTutorial';

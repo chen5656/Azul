@@ -24,20 +24,19 @@ export function DisplayScaleControl() {
     const root = document.getElementById('root');
     const numericScale = Number(scale) / 100;
     if (root) {
+      const style = root.style as any;
       if (scale === '100') {
-        root.style.removeProperty('zoom');
-        root.style.removeProperty('transform');
-        root.style.removeProperty('transformOrigin');
-        root.style.removeProperty('width');
+        style.removeProperty?.('zoom');
+        style.removeProperty?.('transform');
+        style.removeProperty?.('transform-origin');
+        style.removeProperty?.('width');
       } else {
-        // Use CSS zoom where supported (Chrome, Safari, Edge)
-        // Fallback gracefully for environments supporting transform
-        if ('zoom' in root.style) {
-          (root.style as unknown as { zoom: string }).zoom = String(numericScale);
+        if ('zoom' in style) {
+          style.zoom = String(numericScale);
         } else {
-          root.style.transform = `scale(${numericScale})`;
-          root.style.transformOrigin = 'top center';
-          root.style.width = `${100 / numericScale}%`;
+          style.transform = `scale(${numericScale})`;
+          style.transformOrigin = 'top center';
+          style.width = `${100 / numericScale}%`;
         }
       }
     }

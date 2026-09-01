@@ -2,9 +2,16 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
+// @ts-expect-error -- plain .mjs shared with the post-build SEO pass, no types.
+import { guidePagesDevServer } from './seo/devGuides.mjs';
+
 export default defineConfig({
   plugins: [
     react(),
+    // `/guide/*` is static HTML emitted after `vite build`; without this the
+    // dev server falls back to the SPA and every guide URL renders the home
+    // page instead (the router normalizes unknown paths to `/`).
+    guidePagesDevServer(),
     // Precaches the app shell so Practice and a cached Daily still play with no
     // network (A-006, FR-014, AC-006). The update prompt is manual: the banner
     // must never reload during a running Daily attempt (AC-038).
@@ -31,7 +38,19 @@ export default defineConfig({
     }),
   ],
   // Honour PORT so a supervising dev tool can place the server where it expects.
-  server: { port: Number(process.env.PORT) || 5173 },
+  server: {
+    port: Number(process.env.PORT) || 5173,
+    // In dev the SPA and the Worker are two processes. Without this every
+    // `/api/*` call hits Vite and 404s, so the leaderboard silently never
+    // loads and no score is ever posted. Proxying keeps the browser on one
+    // origin, which also sidesteps the Worker's ALLOWED_ORIGIN CORS check.
+    proxy: {
+      '/api': {
+        target: process.env.API_ORIGIN || 'http://127.0.0.1:8787',
+        changeOrigin: false,
+      },
+    },
+  },
   build: {
     // The AI search chunk must load lazily, before the first AI turn, not on
     // page load (NFR-002). Vite emits the worker as its own chunk automatically;

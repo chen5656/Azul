@@ -42,8 +42,8 @@ function parsePayload(body: unknown): SubmissionPayload {
     typeof p === 'object' &&
     isPuzzleId(p.puzzle_id) &&
     isInteger(p.elapsed_ms, 0, Number.MAX_SAFE_INTEGER) &&
-    isInteger(p.final_score, 0, 10_000) &&
-    isInteger(p.opponent_score, 0, 10_000) &&
+    isInteger(p.final_score, -10_000, 10_000) &&
+    isInteger(p.opponent_score, -10_000, 10_000) &&
     isInteger(p.rounds, 1, 150) &&
     isAiLevel(level) &&
     typeof p.client_version === 'string' &&

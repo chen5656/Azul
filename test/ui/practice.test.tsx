@@ -10,6 +10,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { Practice } from '../../src/routes/Practice';
+import { RouterProvider } from '../../src/router';
 import { formatElapsed } from '../../src/components/Timer';
 
 afterEach(() => {
@@ -47,11 +48,41 @@ describe('practice setup', () => {
     expect(screen.queryByText(/zero/i)).not.toBeInTheDocument();
   });
 
+  it('defaults seed to empty when opening without seed parameter', () => {
+    render(<Practice />);
+    expect(screen.getByLabelText('Seed')).toHaveValue('');
+    expect(screen.getByRole('button', { name: 'Start playing' })).not.toBeDisabled();
+  });
+
+  it('reads seed from URL search parameters', () => {
+    window.history.pushState({}, '', '/practice?seed=98765');
+    render(
+      <RouterProvider>
+        <Practice />
+      </RouterProvider>,
+    );
+    expect(screen.getByLabelText('Seed')).toHaveValue('98765');
+    expect(screen.getByRole('button', { name: 'Start playing' })).not.toBeDisabled();
+    window.history.pushState({}, '', '/practice');
+  });
+
+  it('rejects a seed outside the valid range and blocks the start button', async () => {
+    const user = userEvent.setup();
+    render(<Practice />);
+    const seedInput = screen.getByLabelText('Seed');
+    await user.clear(seedInput);
+    await user.type(seedInput, '2147483648');
+    expect(seedInput).toBeInvalid();
+    expect(screen.getByRole('button', { name: 'Start playing' })).toBeDisabled();
+  });
+
   it('rejects a non-numeric seed and blocks the start button', async () => {
     const user = userEvent.setup();
     render(<Practice />);
-    await user.type(screen.getByLabelText('Seed'), 'abc');
-    expect(screen.getByLabelText('Seed')).toBeInvalid();
+    const seedInput = screen.getByLabelText('Seed');
+    await user.clear(seedInput);
+    await user.type(seedInput, 'abc');
+    expect(seedInput).toBeInvalid();
     expect(screen.getByRole('button', { name: 'Start playing' })).toBeDisabled();
   });
 
