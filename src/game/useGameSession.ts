@@ -15,9 +15,11 @@ import {
   Action,
   CENTER,
   type GameEvent,
+  type GameState,
   PENALTY_DEST,
   type Preview,
   QuadroGame,
+  applyAction,
   isLegal,
   legalActions,
   preview,
@@ -51,6 +53,12 @@ export interface SessionOptions {
 
 export interface Session {
   game: QuadroGame;
+  /**
+   * What the board must draw. Normally `game.state`, but during a round
+   * settlement it is a stand-in that the animation advances one scored tile at
+   * a time — the engine has already settled the whole round by then.
+   */
+  displayState: GameState;
   status: SessionStatus;
   /** Bumped on every mutation; the board reads it to know it must re-render. */
   version: number;
@@ -91,6 +99,11 @@ export function useGameSession(options: SessionOptions): Session {
 
   const gameRef = useRef<QuadroGame | null>(null);
   if (gameRef.current === null) gameRef.current = newGame();
+
+  /**
+   * Non-null only while a settlement is being animated; see `displayState`.
+   */
+  const displayRef = useRef<GameState | null>(null);
 
   const animatorRef = useRef<Animator | null>(null);
   const setAnimator = useCallback((animator: Animator | null) => {
@@ -157,6 +170,32 @@ export function useGameSession(options: SessionOptions): Session {
     setStatus('game-over');
   }, [startedAt]);
 
+  /**
+   * Play the round settlement out on a stand-in board so it can be watched.
+   *
+   * `postDraft` is the state the player was looking at when the last tile
+   * landed. It is what stays on screen while each staging row is scored in
+   * turn; the real state — already settled and already dealt the next round —
+   * takes over once the last tile is home.
+   */
+  const playSettlement = useCallback(
+    async (postDraft: GameState, events: GameEvent[], myGeneration: number) => {
+      const animator = animatorRef.current;
+      if (!animator) return;
+      displayRef.current = postDraft;
+      bump();
+      try {
+        await animateSettlement(animator, events, postDraft, bump);
+      } finally {
+        if (generation.current === myGeneration) {
+          displayRef.current = null;
+          bump();
+        }
+      }
+    },
+    [bump],
+  );
+
   // ---- the AI's turn ------------------------------------------------
 
   const runAiTurn = useCallback(async () => {
@@ -186,14 +225,19 @@ export function useGameSession(options: SessionOptions): Session {
           if (generation.current !== myGeneration) return;
         }
 
+        // The board the settlement animation plays on: the draft applied, the
+        // round not yet settled.
+        const postDraft = beforeState.clone();
+        applyAction(postDraft, move.action);
+
         const events = gameRef.current.step(move.action);
         if (gameRef.current.state.round_num !== roundBefore || gameRef.current.isOver()) {
           historyRef.current = [];
         }
         bump();
 
-        if (animatorRef.current?.isEnabled()) {
-          await animateSettlement(animatorRef.current, events);
+        if (animatorRef.current) {
+          await playSettlement(postDraft, events, myGeneration);
           if (generation.current !== myGeneration) return;
         }
       }
@@ -208,7 +252,7 @@ export function useGameSession(options: SessionOptions): Session {
     if (generation.current !== myGeneration) return;
     if (gameRef.current!.isOver()) finish();
     else setStatus('your-turn');
-  }, [bump, finish, getAi, humanSeat]);
+  }, [bump, finish, getAi, humanSeat, playSettlement]);
 
   // Practice deals the starting seat at random, so the opponent may open the
   // game. The Daily never does: it pins the human to seat 0 (A-001).
@@ -297,14 +341,17 @@ export function useGameSession(options: SessionOptions): Session {
         if (generation.current !== myGeneration) return;
       }
 
+      const postDraft = beforeState.clone();
+      applyAction(postDraft, action);
+
       const events = game.step(action);
       if (game.state.round_num !== roundBefore || game.isOver()) {
         historyRef.current = [];
       }
       bump();
 
-      if (animatorRef.current?.isEnabled()) {
-        await animateSettlement(animatorRef.current, events);
+      if (animatorRef.current) {
+        await playSettlement(postDraft, events, myGeneration);
         if (generation.current !== myGeneration) return;
       }
 
@@ -312,7 +359,7 @@ export function useGameSession(options: SessionOptions): Session {
       else if (game.state.current !== humanSeat) void runAiTurn();
       else setStatus('your-turn');
     },
-    [bump, canPlace, finish, game, humanSeat, runAiTurn, selection, startedAt, status],
+    [bump, canPlace, finish, game, humanSeat, playSettlement, runAiTurn, selection, startedAt, status],
   );
 
   // ---- undo ----------------------------------------------------------
@@ -328,6 +375,7 @@ export function useGameSession(options: SessionOptions): Session {
     if (!previous) return;
 
     generation.current += 1;
+    displayRef.current = null;
     animatorRef.current?.clear();
     aiRef.current?.dispose();
     aiRef.current = null;
@@ -348,6 +396,7 @@ export function useGameSession(options: SessionOptions): Session {
 
   const restart = useCallback(() => {
     generation.current += 1;
+    displayRef.current = null;
     animatorRef.current?.clear();
     aiRef.current?.dispose();
     aiRef.current = null;
@@ -368,6 +417,7 @@ export function useGameSession(options: SessionOptions): Session {
 
   return {
     game,
+    displayState: displayRef.current ?? game.state,
     status,
     version,
     selection,

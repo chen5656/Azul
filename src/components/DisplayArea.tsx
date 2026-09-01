@@ -18,8 +18,8 @@ export function DisplayArea({
   session: Session;
   title?: ReactNode;
 }) {
-  const { game, selection, select, canSelect, spotlight } = session;
-  const state = game.state;
+  const { displayState, selection, select, canSelect, spotlight } = session;
+  const state = displayState;
 
   const factoryGroup = (source: number, counts: number[]) => {
     const colors = counts.map((n, c) => [c, n] as const).filter(([, n]) => n > 0);

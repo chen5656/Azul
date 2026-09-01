@@ -57,7 +57,7 @@ export function Board({
   const identity = useIdentity();
   const playerDisplayName = humanLabel !== 'You' ? humanLabel : (identity.displayName || 'You');
   const root = useRef<HTMLDivElement>(null);
-  const { clearSelection, humanSeat, game, status } = session;
+  const { clearSelection, displayState, humanSeat, game, status } = session;
   const triggerUndo = onUndo ?? session.undo;
   // Undo is a Practice-only affordance; Daily runs without it (maxUndos: 0).
   const undoEnabled = session.maxUndos > 0;
@@ -65,9 +65,10 @@ export function Board({
   const isStacked = mode === 'stacked';
 
   const opponentSeat = 1 - humanSeat;
-  const humanBoard = game.state.players[humanSeat];
-  const opponentBoard = game.state.players[opponentSeat];
-  const currentRound = game.state.round_num;
+  // The settlement animation drives `displayState`; see `useGameSession`.
+  const humanBoard = displayState.players[humanSeat];
+  const opponentBoard = displayState.players[opponentSeat];
+  const currentRound = displayState.round_num;
   const isHumanTurn = status === 'idle' || status === 'your-turn';
   const isOpponentTurn = status === 'ai-thinking';
   const { style } = useGameStyle();

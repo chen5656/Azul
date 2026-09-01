@@ -235,6 +235,9 @@ export function useTutorial(): Tutorial {
 
   const session: Session = {
     game,
+    // The tutorial never animates a settlement, so the board is always the
+    // engine's own state.
+    displayState: game.state,
     // The board only reads `status` to decide which side to outline and whether
     // rows are live; the tutorial's phases map onto it cleanly.
     status: phase === 'replying' ? 'ai-thinking' : open ? 'your-turn' : 'idle',

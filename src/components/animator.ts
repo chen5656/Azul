@@ -401,15 +401,50 @@ export async function animateDraft(
   animator.popIn(arrivals);
 }
 
+/** Apply one scored tile to the display state, exactly as the engine did. */
+function applyScored(view: GameState, event: TileScored): void {
+  const board = view.players[event.player];
+  board.grid[event.row][event.col] = true;
+  board.score += event.points;
+  board.staging_colors[event.row] = -1;
+  board.staging_counts[event.row] = 0;
+}
+
+/** Apply one penalty row to the display state, exactly as the engine did. */
+function applyPenalty(view: GameState, event: PenaltyApplied): void {
+  const board = view.players[event.player];
+  board.score = Math.max(0, board.score + event.points);
+  board.penalty_tiles.length = 0;
+  board.penalty_overflow = 0;
+}
+
+/**
+ * Walk the settlement one tile at a time.
+ *
+ * `view` is the board as it stood *before* the round was settled, and the only
+ * thing the player is looking at while this runs: each tile flies from its
+ * staging row to the wall, and only then is that single event applied to `view`
+ * and committed. Without it the engine's settlement — every row of both boards,
+ * every score, the whole next deal — lands in one frame and the flights are
+ * just a replay of something that already happened.
+ */
 export async function animateSettlement(
   animator: Animator,
   events: GameEvent[],
+  view: GameState,
+  commit: () => void,
 ): Promise<void> {
-  if (!animator.isEnabled()) return;
   const scoredEvents = events.filter((e): e is TileScored => e.kind === 'tile_scored');
   const penaltyEvents = events.filter((e): e is PenaltyApplied => e.kind === 'penalty');
 
   if (scoredEvents.length === 0 && penaltyEvents.length === 0) return;
+
+  if (!animator.isEnabled()) {
+    for (const event of scoredEvents) applyScored(view, event);
+    for (const event of penaltyEvents) applyPenalty(view, event);
+    commit();
+    return;
+  }
 
   await sleep(220);
 
@@ -419,20 +454,19 @@ export async function animateSettlement(
     const toId = `wall-${player}-${row}-${col}`;
     const spareIds = Array.from({ length: row }, (_, i) => `stage-${player}-${row}-${i + 1}`);
 
-    // The wall cell is already filled by the time this runs, so hide it for the
-    // length of the flight — otherwise the tile appears to be delivered to a
-    // square that already has it.
-    const revealWall = animator.conceal([toId]);
-    try {
-      const flight = animator.flyTile(color, fromId, toId, { ms: FLY_MS });
-      const fade = animator.fadeOut(spareIds, 320);
-      await Promise.all([flight, fade]);
-    } finally {
-      revealWall();
-    }
+    await Promise.all([
+      animator.flyTile(color, fromId, toId, { ms: FLY_MS }),
+      animator.fadeOut(spareIds, 320),
+    ]);
+
+    // Committed only now: the tile has landed, so the wall square filling in and
+    // the staging row emptying are what the flight just showed happening.
+    applyScored(view, event);
+    commit();
+
     animator.popIn([toId]);
     animator.popScore(`+${points}`, toId, true);
-    await sleep(320);
+    await sleep(340);
   }
 
   for (const event of penaltyEvents) {
@@ -441,7 +475,9 @@ export async function animateSettlement(
       animator.popScore(`${points}`, `floor-${player}-0`, false);
       const floorIds = Array.from({ length: Math.min(tiles, 7) }, (_, i) => `floor-${player}-${i}`);
       await animator.fadeOut(floorIds, 320);
-      await sleep(260);
     }
+    applyPenalty(view, event);
+    commit();
+    if (tiles > 0) await sleep(260);
   }
 }

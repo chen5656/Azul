@@ -20,11 +20,11 @@ export function GameHeader({
   humanLabel?: string;
   opponentLabel?: string;
 }) {
-  const { game, humanSeat, status } = session;
-  const humanScore = game.state.players[humanSeat]?.score ?? 0;
+  const { humanSeat, status } = session;
+  const humanScore = session.displayState.players[humanSeat]?.score ?? 0;
   const opponentSeat = 1 - humanSeat;
-  const opponentScore = game.state.players[opponentSeat]?.score ?? 0;
-  const currentRound = game.state.round_num;
+  const opponentScore = session.displayState.players[opponentSeat]?.score ?? 0;
+  const currentRound = session.displayState.round_num;
   const isHumanTurn = status === 'idle' || status === 'your-turn';
   const isOpponentTurn = status === 'ai-thinking';
   const { style } = useGameStyle();
