@@ -1,4 +1,6 @@
+import { useGameStyle } from '../context/GameStyleContext';
 import {
+  COLOR_INITIALS,
   GRID_COLOR,
   GRID_SIZE,
   NUM_ROWS,
@@ -10,7 +12,7 @@ import {
 } from '../engine';
 import type { Session } from '../game/useGameSession';
 import type { Spotlight } from '../tutorial/script';
-import { PenaltySlot, Tile } from './Tile';
+import { FILL_FOCUS, PenaltySlot, Tile } from './Tile';
 
 /**
  * One player's board: staging rows, the grid, the penalty row.
@@ -33,6 +35,8 @@ export function PlayerBoard({
   session: Session;
   badgeOverlay?: React.ReactNode;
 }) {
+  const { style } = useGameStyle();
+  const isFocus = style === 'focus';
   const { canPlace, place, previewFor, selection, spotlight } = session;
   const drop = (dest: number) => interactive && canPlace(dest);
   /**
@@ -92,10 +96,10 @@ export function PlayerBoard({
                 aria-label={`Staging row ${row + 1}${p ? `, places ${p.placed} tiles` : ''}`}
                 title={p ? `${p.placed} on the row, ${p.overflow} to the penalty row` : undefined}
                 className={`flex justify-end gap-1 rounded-md p-1 transition-all ${
-                  ok
+                  !isFocus && ok
                     ? 'bg-sky-900/50 ring-2 ring-sky-400 shadow-sm hover:bg-sky-800/70'
                     : ''
-                } ${interactive && selection && !ok ? 'opacity-40' : ''} ${
+                } ${!isFocus && interactive && selection && !ok ? 'opacity-40' : ''} ${
                   lit('row', row) ? 'ring-2 ring-sky-400' : ''
                 }`}
               >
@@ -132,9 +136,9 @@ export function PlayerBoard({
                 ) : (
                   <div
                     key={col}
-                    className="azul-tile grid place-items-center rounded border border-neutral-800/80 bg-neutral-900/20 text-neutral-600 font-semibold"
+                    className={`azul-tile grid place-items-center rounded border ${FILL_FOCUS[color]}`}
                   >
-                    {['B', 'Y', 'R', 'K', 'W'][color]}
+                    {COLOR_INITIALS[color]}
                   </div>
                 );
               })}
@@ -151,9 +155,9 @@ export function PlayerBoard({
         onClick={() => place(PENALTY_DEST)}
         aria-label="Penalty row — discard the whole group here"
         className={`mt-2 sm:mt-2.5 flex w-full items-center justify-between rounded-lg border border-neutral-700/50 bg-neutral-950/40 p-1.5 transition-all ${
-          drop(PENALTY_DEST)
+          !isFocus && drop(PENALTY_DEST)
             ? 'border-red-500 bg-red-950/50 ring-2 ring-red-500 shadow-sm hover:bg-red-900/60'
-            : interactive && selection
+            : !isFocus && interactive && selection
             ? 'opacity-40'
             : ''
         } ${lit('floor') ? 'ring-2 ring-sky-400' : ''}`}

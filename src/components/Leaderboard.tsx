@@ -14,6 +14,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { LEVEL_LABELS, type AgentLevel } from '../ai';
 import { ApiError, type Leaderboard as Board, getLeaderboard } from '../api/client';
 import { useIdentity } from '../auth/clerk';
+import { useGameStyle } from '../context/GameStyleContext';
 import { HumanAvatar } from './RobotAvatar';
 import { formatElapsedSeconds } from './Timer';
 
@@ -146,6 +147,8 @@ function Body({
       : []),
   ];
 
+  const { style } = useGameStyle();
+
   return (
     <>
       <div className="overflow-x-auto">
@@ -182,17 +185,18 @@ function Body({
               const displayName = isMe
                 ? identity.displayName || row.display_name || 'You'
                 : row.display_name;
-              const avatarUrl = isMe ? identity.imageUrl : undefined;
 
               return (
                 <tr key={row.rank} className={isMe ? 'text-sky-300 bg-sky-950/20' : ''}>
                   <td className="px-1 py-1.5 tabular-nums text-neutral-500">{row.rank}</td>
                   <td className="max-w-0 truncate px-1 py-1.5">
                     <div className="flex items-center gap-1.5 sm:gap-2">
-                      <HumanAvatar
-                        imageUrl={avatarUrl}
-                        className="h-5 w-5 shrink-0 sm:h-6 sm:w-6"
-                      />
+                      {style !== 'focus' && (
+                        <HumanAvatar
+                          color={isMe ? 'sky' : 'neutral'}
+                          className="h-5 w-5 shrink-0 sm:h-6 sm:w-6"
+                        />
+                      )}
                       <span className="truncate font-medium">{displayName}</span>
                       {isMe && displayName !== 'You' && (
                         <span className="shrink-0 rounded bg-sky-950/80 px-1.5 py-0.5 text-[10px] font-medium text-sky-300 ring-1 ring-sky-400/40">

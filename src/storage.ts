@@ -39,4 +39,8 @@ export const storage = {
   /** UI display scale / zoom percentage (e.g. 100, 90, 80, 110, 120). */
   displayScale: () => read('displayScale'),
   setDisplayScale: (scale: string) => write('displayScale', scale),
+
+  /** Visual style theme: 'focus' | 'normal' | 'classic' */
+  gameStyle: () => read('gameStyle'),
+  setGameStyle: (style: string) => write('gameStyle', style),
 };

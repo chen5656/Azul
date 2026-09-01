@@ -1,5 +1,4 @@
 import type { AgentLevel } from '../ai';
-import { useIdentity } from '../auth/clerk';
 
 export const LEVEL_BADGE_URLS: Record<AgentLevel, string> = {
   extreme: '/badges/1_extreme_red.png',
@@ -42,38 +41,27 @@ export function RobotAvatar({
   );
 }
 
-/**
- * Human player avatar / badge
- */
 export function HumanAvatar({
-  imageUrl,
+  color = 'sky',
   className = 'h-9 w-9 sm:h-10 sm:w-10',
 }: {
-  imageUrl?: string | null;
+  color?: 'sky' | 'rose' | 'amber' | 'emerald' | 'purple' | 'neutral' | string;
   className?: string;
 }) {
-  const identity = useIdentity();
-  const effectiveUrl = imageUrl !== undefined ? imageUrl : identity.imageUrl;
+  const colorMap: Record<string, string> = {
+    sky: 'from-sky-400 to-sky-600 ring-sky-300/40',
+    rose: 'from-rose-400 to-rose-600 ring-rose-300/40',
+    amber: 'from-amber-400 to-amber-600 ring-amber-300/40',
+    emerald: 'from-emerald-400 to-emerald-600 ring-emerald-300/40',
+    purple: 'from-purple-400 to-purple-600 ring-purple-300/40',
+    neutral: 'from-neutral-500 to-neutral-700 ring-neutral-400/40',
+  };
 
-  if (effectiveUrl) {
-    return (
-      <div
-        className={`relative flex shrink-0 items-center justify-center rounded-full overflow-hidden shadow-md ring-2 ring-sky-300/40 bg-neutral-800 ${className}`}
-      >
-        <img
-          src={effectiveUrl}
-          alt=""
-          aria-hidden="true"
-          className="h-full w-full object-cover"
-          loading="eager"
-        />
-      </div>
-    );
-  }
+  const ringAndGradient = colorMap[color] ?? colorMap.sky;
 
   return (
     <div
-      className={`relative flex shrink-0 items-center justify-center rounded-full bg-gradient-to-b from-sky-400 to-sky-600 shadow-md ring-2 ring-sky-300/40 p-1.5 ${className}`}
+      className={`relative flex shrink-0 items-center justify-center rounded-full bg-gradient-to-b ${ringAndGradient} shadow-md ring-2 p-1.5 ${className}`}
     >
       <svg viewBox="0 0 24 24" className="h-full w-full fill-white" fill="none">
         <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />

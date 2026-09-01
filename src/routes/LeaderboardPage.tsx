@@ -12,6 +12,7 @@ import { useCallback, useMemo } from 'react';
 import { LEVELS, LEVEL_LABELS, type AgentLevel } from '../ai';
 import { Leaderboard } from '../components/Leaderboard';
 import { RobotAvatar } from '../components/RobotAvatar';
+import { useGameStyle } from '../context/GameStyleContext';
 import { puzzleIdFor } from '../daily/puzzle';
 import { Link, useRouter } from '../router';
 
@@ -32,6 +33,7 @@ function levelFromSearch(search: string): AgentLevel {
 export function LeaderboardPage() {
   const { search, navigate } = useRouter();
   const level = useMemo(() => levelFromSearch(search), [search]);
+  const { style } = useGameStyle();
 
   const select = useCallback(
     (next: AgentLevel) => {
@@ -63,7 +65,7 @@ export function LeaderboardPage() {
                   : 'border border-neutral-700 bg-neutral-800 text-neutral-300 hover:bg-neutral-700 hover:text-white'
               }`}
             >
-              <RobotAvatar level={candidate} className="h-5 w-5" />
+              {style !== 'focus' && <RobotAvatar level={candidate} className="h-5 w-5" />}
               <span>{LEVEL_LABELS[candidate]}</span>
             </button>
           ))}

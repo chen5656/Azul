@@ -1,11 +1,20 @@
+import { useGameStyle } from '../context/GameStyleContext';
 import { COLOR_INITIALS, COLOR_NAMES, FIRST_TOKEN } from '../engine';
 
-const FILL = [
+const FILL_NORMAL = [
   'bg-tile-blue text-white shadow-sm border-blue-400/40',
   'bg-tile-yellow text-neutral-900 shadow-sm border-amber-300/40',
   'bg-tile-red text-white shadow-sm border-rose-400/40',
   'bg-tile-black text-neutral-200 shadow-sm border-neutral-600/40',
   'bg-tile-white text-neutral-900 shadow-sm border-slate-300/40',
+];
+
+export const FILL_FOCUS = [
+  'bg-blue-950/40 text-blue-300 border-blue-600/40 font-black',
+  'bg-amber-950/40 text-amber-300 border-amber-600/40 font-black',
+  'bg-rose-950/40 text-rose-300 border-rose-600/40 font-black',
+  'bg-neutral-800/60 text-neutral-300 border-neutral-600/40 font-black',
+  'bg-slate-800/40 text-slate-200 border-slate-500/40 font-black',
 ];
 
 const SIZES = {
@@ -38,6 +47,8 @@ export function Tile({
   size?: keyof typeof SIZES;
   selected?: boolean;
 }) {
+  const { style } = useGameStyle();
+
   if (empty || color === undefined || color < 0) {
     return (
       <div
@@ -48,10 +59,11 @@ export function Tile({
       </div>
     );
   }
+  const fillClass = style === 'focus' ? FILL_FOCUS[color] : FILL_NORMAL[color];
   const ring = selected ? 'ring-2 ring-offset-1 ring-offset-neutral-900 ring-sky-300 shadow-md shadow-sky-400/40' : '';
   return (
     <div
-      className={`${SIZES[size]} ${FILL[color]} ${ring} grid place-items-center rounded border font-bold transition-transform`}
+      className={`${SIZES[size]} ${fillClass} ${ring} grid place-items-center rounded border font-bold transition-transform`}
       title={COLOR_NAMES[color]}
     >
       {COLOR_INITIALS[color]}

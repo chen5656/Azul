@@ -31,7 +31,7 @@ export function Timer({ ms, running, done }: { ms: number; running: boolean; don
       aria-label={done ? `Final time ${formatElapsed(ms)}` : undefined}
     >
       <span
-        className={`font-mono text-2xl tabular-nums ${
+        className={`font-mono text-sm sm:text-base font-medium tabular-nums ${
           done ? 'text-sky-300' : running ? 'text-neutral-100' : 'text-neutral-500'
         }`}
       >

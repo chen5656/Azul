@@ -18,6 +18,7 @@ import { Modal } from '../components/Modal';
 import { RobotAvatar } from '../components/RobotAvatar';
 import { SubmitPanel } from '../components/SubmitPanel';
 import { Timer } from '../components/Timer';
+import { useGameStyle } from '../context/GameStyleContext';
 import {
   HUMAN_SEAT,
   agentSeedForPuzzle,
@@ -143,6 +144,7 @@ function DailyAttempt({
   const [showSettings, setShowSettings] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [totalEntries, setTotalEntries] = useState<number | null>(null);
+  const { style } = useGameStyle();
   const opponentLabel = LEVEL_LABELS[level];
 
   // Fetch leaderboard player count for current puzzle & level
@@ -343,7 +345,7 @@ function DailyAttempt({
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <RobotAvatar level={candidate} className="h-10 w-10" />
+                    {style !== 'focus' && <RobotAvatar level={candidate} className="h-10 w-10" />}
                     <div className="flex flex-col gap-0.5">
                       <span className={`text-sm font-semibold ${isSelected ? 'text-sky-300' : 'text-neutral-200'}`}>
                         {LEVEL_LABELS[candidate]}

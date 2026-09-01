@@ -11,6 +11,7 @@ import { QuadroGame } from '../engine';
 import { LEVELS, LEVEL_LABELS, type AgentLevel } from '../ai';
 import { Board } from '../components/Board';
 import { RobotAvatar } from '../components/RobotAvatar';
+import { useGameStyle } from '../context/GameStyleContext';
 import { useGameSession } from '../game/useGameSession';
 import { storage } from '../storage';
 import { useRouter } from '../router';
@@ -55,6 +56,7 @@ function PracticeSetup({ onStart }: { onStart: (setup: Setup) => void }) {
   const [level, setLevel] = useState<AgentLevel>(
     remembered && LEVELS.includes(remembered) ? remembered : 'medium',
   );
+  const { style } = useGameStyle();
 
   const seedParam = useMemo(() => {
     const params = new URLSearchParams(
@@ -102,7 +104,7 @@ function PracticeSetup({ onStart }: { onStart: (setup: Setup) => void }) {
                   : 'border-neutral-700 hover:bg-neutral-800'
               }`}
             >
-              <RobotAvatar level={candidate} className="h-8 w-8" />
+              {style !== 'focus' && <RobotAvatar level={candidate} className="h-8 w-8" />}
               <span className="font-medium">{LEVEL_LABELS[candidate]}</span>
             </button>
           ))}

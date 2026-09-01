@@ -1,5 +1,6 @@
 import { AppBanners } from './components/AppBanners';
 import { DisplayScaleControl } from './components/DisplayScaleControl';
+import { GameStyleControl } from './components/GameStyleControl';
 import { useAttemptRunning } from './game/attemptGuard';
 import { AuthControl } from './auth/clerk';
 import { Daily } from './routes/Daily';
@@ -56,6 +57,7 @@ export function App() {
           </Link>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
             <Nav />
+            <GameStyleControl />
             <DisplayScaleControl />
             <AuthControl />
           </div>
