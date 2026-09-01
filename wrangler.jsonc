@@ -31,7 +31,7 @@
   "vars": {
     // Public, non-secret configuration. CLERK_SECRET_KEY is a Worker secret and
     // never appears here (NFR-010).
-    "CLERK_ISSUER": "https://clerk.games.aclogics.com",
+    "CLERK_ISSUER": "https://clerk.acgame.win",
     "ALLOWED_ORIGIN": "https://acgame.win"
   }
 }

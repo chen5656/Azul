@@ -46,18 +46,30 @@ export function GameHeader({
       <div className="flex items-center gap-2 sm:gap-2.5">
         {renderHumanAvatar()}
         <div className="flex flex-col">
-          <span className="text-[11px] sm:text-xs font-semibold tracking-wide text-sky-400 uppercase">
+          <span
+            className={`text-[11px] sm:text-xs font-semibold tracking-wide uppercase ${
+              style === 'focus' ? 'text-neutral-400' : 'text-sky-400'
+            }`}
+          >
             {humanLabel}
           </span>
           <div className="flex items-baseline gap-1.5">
-            <span className="text-xl sm:text-2xl font-extrabold tabular-nums tracking-tight text-sky-400">
+            <span
+              className={`text-xl sm:text-2xl font-extrabold tabular-nums tracking-tight ${
+                style === 'focus' ? 'text-neutral-300' : 'text-sky-400'
+              }`}
+            >
               {humanScore}
             </span>
           </div>
           {/* Active Turn Indicator Underline */}
           <div
             className={`h-0.5 sm:h-1 w-7 sm:w-8 rounded-full transition-all duration-300 ${
-              isHumanTurn ? 'bg-sky-500 shadow-sm shadow-sky-400/50' : 'bg-transparent'
+              isHumanTurn
+                ? style === 'focus'
+                  ? 'bg-neutral-500'
+                  : 'bg-sky-500 shadow-sm shadow-sky-400/50'
+                : 'bg-transparent'
             }`}
           />
         </div>
@@ -111,18 +123,30 @@ export function GameHeader({
       {/* Right: Opponent Profile */}
       <div className="flex items-center gap-2 sm:gap-2.5">
         <div className="flex flex-col items-end">
-          <span className="text-[11px] sm:text-xs font-semibold tracking-wide text-rose-400 uppercase">
+          <span
+            className={`text-[11px] sm:text-xs font-semibold tracking-wide uppercase ${
+              style === 'focus' ? 'text-neutral-400' : 'text-rose-400'
+            }`}
+          >
             {opponentLabel}
           </span>
           <div className="flex items-baseline gap-1.5">
-            <span className="text-xl sm:text-2xl font-extrabold tabular-nums tracking-tight text-rose-400">
+            <span
+              className={`text-xl sm:text-2xl font-extrabold tabular-nums tracking-tight ${
+                style === 'focus' ? 'text-neutral-300' : 'text-rose-400'
+              }`}
+            >
               {opponentScore}
             </span>
           </div>
           {/* Active Turn Indicator Underline */}
           <div
             className={`h-0.5 sm:h-1 w-7 sm:w-8 rounded-full transition-all duration-300 ${
-              isOpponentTurn ? 'bg-rose-500 shadow-sm shadow-rose-400/50' : 'bg-transparent'
+              isOpponentTurn
+                ? style === 'focus'
+                  ? 'bg-neutral-500'
+                  : 'bg-rose-500 shadow-sm shadow-rose-400/50'
+                : 'bg-transparent'
             }`}
           />
         </div>

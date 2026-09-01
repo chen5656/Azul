@@ -193,12 +193,20 @@ export function Board({
                 <span className="text-xs font-semibold text-neutral-400 truncate max-w-[110px]">
                   {playerDisplayName}
                 </span>
-                <span className="text-2xl font-black tabular-nums text-sky-400 leading-none">
+                <span
+                  className={`text-2xl font-black tabular-nums leading-none ${
+                    style === 'focus' ? 'text-neutral-300' : 'text-sky-400'
+                  }`}
+                >
                   {humanBoard.score}
                 </span>
                 <div
                   className={`h-1 w-7 rounded-full mt-1 transition-all ${
-                    isHumanTurn ? 'bg-sky-400 shadow-sm shadow-sky-400/80' : 'bg-transparent'
+                    isHumanTurn
+                      ? style === 'focus'
+                        ? 'bg-neutral-500'
+                        : 'bg-sky-400 shadow-sm shadow-sky-400/80'
+                      : 'bg-transparent'
                   }`}
                 />
               </div>
@@ -219,12 +227,20 @@ export function Board({
             <div className="flex items-center gap-2">
               <div className="flex flex-col items-end">
                 <span className="text-xs font-semibold text-neutral-400">{opponentLabel}</span>
-                <span className="text-2xl font-black tabular-nums text-rose-400 leading-none">
+                <span
+                  className={`text-2xl font-black tabular-nums leading-none ${
+                    style === 'focus' ? 'text-neutral-300' : 'text-rose-400'
+                  }`}
+                >
                   {opponentBoard.score}
                 </span>
                 <div
                   className={`h-1 w-7 rounded-full mt-1 transition-all ${
-                    isOpponentTurn ? 'bg-rose-500 shadow-sm shadow-rose-400/80' : 'bg-transparent'
+                    isOpponentTurn
+                      ? style === 'focus'
+                        ? 'bg-neutral-500'
+                        : 'bg-rose-500 shadow-sm shadow-rose-400/80'
+                      : 'bg-transparent'
                   }`}
                 />
               </div>
@@ -268,17 +284,29 @@ export function Board({
                   </button>
                 )}
                 <div className="flex flex-col items-end">
-                  <span className="text-[11px] sm:text-xs font-semibold tracking-wide text-sky-400 uppercase truncate max-w-[160px]">
+                  <span
+                    className={`text-[11px] sm:text-xs font-semibold tracking-wide uppercase truncate max-w-[160px] ${
+                      style === 'focus' ? 'text-neutral-400' : 'text-sky-400'
+                    }`}
+                  >
                     {playerDisplayName}
                   </span>
                   <div className="flex items-baseline gap-1.5">
-                    <span className="text-xl sm:text-2xl font-extrabold tabular-nums tracking-tight text-sky-400">
+                    <span
+                      className={`text-xl sm:text-2xl font-extrabold tabular-nums tracking-tight ${
+                        style === 'focus' ? 'text-neutral-300' : 'text-sky-400'
+                      }`}
+                    >
                       {humanBoard.score}
                     </span>
                   </div>
                   <div
                     className={`h-0.5 sm:h-1 w-7 sm:w-8 rounded-full transition-all duration-300 ${
-                      isHumanTurn ? 'bg-sky-500 shadow-sm shadow-sky-400/50' : 'bg-transparent'
+                      isHumanTurn
+                        ? style === 'focus'
+                          ? 'bg-neutral-500'
+                          : 'bg-sky-500 shadow-sm shadow-sky-400/50'
+                        : 'bg-transparent'
                     }`}
                   />
                 </div>
@@ -307,17 +335,29 @@ export function Board({
             <div className="flex items-center justify-between rounded-xl border border-neutral-700/60 bg-neutral-900/60 p-2.5 sm:p-3 shadow-sm backdrop-blur-sm min-h-[58px]">
               <div className="flex items-center justify-between w-full">
                 <div className="flex flex-col items-start">
-                  <span className="text-[11px] sm:text-xs font-semibold tracking-wide text-rose-400 uppercase">
+                  <span
+                    className={`text-[11px] sm:text-xs font-semibold tracking-wide uppercase ${
+                      style === 'focus' ? 'text-neutral-400' : 'text-rose-400'
+                    }`}
+                  >
                     {opponentLabel}
                   </span>
                   <div className="flex items-baseline gap-1.5">
-                    <span className="text-xl sm:text-2xl font-extrabold tabular-nums tracking-tight text-rose-400">
+                    <span
+                      className={`text-xl sm:text-2xl font-extrabold tabular-nums tracking-tight ${
+                        style === 'focus' ? 'text-neutral-300' : 'text-rose-400'
+                      }`}
+                    >
                       {opponentBoard.score}
                     </span>
                   </div>
                   <div
                     className={`h-0.5 sm:h-1 w-7 sm:w-8 rounded-full transition-all duration-300 ${
-                      isOpponentTurn ? 'bg-rose-500 shadow-sm shadow-rose-400/50' : 'bg-transparent'
+                      isOpponentTurn
+                        ? style === 'focus'
+                          ? 'bg-neutral-500'
+                          : 'bg-rose-500 shadow-sm shadow-rose-400/50'
+                        : 'bg-transparent'
                     }`}
                   />
                 </div>

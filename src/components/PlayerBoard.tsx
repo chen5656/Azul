@@ -12,7 +12,7 @@ import {
 } from '../engine';
 import type { Session } from '../game/useGameSession';
 import type { Spotlight } from '../tutorial/script';
-import { FILL_FOCUS, PenaltySlot, Tile } from './Tile';
+import { PenaltySlot, Tile } from './Tile';
 
 /**
  * One player's board: staging rows, the grid, the penalty row.
@@ -69,7 +69,7 @@ export function PlayerBoard({
       <header className="mb-2 sm:mb-2.5 flex items-baseline justify-between gap-2">
         <span
           className={`text-sm font-semibold tracking-wide ${
-            isHuman ? 'text-sky-400' : 'text-rose-400'
+            isFocus ? 'text-neutral-400' : isHuman ? 'text-sky-400' : 'text-rose-400'
           }`}
         >
           {isHuman ? 'Your Board' : 'Opponent Board'}
@@ -136,7 +136,7 @@ export function PlayerBoard({
                 ) : (
                   <div
                     key={col}
-                    className={`azul-tile grid place-items-center rounded border ${FILL_FOCUS[color]}`}
+                    className="azul-tile grid place-items-center rounded border border-neutral-800/80 bg-neutral-900/20 text-neutral-600 font-semibold"
                   >
                     {COLOR_INITIALS[color]}
                   </div>

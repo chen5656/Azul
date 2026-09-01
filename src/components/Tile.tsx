@@ -13,8 +13,8 @@ export const FILL_FOCUS = [
   'bg-blue-950/40 text-blue-300 border-blue-600/40 font-black',
   'bg-amber-950/40 text-amber-300 border-amber-600/40 font-black',
   'bg-rose-950/40 text-rose-300 border-rose-600/40 font-black',
-  'bg-neutral-800/60 text-neutral-300 border-neutral-600/40 font-black',
-  'bg-slate-800/40 text-slate-200 border-slate-500/40 font-black',
+  'bg-neutral-950 text-neutral-400 border-neutral-700/60 font-black',
+  'bg-slate-700/40 text-slate-100 border-slate-300/50 font-black',
 ];
 
 const SIZES = {
