@@ -10,7 +10,7 @@ import { act, cleanup, render, renderHook, screen, waitFor } from '@testing-libr
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { SubmitPanel } from '../../src/components/SubmitPanel';
-import type { Identity } from '../../src/auth/clerk';
+import type { Identity } from '../../src/auth';
 import { useSubmission } from '../../src/game/useSubmission';
 
 const ATTEMPT = {
@@ -24,9 +24,13 @@ const ATTEMPT = {
 function identity(overrides: Partial<Identity> = {}): Identity {
   return {
     signedIn: true,
-    available: true,
+    ready: true,
+    isAnonymous: false,
     displayName: 'ada',
-    getToken: async () => 'jwt',
+    imageUrl: null,
+    hasNickname: true,
+    openSignIn: () => {},
+    openAccount: () => {},
     ...overrides,
   };
 }
@@ -66,7 +70,8 @@ describe('useSubmission', () => {
     });
     const [, init] = fetchMock.mock.calls[0];
     expect(JSON.parse(init.body)).toEqual({ ...ATTEMPT, client_version: '1.0.0' });
-    expect(init.headers.authorization).toBe('Bearer jwt');
+    // The session is a cookie, not a header; the client's job is to let it ride.
+    expect(init.credentials).toBe('include');
   });
 
   it('reports a slower attempt as not improved, not as an error (AC-018)', async () => {
@@ -83,7 +88,7 @@ describe('useSubmission', () => {
   it('waits for sign-in when anonymous, then posts the held attempt (FR-028)', async () => {
     const { rerender, result } = renderHook(
       ({ signedIn }) =>
-        useSubmission(identity({ signedIn, getToken: async () => (signedIn ? 'jwt' : null) })),
+        useSubmission(identity({ signedIn })),
       { initialProps: { signedIn: false } },
     );
 

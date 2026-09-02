@@ -8,14 +8,14 @@
  */
 
 import { Action, type GameState } from '../engine';
-import { type Agent, type AgentLevel, makeAgent } from '../ai';
+import { type Agent, type AgentBudget, type AgentLevel, makeAgent } from '../ai';
 import type { AiRequest, AiResponse } from '../workers/ai.worker';
 
 export interface AiSpec {
   level: AgentLevel;
   seed?: number;
-  /** seconds */
-  timeBudget?: number;
+  /** Overrides for how much work the level may do; the defaults are the game's. */
+  budget?: AgentBudget;
 }
 
 export type AiMode = 'worker' | 'main-thread';
@@ -31,6 +31,14 @@ export interface AiMove {
   action: Action;
   elapsedMs: number;
   mode: AiMode;
+  /** True when the move came from a search started before it was asked for. */
+  prefetched?: boolean;
+  /**
+   * True when the search hit its safety cap and answered with less work than
+   * the level calls for — this device is slower than any the levels are sized
+   * for, and the opponent it faced was correspondingly weaker.
+   */
+  capped?: boolean;
 }
 
 export class AiClient {
@@ -40,6 +48,13 @@ export class AiClient {
   private initialized = false;
   /** Rejectors for in-flight requests, so `dispose` never strands a promise. */
   private readonly pending = new Map<number, (reason: Error) => void>();
+  /**
+   * A search started before anyone asked for it — see `prefetch`. Keyed by the
+   * question it answers, so a mismatched one is dropped rather than misapplied.
+   */
+  private speculative: { key: string; promise: Promise<AiMove> } | null = null;
+  /** The safety-cap warning is worth saying once, not once per move. */
+  private warnedCapped = false;
   /** Flips to 'main-thread' permanently once the worker has let us down. */
   mode: AiMode = 'worker';
 
@@ -64,21 +79,71 @@ export class AiClient {
   private demote(): void {
     this.mode = 'main-thread';
     this.initialized = false;
+    this.speculative = null;
     this.worker?.terminate();
     this.worker = null;
   }
 
   private onMainThread(state: GameState, player: number): AiMove {
     if (!this.fallbackAgent) {
-      this.fallbackAgent = makeAgent(this.spec.level, this.spec.seed, this.spec.timeBudget);
+      this.fallbackAgent = makeAgent(this.spec.level, this.spec.seed, this.spec.budget);
     }
     const started = performance.now();
     const action = this.fallbackAgent.choose(state, player);
-    return { action, elapsedMs: performance.now() - started, mode: 'main-thread' };
+    const move: AiMove = {
+      action,
+      elapsedMs: performance.now() - started,
+      mode: 'main-thread',
+      capped: this.fallbackAgent.cappedOut === true,
+    };
+    this.warnIfCapped(move);
+    return move;
+  }
+
+  /**
+   * Start searching a position the AI is certain to be asked about next.
+   *
+   * The opponent's thinking is otherwise dead time bracketed by animations: the
+   * player's tile flies home, *then* the search runs, *then* the reply animates.
+   * Because the AI's question is fully determined the moment the player commits
+   * a move, the search can run underneath the player's own placement animation
+   * instead — on a quick device it is finished before the animation is, and on a
+   * slow one the animation still pays for a second of it. That is what makes a
+   * fixed, device-independent work budget affordable (see `src/ai/budget.ts`).
+   *
+   * Only ever called with the exact position `choose` will be handed, so no
+   * search is wasted and the agent's own RNG stays on the same sequence it would
+   * have followed without prefetching. A miss is safe regardless — the key check
+   * drops the answer and `choose` searches again.
+   */
+  prefetch(state: GameState, player: number): void {
+    // On the main thread this would freeze the very animation it means to hide
+    // behind, so the fallback path just waits its turn as before.
+    if (this.mode !== 'worker' || this.speculative) return;
+    const key = this.keyFor(state, player);
+    const promise = this.choose(state, player, true);
+    // Nothing awaits this yet; a rejection here must not surface as unhandled.
+    promise.catch(() => undefined);
+    this.speculative = { key, promise };
+  }
+
+  private keyFor(state: GameState, player: number): string {
+    return `${player}:${JSON.stringify(state.toDict(true))}`;
   }
 
   /** Ask for a move. Never rejects for worker reasons — it falls back instead. */
-  async choose(state: GameState, player: number): Promise<AiMove> {
+  async choose(state: GameState, player: number, speculative = false): Promise<AiMove> {
+    if (!speculative && this.speculative) {
+      const pending = this.speculative;
+      this.speculative = null;
+      if (pending.key === this.keyFor(state, player)) {
+        const move = await pending.promise;
+        return { ...move, prefetched: true };
+      }
+      // A different question than the one in flight: let that search finish and
+      // be discarded, and ask the real one behind it.
+    }
+
     const worker = this.ensureWorker();
     if (!worker) return this.onMainThread(state, player);
 
@@ -117,11 +182,14 @@ export class AiClient {
 
       if (!response.ok) throw new Error(response.error);
       this.initialized = true;
-      return {
+      const move: AiMove = {
         action: Action.fromId(response.actionId),
         elapsedMs: response.elapsedMs,
         mode: 'worker',
+        capped: response.capped,
       };
+      this.warnIfCapped(move);
+      return move;
     } catch (err) {
       if (err instanceof AiDisposed) throw err; // the caller is going away
       // A worker that dies mid-game hands the rest of the game to this thread.
@@ -130,7 +198,25 @@ export class AiClient {
     }
   }
 
+  /**
+   * Say so, once, if this device is slow enough that the safety cap is biting.
+   *
+   * It should never fire: the levels are sized so that even a device several
+   * times slower than the bench machine finishes their work. If it does fire,
+   * the player is quietly facing a weaker opponent than the level promises, and
+   * that is worth knowing about rather than swallowing.
+   */
+  private warnIfCapped(move: AiMove): void {
+    if (!move.capped || this.warnedCapped) return;
+    this.warnedCapped = true;
+    console.warn(
+      `AI search hit its safety cap after ${move.elapsedMs.toFixed(0)}ms; ` +
+        `the ${this.spec.level} opponent is playing below strength on this device.`,
+    );
+  }
+
   dispose(): void {
+    this.speculative = null;
     for (const reject of this.pending.values()) reject(new AiDisposed('AI client disposed'));
     this.pending.clear();
     this.worker?.terminate();

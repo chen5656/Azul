@@ -4,6 +4,7 @@
  *
  *   npm run bench                       # every rung, 120 games each
  *   npm run bench -- --games 20 --pairs medium-vs-easy
+ *   npm run bench -- --simulations 32   # cheaper `extreme`, for a quick pass
  *
  * Each pair is one rung of the ladder: every level must beat the level directly
  * below it, which is the whole promise the difficulty names make. Seats are
@@ -40,8 +41,8 @@ const PAIRS: PairSpec[] = LEVELS.slice(1).map((level, i) => ({
   target: TARGETS[level] ?? 0.55,
 }));
 
-function build(level: AgentLevel, seed: number, budget: number): Agent {
-  return makeAgent(level, seed, budget);
+function build(level: AgentLevel, seed: number, simulations?: number): Agent {
+  return makeAgent(level, seed, simulations ? { simulations } : {});
 }
 
 interface Outcome {
@@ -54,7 +55,7 @@ interface Outcome {
   moves: number;
 }
 
-function playPair(spec: PairSpec, games: number, budget: number): Outcome {
+function playPair(spec: PairSpec, games: number, simulations: number | undefined): Outcome {
   const out: Outcome = {
     wins: 0, losses: 0, draws: 0, games, maxMoveMs: 0, totalMoveMs: 0, moves: 0,
   };
@@ -64,8 +65,8 @@ function playPair(spec: PairSpec, games: number, budget: number): Outcome {
     const challengerSeat = i % 2;
     const game = new QuadroGame(1000 + i);
     const agents: Agent[] = [];
-    agents[challengerSeat] = build(spec.challenger, 7000 + i, budget);
-    agents[1 - challengerSeat] = build(spec.incumbent, 8000 + i, budget);
+    agents[challengerSeat] = build(spec.challenger, 7000 + i, simulations);
+    agents[1 - challengerSeat] = build(spec.incumbent, 8000 + i, simulations);
 
     while (!game.isOver()) {
       const seat = game.state.current;
@@ -91,27 +92,35 @@ function playPair(spec: PairSpec, games: number, budget: number): Outcome {
   return out;
 }
 
-function parseArgs(argv: string[]): { games: number; budget: number; pairs: PairSpec[] } {
+function parseArgs(argv: string[]): {
+  games: number;
+  simulations: number | undefined;
+  pairs: PairSpec[];
+} {
   const get = (flag: string): string | undefined => {
     const i = argv.indexOf(flag);
     return i >= 0 ? argv[i + 1] : undefined;
   };
   const only = get('--pairs');
+  const sims = get('--simulations');
   return {
     games: Number(get('--games') ?? 120),
-    budget: Number(get('--budget') ?? 0.45),
+    // Levels carry their own fixed budgets; this only overrides `extreme`'s,
+    // for shortening a bench run.
+    simulations: sims === undefined ? undefined : Number(sims),
     pairs: only ? PAIRS.filter((p) => only.split(',').includes(p.name)) : PAIRS,
   };
 }
 
 function main(): void {
-  const { games, budget, pairs } = parseArgs(process.argv.slice(2));
+  const { games, simulations, pairs } = parseArgs(process.argv.slice(2));
   const rows: string[] = [];
   let allMet = true;
 
-  console.log(`strength bench: ${games} games per pair, ${budget * 1000}ms search budget\n`);
+  const simsLabel = simulations ?? 'scheduled';
+  console.log(`strength bench: ${games} games per pair, ${simsLabel} extreme simulations\n`);
   for (const spec of pairs) {
-    const out = playPair(spec, games, budget);
+    const out = playPair(spec, games, simulations);
     const rate = out.wins / out.games;
     const met = rate >= spec.target;
     allMet &&= met;
@@ -135,7 +144,7 @@ function main(): void {
     `## Run ${new Date().toISOString()}`,
     ``,
     `Node ${process.version} on ${process.platform}/${process.arch}. `
-      + `${games} games per pair, ${budget * 1000}ms budget, seats swapped every game.`,
+      + `${games} games per pair, ${simsLabel} extreme simulations, seats swapped every game.`,
     ``,
     `| pair | games | W | L | D | win rate | target | result | max move | mean move |`,
     `|---|---|---|---|---|---|---|---|---|---|`,

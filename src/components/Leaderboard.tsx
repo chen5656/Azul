@@ -13,7 +13,7 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { LEVEL_LABELS, type AgentLevel } from '../ai';
 import { ApiError, type Leaderboard as Board, getLeaderboard } from '../api/client';
-import { useIdentity } from '../auth/clerk';
+import { useIdentity } from '../auth';
 import { useGameStyle } from '../context/GameStyleContext';
 import { HumanAvatar } from './RobotAvatar';
 import { formatElapsedSeconds } from './Timer';
@@ -31,10 +31,16 @@ export function Leaderboard({
   /** Bump to refetch — the Daily does this after a successful submission. */
   refreshKey = 0,
   onLoaded,
+  emptyLabel,
 }: {
   puzzleId: string;
   aiLevel: AgentLevel;
   variant?: 'compact' | 'full';
+  /**
+   * What an empty board says. The default is about *today*, which is wrong on
+   * a past day's board, so the dated pages pass their own.
+   */
+  emptyLabel?: string;
   refreshKey?: number;
   onLoaded?: (board: Board) => void;
 }) {
@@ -44,8 +50,7 @@ export function Leaderboard({
   const load = useCallback(async () => {
     setState({ kind: 'loading' });
     try {
-      const token = (await identity.getToken()) ?? undefined;
-      const board = await getLeaderboard(puzzleId, aiLevel, token);
+      const board = await getLeaderboard(puzzleId, aiLevel);
       setState({ kind: 'ready', board });
       onLoaded?.(board);
     } catch (err) {
@@ -56,8 +61,8 @@ export function Leaderboard({
           : { kind: 'failed', message: apiError?.message ?? 'Could not load the board' },
       );
     }
-    // identity.getToken is a fresh closure each render; the puzzle, the agent
-    // and the refresh counter are what should actually trigger a reload.
+    // `onLoaded` is a fresh closure each render; the puzzle, the agent and the
+    // refresh counter are what should actually trigger a reload.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [puzzleId, aiLevel, refreshKey]);
 
@@ -76,7 +81,13 @@ export function Leaderboard({
         </h2>
         <span className="text-xs text-neutral-500">{puzzleId}</span>
       </header>
-      <Body state={state} onRetry={load} signedIn={identity.signedIn} variant={variant} />
+      <Body
+        state={state}
+        onRetry={load}
+        signedIn={identity.signedIn}
+        variant={variant}
+        emptyLabel={emptyLabel}
+      />
     </section>
   );
 }
@@ -96,11 +107,13 @@ function Body({
   onRetry,
   signedIn,
   variant,
+  emptyLabel,
 }: {
   state: State;
   onRetry: () => void;
   signedIn: boolean;
   variant: 'compact' | 'full';
+  emptyLabel?: string;
 }) {
   const identity = useIdentity();
 
@@ -133,7 +146,11 @@ function Body({
 
   const { board } = state;
   if (board.entries.length === 0) {
-    return <p className="text-sm text-neutral-400">Nobody has played it yet today.</p>;
+    return (
+      <p className="text-sm text-neutral-400">
+        {emptyLabel ?? 'Nobody has played it yet today.'}
+      </p>
+    );
   }
 
   const full = variant === 'full';

@@ -13,9 +13,10 @@ export default defineWorkersConfig({
         wrangler: { configPath: '../../wrangler.jsonc' },
         miniflare: {
           d1Databases: ['DB'],
+          r2Buckets: ['AVATARS'],
           bindings: {
-            CLERK_ISSUER: 'https://clerk.test.example',
             ALLOWED_ORIGIN: 'https://acgame.win',
+            BETTER_AUTH_SECRET: 'test-secret-not-used-anywhere-else',
           },
         },
       },

@@ -79,3 +79,23 @@ Node v25.8.2 on darwin/arm64. 40 games per pair, 450ms budget, seats swapped eve
 | pair | games | W | L | D | win rate | target | result | max move | mean move |
 |---|---|---|---|---|---|---|---|---|---|
 | extreme-vs-master | 40 | 29 | 10 | 1 | 72.5% | 55% | pass | 487ms | 239.8ms |
+
+## Run 2026-09-01T22:11:20.616Z
+
+Node v25.8.2 on darwin/arm64. 40 games per pair, 128 extreme simulations, seats swapped every game.
+
+| pair | games | W | L | D | win rate | target | result | max move | mean move |
+|---|---|---|---|---|---|---|---|---|---|
+| medium-vs-easy | 40 | 39 | 1 | 0 | 97.5% | 75% | pass | 327ms | 8.4ms |
+| hard-vs-medium | 40 | 30 | 8 | 2 | 75.0% | 55% | pass | 1167ms | 19.9ms |
+| expert-vs-hard | 40 | 28 | 12 | 0 | 70.0% | 55% | pass | 966ms | 46.6ms |
+| master-vs-expert | 40 | 25 | 14 | 1 | 62.5% | 55% | pass | 1855ms | 128.1ms |
+| extreme-vs-master | 40 | 15 | 25 | 0 | 37.5% | 55% | FAIL | 4840ms | 418.3ms |
+
+## Run 2026-09-01T22:25:07.981Z
+
+Node v25.8.2 on darwin/arm64. 20 games per pair, 256 extreme simulations, seats swapped every game.
+
+| pair | games | W | L | D | win rate | target | result | max move | mean move |
+|---|---|---|---|---|---|---|---|---|---|
+| extreme-vs-master | 20 | 9 | 11 | 0 | 45.0% | 55% | FAIL | 7006ms | 722.4ms |

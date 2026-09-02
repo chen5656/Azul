@@ -1,9 +1,12 @@
 /**
  * The `/api/*` client (§13).
  *
- * The only network the app ever touches besides Clerk (AC-005). Every call is
- * allowed to fail: play never depends on it, and offline is a state, not an
- * error (FR-037).
+ * The only network the app ever touches (AC-005). Every call is allowed to
+ * fail: play never depends on it, and offline is a state, not an error
+ * (FR-037).
+ *
+ * Authentication is the session cookie better-auth sets, so there is no token
+ * to thread through: `credentials: 'include'` is the whole of it.
  */
 
 export const CLIENT_VERSION = '1.0.0';
@@ -32,6 +35,27 @@ export interface Leaderboard {
   } | null;
 }
 
+export interface HistoryEntry {
+  puzzle_id: string;
+  ai_level: string;
+  elapsed_ms: number;
+  final_score: number;
+  opponent_score: number;
+  margin: number;
+  rounds: number;
+  /** The replay code, when the attempt was posted by a client that sends one. */
+  replay: string | null;
+  verified: boolean;
+  played_at: number;
+  rank: number | null;
+}
+
+export interface HistoryPage {
+  entries: HistoryEntry[];
+  /** Cursor for the next page, or null at the end. */
+  next_before: string | null;
+}
+
 export interface DailyDescriptor {
   puzzle_id: string;
   seed: number;
@@ -47,11 +71,19 @@ export interface ScoreSubmission {
   rounds: number;
   ai_level: string;
   client_version: string;
+  /**
+   * The base64url replay code. Sending it lets the Worker re-run the game and
+   * mark the row verified; a replay that does not produce the posted score is
+   * rejected, so this is never sent for a game the client did not actually play.
+   */
+  replay?: string;
 }
 
 export interface ScoreResult {
   accepted: true;
   improved: boolean;
+  /** True when the Worker re-ran the attached replay and it matched. */
+  verified?: boolean;
   best_elapsed_ms: number;
   best_final_score?: number;
   best_opponent_score?: number;
@@ -75,18 +107,15 @@ export class ApiError extends Error {
   }
 }
 
-async function request<T>(
-  path: string,
-  init: RequestInit & { token?: string } = {},
-): Promise<T> {
-  const { token, headers, ...rest } = init;
+async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const { headers, ...rest } = init;
   let response: Response;
   try {
     response = await fetch(`${BASE}/api${path}`, {
       ...rest,
+      credentials: 'include',
       headers: {
         ...(rest.body ? { 'content-type': 'application/json' } : {}),
-        ...(token ? { authorization: `Bearer ${token}` } : {}),
         ...headers,
       },
     });
@@ -111,27 +140,31 @@ export function getDaily(): Promise<DailyDescriptor> {
   return request<DailyDescriptor>('/daily');
 }
 
-export function getLeaderboard(
-  puzzleId: string,
-  aiLevel: string,
-  token?: string,
-): Promise<Leaderboard> {
+export function getLeaderboard(puzzleId: string, aiLevel: string): Promise<Leaderboard> {
   return request<Leaderboard>(
     `/leaderboard?puzzle_id=${encodeURIComponent(puzzleId)}&ai=${encodeURIComponent(aiLevel)}&limit=100`,
-    { token },
   );
 }
 
-export function postScore(submission: ScoreSubmission, token: string): Promise<ScoreResult> {
+export function postScore(submission: ScoreSubmission): Promise<ScoreResult> {
   return request<ScoreResult>('/scores', {
     method: 'POST',
-    token,
     body: JSON.stringify(submission),
   });
 }
 
-export function deleteMe(token: string): Promise<{ deleted_scores: number; deleted_audit: number }> {
-  return request('/me', { method: 'DELETE', token });
+export function getHistory(
+  options: { before?: string | null; limit?: number } = {},
+): Promise<HistoryPage> {
+  const params = new URLSearchParams();
+  if (options.before) params.set('before', options.before);
+  if (options.limit) params.set('limit', String(options.limit));
+  const query = params.toString();
+  return request<HistoryPage>(`/me/history${query ? `?${query}` : ''}`);
+}
+
+export function deleteMe(): Promise<{ deleted_scores: number; deleted_audit: number }> {
+  return request('/me', { method: 'DELETE' });
 }
 
 /**

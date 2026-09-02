@@ -7,25 +7,34 @@
  */
 
 import { type Agent, type AgentLevel, LEVELS } from './base';
+import { AI_SAFETY_CAP_MS } from './budget';
 import { EASY_EPSILON, GreedyAgent } from './greedyAgent';
 import { MctsAgent } from './mctsAgent';
 import { MINIMAX_DEPTHS, MINIMAX_WIDTHS, MinimaxAgent } from './minimaxAgent';
 
-/** The Daily's opponent budget, in seconds (D-013, BR-004). */
-export const DAILY_TIME_BUDGET = 0.45;
+/**
+ * Overrides for how much work a level is allowed to do.
+ *
+ * Every level has a fixed, device-independent budget by default (see
+ * `./budget`), which is what makes a level mean the same thing on a phone and
+ * on a desktop. These exist for the bench and for tests that want a level to
+ * answer instantly; the Daily and Practice both take the defaults (AC-012).
+ */
+export interface AgentBudget {
+  /** `extreme` only: a flat simulation count, replacing the work budget. */
+  simulations?: number;
+  /** Stop-loss for a single search, in milliseconds. */
+  safetyCapMs?: number;
+}
 
 export function availableLevels(): readonly AgentLevel[] {
   return LEVELS;
 }
 
-/**
- * `timeBudget` (seconds) applies to the searching levels only. It defaults to
- * the Daily's 450ms; Practice may lower it, the Daily never does (AC-012).
- */
 export function makeAgent(
   level: AgentLevel,
   seed?: number,
-  timeBudget: number = DAILY_TIME_BUDGET,
+  budget: AgentBudget = {},
 ): Agent {
   switch (level) {
     case 'easy':
@@ -37,13 +46,17 @@ export function makeAgent(
       return new MinimaxAgent(
         seed,
         MINIMAX_DEPTHS[level],
-        timeBudget,
+        budget.safetyCapMs ?? AI_SAFETY_CAP_MS,
         undefined,
         level,
-        MINIMAX_WIDTHS[level] ?? Infinity,
+        MINIMAX_WIDTHS[level],
       );
     case 'extreme':
-      return new MctsAgent({ seed, timeBudget });
+      return new MctsAgent({
+        seed,
+        simulations: budget.simulations,
+        safetyCapMs: budget.safetyCapMs ?? AI_SAFETY_CAP_MS,
+      });
     default: {
       const exhaustive: never = level;
       throw new Error(`unknown ai level: ${String(exhaustive)}`);

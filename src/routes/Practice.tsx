@@ -10,6 +10,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { QuadroGame } from '../engine';
 import { LEVELS, LEVEL_LABELS, type AgentLevel } from '../ai';
 import { Board } from '../components/Board';
+import { ShareReplay } from '../components/ShareReplay';
 import { RobotAvatar } from '../components/RobotAvatar';
 import { useGameStyle } from '../context/GameStyleContext';
 import { useGameSession } from '../game/useGameSession';
@@ -162,10 +163,9 @@ function PracticeGame({
 }) {
   const deal = setup.seed;
   const newGame = useCallback(() => new QuadroGame(deal), [deal]);
-  const ai = useMemo(
-    () => ({ level: setup.level, seed: deal ^ 0x5f3759df }),
-    [setup.level, deal],
-  );
+  // Seedless on purpose: the deal is reproducible from its seed, the opponent
+  // is not. Restarting the same deal gets a new game, not a rerun of the old.
+  const ai = useMemo(() => ({ level: setup.level }), [setup.level]);
   const session = useGameSession({ newGame, ai, timed: false });
   const opponentLabel = LEVEL_LABELS[setup.level];
 
@@ -200,13 +200,41 @@ function PracticeGame({
     </div>
   );
 
+  const result = session.status === 'game-over' ? session.game.result() : null;
+
   return (
-    <Board
-      session={session}
-      humanLabel="You"
-      opponentLabel={opponentLabel}
-      topRight={topRight}
-      title="Practice"
-    />
+    <div className="flex w-full flex-col gap-3">
+      {/* Nothing is recorded in Practice (FR-015), but the game can still be
+          shared: the replay link carries the whole game on its own. */}
+      {result && (
+        <div className="rounded-xl border border-neutral-800 bg-neutral-900/60 p-3">
+          <p className="text-sm">
+            {result.draw
+              ? `Tied with ${opponentLabel}`
+              : session.humanWon
+                ? `You beat ${opponentLabel}`
+                : `${opponentLabel} won`}{' '}
+            <span className="text-neutral-400">
+              {result.scores[session.humanSeat]}–{result.scores[1 - session.humanSeat]}
+            </span>
+          </p>
+          <ShareReplay
+            game={session.game}
+            aiLevel={setup.level}
+            levelLabel={opponentLabel}
+            humanSeat={session.humanSeat}
+            puzzleId={null}
+          />
+        </div>
+      )}
+
+      <Board
+        session={session}
+        humanLabel="You"
+        opponentLabel={opponentLabel}
+        topRight={topRight}
+        title="Practice"
+      />
+    </div>
   );
 }

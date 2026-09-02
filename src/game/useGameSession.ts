@@ -24,6 +24,7 @@ import {
   legalActions,
   preview,
 } from '../engine';
+import { randomAgentSeed } from '../ai';
 import { AiClient, AiDisposed, type AiMode, type AiSpec } from './aiClient';
 import type { Spotlight } from '../tutorial/script';
 import config from '../config';
@@ -116,7 +117,19 @@ export function useGameSession(options: SessionOptions): Session {
    * and then keep the same refs (StrictMode does exactly this in development),
    * so the client has to be re-creatable at any point.
    */
-  const getAi = useCallback(() => (aiRef.current ??= new AiClient(ai)), [ai]);
+  /**
+   * The opponent's seed for this attempt, redrawn on every restart so replaying
+   * one deal does not replay one game (`randomAgentSeed`). Held here rather
+   * than in the spec because `AiClient` is disposable — StrictMode and the
+   * worker fallback can both rebuild it mid-game, and the opponent must not
+   * change personality when they do. A caller that pins `ai.seed` still gets
+   * exactly the agent it asked for.
+   */
+  const attemptSeedRef = useRef(randomAgentSeed());
+  const getAi = useCallback(
+    () => (aiRef.current ??= new AiClient({ ...ai, seed: ai.seed ?? attemptSeedRef.current })),
+    [ai],
+  );
 
   const [version, setVersion] = useState(0);
   const [status, setStatus] = useState<SessionStatus>('idle');
@@ -198,6 +211,20 @@ export function useGameSession(options: SessionOptions): Session {
 
   // ---- the AI's turn ------------------------------------------------
 
+  /**
+   * Start the opponent's search now that the position is settled, so it runs
+   * under the settlement animation instead of after it.
+   *
+   * The counterpart to the prefetch in `place`, for the turns that cross a round
+   * boundary: there the question only becomes knowable once the round has been
+   * settled and the next one dealt, which `step` has just done.
+   */
+  const maybePrefetchAi = useCallback(() => {
+    const current = gameRef.current;
+    if (!current || current.isOver() || current.state.current === humanSeat) return;
+    getAi().prefetch(current.state, current.state.current);
+  }, [getAi, humanSeat]);
+
   const runAiTurn = useCallback(async () => {
     if (aiRunning.current) return;
     aiRunning.current = true;
@@ -220,21 +247,29 @@ export function useGameSession(options: SessionOptions): Session {
         if (generation.current !== myGeneration) return; // restarted mid-search
 
         const beforeState = gameRef.current.state.clone();
-        if (animatorRef.current?.isEnabled()) {
-          await animateDraft(animatorRef.current, beforeState, move.action, currentSeat);
-          if (generation.current !== myGeneration) return;
-        }
 
         // The board the settlement animation plays on: the draft applied, the
         // round not yet settled.
         const postDraft = beforeState.clone();
         applyAction(postDraft, move.action);
 
+        // A round boundary can hand the AI two moves in a row; the second one
+        // gets to think under the first one's animation, as the player's does.
+        if (!postDraft.draftingDone() && postDraft.current !== humanSeat) {
+          getAi().prefetch(postDraft, postDraft.current);
+        }
+
+        if (animatorRef.current?.isEnabled()) {
+          await animateDraft(animatorRef.current, beforeState, move.action, currentSeat);
+          if (generation.current !== myGeneration) return;
+        }
+
         const events = gameRef.current.step(move.action);
         if (gameRef.current.state.round_num !== roundBefore || gameRef.current.isOver()) {
           historyRef.current = [];
         }
         bump();
+        maybePrefetchAi();
 
         if (animatorRef.current) {
           await playSettlement(postDraft, events, myGeneration);
@@ -252,7 +287,7 @@ export function useGameSession(options: SessionOptions): Session {
     if (generation.current !== myGeneration) return;
     if (gameRef.current!.isOver()) finish();
     else setStatus('your-turn');
-  }, [bump, finish, getAi, humanSeat, playSettlement]);
+  }, [bump, finish, getAi, humanSeat, maybePrefetchAi, playSettlement]);
 
   // Practice deals the starting seat at random, so the opponent may open the
   // game. The Daily never does: it pins the human to seat 0 (A-001).
@@ -336,19 +371,30 @@ export function useGameSession(options: SessionOptions): Session {
       const beforeState = game.state.clone();
       setSelection(null);
 
+      // The board the settlement animation plays on: the draft applied, the
+      // round not yet settled.
+      const postDraft = beforeState.clone();
+      applyAction(postDraft, action);
+
+      // Committing the move already fixes the question the opponent will be
+      // asked, so let it start thinking under the player's own animation rather
+      // than after it. Only when the round does not turn over in between — a
+      // settlement would deal new tiles and change the question.
+      if (!postDraft.draftingDone() && postDraft.current !== humanSeat) {
+        getAi().prefetch(postDraft, postDraft.current);
+      }
+
       if (animatorRef.current?.isEnabled()) {
         await animateDraft(animatorRef.current, beforeState, action, humanSeat);
         if (generation.current !== myGeneration) return;
       }
-
-      const postDraft = beforeState.clone();
-      applyAction(postDraft, action);
 
       const events = game.step(action);
       if (game.state.round_num !== roundBefore || game.isOver()) {
         historyRef.current = [];
       }
       bump();
+      maybePrefetchAi();
 
       if (animatorRef.current) {
         await playSettlement(postDraft, events, myGeneration);
@@ -359,7 +405,20 @@ export function useGameSession(options: SessionOptions): Session {
       else if (game.state.current !== humanSeat) void runAiTurn();
       else setStatus('your-turn');
     },
-    [bump, canPlace, finish, game, humanSeat, playSettlement, runAiTurn, selection, startedAt, status],
+    [
+      bump,
+      canPlace,
+      finish,
+      game,
+      getAi,
+      humanSeat,
+      maybePrefetchAi,
+      playSettlement,
+      runAiTurn,
+      selection,
+      startedAt,
+      status,
+    ],
   );
 
   // ---- undo ----------------------------------------------------------
@@ -396,6 +455,7 @@ export function useGameSession(options: SessionOptions): Session {
 
   const restart = useCallback(() => {
     generation.current += 1;
+    attemptSeedRef.current = randomAgentSeed();
     displayRef.current = null;
     animatorRef.current?.clear();
     aiRef.current?.dispose();

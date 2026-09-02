@@ -36,8 +36,12 @@ export class HttpError extends Error {
 export function corsHeaders(origin: string): Record<string, string> {
   return {
     'access-control-allow-origin': origin,
-    'access-control-allow-methods': 'GET,POST,DELETE,OPTIONS',
-    'access-control-allow-headers': 'authorization,content-type',
+    'access-control-allow-methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
+    'access-control-allow-headers': 'content-type',
+    // The session lives in an HttpOnly cookie, so a cross-origin preflight has
+    // to be told the cookie may ride along or every authenticated call is
+    // silently anonymous.
+    'access-control-allow-credentials': 'true',
     'access-control-max-age': '86400',
   };
 }

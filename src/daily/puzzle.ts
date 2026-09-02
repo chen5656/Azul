@@ -16,6 +16,13 @@ export const DAILY_TIME_ZONE = 'America/New_York';
 /** The human always takes seat 0 and moves first (A-001, BR-003). */
 export const HUMAN_SEAT = 0;
 
+/**
+ * The first day that has a board. Browsing back stops here rather than at an
+ * arbitrary date, so the date picker cannot wander into days that were never
+ * played and show a permanently empty board.
+ */
+export const FIRST_PUZZLE_ID = '2025-01-31';
+
 const DATE_FORMAT = new Intl.DateTimeFormat('en-CA', {
   timeZone: DAILY_TIME_ZONE,
   year: 'numeric',
@@ -36,15 +43,6 @@ export function puzzleIdFor(at: Date = new Date()): string {
 /** `seed = fnv1a32("quadro-daily-v1:" + puzzle_id)` (BR-002). */
 export function seedForPuzzle(puzzleId: string): number {
   return fnv1a32(PUZZLE_NAMESPACE + puzzleId);
-}
-
-/**
- * The MCTS agent's seed for a day. A fixed seed makes a given machine
- * reproducible; it does not make all machines identical, because the agent
- * keeps its 450ms time budget and thinks more on a faster device (§8.4, FR-024).
- */
-export function agentSeedForPuzzle(puzzleId: string): number {
-  return (seedForPuzzle(puzzleId) ^ 0x9e3779b9) >>> 0;
 }
 
 /**
@@ -71,6 +69,24 @@ export function nextRolloverMs(at: Date = new Date()): number {
  * The human is seat 0 and moves first, so the usual random draw for the starting
  * seat is skipped (A-001).
  */
+/** `puzzleId` shifted by `days`, clamped to [FIRST_PUZZLE_ID, today]. */
+export function shiftPuzzleId(puzzleId: string, days: number, today = puzzleIdFor()): string {
+  const [y, m, d] = puzzleId.split('-').map(Number);
+  const shifted = new Date(Date.UTC(y, m - 1, d + days));
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const next = `${shifted.getUTCFullYear()}-${pad(shifted.getUTCMonth() + 1)}-${pad(shifted.getUTCDate())}`;
+  if (next < FIRST_PUZZLE_ID) return FIRST_PUZZLE_ID;
+  return next > today ? today : next;
+}
+
+export function isPlayablePuzzleId(puzzleId: string, today = puzzleIdFor()): boolean {
+  return (
+    /^\d{4}-\d{2}-\d{2}$/.test(puzzleId) &&
+    puzzleId >= FIRST_PUZZLE_ID &&
+    puzzleId <= today
+  );
+}
+
 export function newDailyGame(puzzleId: string): QuadroGame {
   return new QuadroGame(seedForPuzzle(puzzleId), HUMAN_SEAT);
 }

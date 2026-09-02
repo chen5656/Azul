@@ -2,11 +2,13 @@ import { AppBanners } from './components/AppBanners';
 import { DisplayScaleControl } from './components/DisplayScaleControl';
 import { GameStyleControl } from './components/GameStyleControl';
 import { useAttemptRunning } from './game/attemptGuard';
-import { AuthControl } from './auth/clerk';
+import { AuthControl } from './auth';
 import { Daily } from './routes/Daily';
 import { Home } from './routes/Home';
 import { LeaderboardPage } from './routes/LeaderboardPage';
+import { HistoryPage } from './routes/HistoryPage';
 import { Practice } from './routes/Practice';
+import { ReplayPage } from './routes/ReplayPage';
 import { Tutorial } from './routes/Tutorial';
 import { Link, useRouter } from './router';
 import { useLayoutMode } from './components/useLayoutMode';
@@ -16,11 +18,15 @@ const GAME_ROUTES = new Set(['/tutorial', '/practice', '/daily']);
 
 function Nav() {
   const { route } = useRouter();
-  const item = (to: '/' | '/tutorial' | '/daily' | '/practice' | '/leaderboard', label: string) => (
+  const item = (
+    to: '/' | '/tutorial' | '/daily' | '/practice' | '/leaderboard' | '/history',
+    label: string,
+  ) => (
     <Link
       to={to}
       className={`rounded px-2 py-1 text-sm ${
-        route === to || (to === '/leaderboard' && route === '/leaderboard/today')
+        route === to ||
+        (to === '/leaderboard' && route.startsWith('/leaderboard'))
           ? 'bg-neutral-800 text-neutral-100'
           : 'text-neutral-400 hover:text-neutral-100'
       }`}
@@ -36,6 +42,7 @@ function Nav() {
       {item('/daily', 'Daily')}
       {item('/practice', 'Practice')}
       {item('/leaderboard', 'Leaderboard')}
+      {item('/history', 'History')}
       {/* Static pages emitted by the SEO build, outside the router. */}
       <a
         href="/guide"
@@ -85,7 +92,11 @@ export function App() {
         {route === '/tutorial' && <Tutorial />}
         {route === '/practice' && <Practice />}
         {route === '/daily' && <Daily />}
-        {(route === '/leaderboard' || route === '/leaderboard/today') && <LeaderboardPage />}
+        {(route === '/leaderboard' ||
+          route === '/leaderboard/today' ||
+          route === '/leaderboard/date') && <LeaderboardPage />}
+        {route === '/replay' && <ReplayPage />}
+        {route === '/history' && <HistoryPage />}
       </main>
     </div>
   );

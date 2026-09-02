@@ -5,14 +5,15 @@
  * (AC-015, AC-016).
  */
 
-import { SignInButton } from '@clerk/clerk-react';
+import type { ReactNode } from 'react';
 
-import { clerkConfigured } from '../auth/clerk';
+import { useIdentity } from '../auth';
 import type { SubmissionState } from '../game/useSubmission';
 import { formatElapsed } from './Timer';
 
 export function SubmitPanel({
   admissible = true,
+  unrankedReason,
   humanWon,
   draw,
   elapsedMs,
@@ -21,8 +22,11 @@ export function SubmitPanel({
   onRetry,
   onDiscard,
   onPlayAgain,
+  children,
 }: {
   admissible?: boolean;
+  /** Shown instead of the rank when `admissible` is false. */
+  unrankedReason?: string;
   humanWon?: boolean;
   draw?: boolean;
   elapsedMs: number;
@@ -31,13 +35,29 @@ export function SubmitPanel({
   onRetry: () => void;
   onDiscard: () => void;
   onPlayAgain: () => void;
+  /** The share control; rendered for every outcome, win or loss. */
+  children?: ReactNode;
 }) {
   if (!admissible) {
     return (
       <div className="rounded-xl border border-neutral-800 p-3">
-        <p className="text-sm text-neutral-300">
-          Nothing was recorded.
+        <p className="text-sm">
+          {draw
+            ? `Game tied vs ${opponentLabel}`
+            : humanWon
+              ? `You beat ${opponentLabel}`
+              : `${opponentLabel} won`}{' '}
+          in{' '}
+          <span className="font-mono font-semibold text-neutral-300">
+            {formatElapsed(elapsedMs)}
+          </span>
+          .
         </p>
+        <p className="mt-2 text-sm text-neutral-400">
+          {unrankedReason ?? 'Nothing was recorded.'}
+        </p>
+        {/* The game is still worth sharing even when it is not worth ranking. */}
+        {children}
         <PlayAgain onPlayAgain={onPlayAgain} />
       </div>
     );
@@ -59,27 +79,7 @@ export function SubmitPanel({
       <div className="mt-2 text-sm text-neutral-300">
         {state.kind === 'submitting' && <p>Posting your score…</p>}
 
-        {state.kind === 'awaiting-auth' && (
-          <div className="flex flex-wrap items-center gap-2">
-            <span>Sign in to post your score.</span>
-            {clerkConfigured ? (
-              <SignInButton mode="modal">
-                <button type="button" className="rounded bg-sky-600 px-3 py-1 hover:bg-sky-500">
-                  Sign in
-                </button>
-              </SignInButton>
-            ) : (
-              <span className="text-xs text-neutral-500">Sign-in unavailable.</span>
-            )}
-            <button
-              type="button"
-              onClick={onDiscard}
-              className="rounded border border-neutral-700 px-3 py-1 hover:bg-neutral-800"
-            >
-              No thanks
-            </button>
-          </div>
-        )}
+        {state.kind === 'awaiting-auth' && <AwaitingAuth onDiscard={onDiscard} />}
 
         {state.kind === 'posted' && (
           <p>
@@ -110,7 +110,36 @@ export function SubmitPanel({
         {state.kind === 'discarded' && <p>Not posted.</p>}
       </div>
 
+      {children}
+
       <PlayAgain onPlayAgain={onPlayAgain} />
+    </div>
+  );
+}
+
+/**
+ * The one thing sign-in gates. "Just start playing" in the dialog makes an
+ * anonymous account, so this is a tap away from posted, not a signup wall.
+ */
+function AwaitingAuth({ onDiscard }: { onDiscard: () => void }) {
+  const identity = useIdentity();
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <span>Sign in to post your score.</span>
+      <button
+        type="button"
+        onClick={identity.openSignIn}
+        className="rounded bg-sky-600 px-3 py-1 hover:bg-sky-500"
+      >
+        Sign in
+      </button>
+      <button
+        type="button"
+        onClick={onDiscard}
+        className="rounded border border-neutral-700 px-3 py-1 hover:bg-neutral-800"
+      >
+        No thanks
+      </button>
     </div>
   );
 }

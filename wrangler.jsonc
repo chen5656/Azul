@@ -25,13 +25,20 @@
     { "pattern": "acgame.win/api/*", "zone_name": "acgame.win" }
   ],
 
+  "r2_buckets": [
+    {
+      "binding": "AVATARS",
+      "bucket_name": "quadro-avatars"
+    }
+  ],
+
   // ~midnight New York year-round; deletes rows older than 90 days (BR-014).
   "triggers": { "crons": ["0 5 * * *"] },
 
   "vars": {
-    // Public, non-secret configuration. CLERK_SECRET_KEY is a Worker secret and
-    // never appears here (NFR-010).
-    "CLERK_ISSUER": "https://clerk.acgame.win",
+    // Public, non-secret configuration. Every auth credential
+    // (BETTER_AUTH_SECRET, the three providers' client ids and secrets) is a
+    // Worker secret and never appears here (NFR-010).
     "ALLOWED_ORIGIN": "https://acgame.win"
   }
 }

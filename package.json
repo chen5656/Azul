@@ -11,7 +11,7 @@
     "dev": "vite",
     "dev:api": "wrangler dev --port 8787",
     "db:local": "wrangler d1 execute quadro --local --file worker/schema.sql",
-    "build": "node scripts/check-clerk-env.mjs && npm run typecheck && vite build && node scripts/seo-build.mjs",
+    "build": "node scripts/check-engine-version.mjs && npm run typecheck && vite build && node scripts/seo-build.mjs",
     "preview": "vite preview",
     "test:worker": "vitest run --config test/worker/vitest.config.ts",
     "deploy": "wrangler deploy"
@@ -36,7 +36,9 @@
     "wrangler": "^4.127.1"
   },
   "dependencies": {
-    "@clerk/clerk-react": "^5.61.9",
+    "better-auth": "^1.7.2",
+    "kysely": "^0.29.5",
+    "kysely-d1": "^0.4.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   }

@@ -17,6 +17,7 @@ import {
 import {
   DEFAULT_WEIGHTS,
   EASY_EPSILON,
+  EXTREME_STEPS_BY_ROUND,
   GreedyAgent,
   LEVELS,
   MctsAgent,
@@ -26,17 +27,18 @@ import {
   actionValue,
   availableLevels,
   evaluate,
+  extremeSteps,
   makeAgent,
   sideValue,
 } from '../../src/ai';
 
 const AGENTS = () => [
   new GreedyAgent(1, EASY_EPSILON),
-  new MinimaxAgent(1, 2, 0.05),
-  new MinimaxAgent(1, 3, 0.05),
-  new MinimaxAgent(1, 4, 0.05),
-  new MinimaxAgent(1, 5, 0.05, undefined, 'master', 8),
-  new MctsAgent({ seed: 1, timeBudget: 0.05 }),
+  new MinimaxAgent(1, 2, 50, undefined, 'medium', 20),
+  new MinimaxAgent(1, 3, 50, undefined, 'hard', 16),
+  new MinimaxAgent(1, 4, 50, undefined, 'expert', 12),
+  new MinimaxAgent(1, 5, 50, undefined, 'master', 8),
+  new MctsAgent({ seed: 1, simulations: 24 }),
 ];
 
 describe('evaluate', () => {
@@ -102,32 +104,93 @@ describe('every agent', () => {
 });
 
 describe('search budgets (FR-009)', () => {
-  it('minimax returns a legal action with a budget of zero', () => {
+  it('minimax still returns a legal action when the safety cap trips at once', () => {
     const game = new QuadroGame(31);
     const agent = new MinimaxAgent(2, 4, 0);
     expect(isLegal(game.state, agent.choose(game.state, 0))).toBe(true);
+    expect(agent.cappedOut).toBe(true);
   });
 
-  it('mcts returns a legal action with a budget of zero', () => {
+  it('mcts still returns a legal action when the safety cap trips at once', () => {
     const game = new QuadroGame(31);
-    const agent = new MctsAgent({ seed: 2, timeBudget: 0 });
-    expect(agent.simulations).toBe(0);
+    const agent = new MctsAgent({ seed: 2, safetyCapMs: 0 });
     expect(isLegal(game.state, agent.choose(game.state, 0))).toBe(true);
+    expect(agent.simulations).toBe(0);
+    expect(agent.cappedOut).toBe(true);
   });
 
-  it('minimax deepens when given time', () => {
+  it('minimax reaches its full depth, cap or no cap', () => {
     const game = new QuadroGame(31);
-    const agent = new MinimaxAgent(2, 2, 60.0);
+    const agent = new MinimaxAgent(2, 2);
     agent.choose(game.state, 0);
-    expect(agent.reachedDepth).toBeGreaterThanOrEqual(2);
+    expect(agent.reachedDepth).toBe(2);
+    expect(agent.cappedOut).toBe(false);
     expect(agent.nodes).toBeGreaterThan(0);
   });
 
-  it('mcts runs simulations when given time', () => {
+  it('mcts spends exactly its simulation budget, not a slice of clock', () => {
     const game = new QuadroGame(31);
-    const agent = new MctsAgent({ seed: 2, timeBudget: 0.2 });
+    const agent = new MctsAgent({ seed: 2, simulations: 40 });
     agent.choose(game.state, 0);
-    expect(agent.simulations).toBeGreaterThan(0);
+    expect(agent.simulations).toBe(40);
+    expect(agent.cappedOut).toBe(false);
+  });
+
+  it('gives the same move however fast the machine is (the whole point)', () => {
+    const game = new QuadroGame(31);
+    const first = new MctsAgent({ seed: 5, simulations: 40 }).choose(game.state, 0);
+    const second = new MctsAgent({ seed: 5, simulations: 40 }).choose(game.state, 0);
+    expect(second.actionId).toBe(first.actionId);
+  });
+});
+
+describe('determinism', () => {
+  // One attempt must be reproducible end to end: the same agent, asked the
+  // same question twice, answers the same way. (Across attempts the opponent
+  // seed is redrawn — see `randomAgentSeed` — so this is a claim about a fixed
+  // seed, not about a fixed puzzle.) That has to hold
+  // across a restart, an undo, a discarded speculative search and a rebuilt
+  // worker — none of which an agent can see — so `choose` is a function of the
+  // position, not of how many times this agent has been asked something.
+  const positions = () => {
+    const game = new QuadroGame(23);
+    const seen: GameState[] = [game.state.clone()];
+    const rng = new Rng(5);
+    for (let i = 0; i < 6; i += 1) {
+      const actions = game.legalActions();
+      game.step(actions[rng.nextInt(actions.length)]);
+      if (game.isOver()) break;
+      seen.push(game.state.clone());
+    }
+    return seen;
+  };
+
+  it.each(availableLevels())('%s answers a position the same way every time', (level) => {
+    const states = positions();
+    const fresh = makeAgent(level, 99);
+    const expected = states.map((s) => fresh.choose(s, s.current).actionId);
+
+    // The same agent, asked out of order and with the questions repeated.
+    const reused = makeAgent(level, 99);
+    for (const [i, state] of [...states.entries()].reverse()) {
+      expect(reused.choose(state, state.current).actionId).toBe(expected[i]);
+      expect(reused.choose(state, state.current).actionId).toBe(expected[i]);
+    }
+
+    // And a rebuilt agent, as an undo or a restarted worker would produce.
+    for (const [i, state] of states.entries()) {
+      expect(makeAgent(level, 99).choose(state, state.current).actionId).toBe(expected[i]);
+    }
+  });
+
+  it('separates agents that differ only by seed', () => {
+    const game = new QuadroGame(23);
+    const moves = new Set(
+      [1, 2, 3, 4, 5, 6, 7, 8].map((seed) => makeAgent('easy', seed).choose(game.state, 0).actionId),
+    );
+    // Not a strong claim — just that the position hash has not collapsed the
+    // seed out of the derivation.
+    expect(moves.size).toBeGreaterThan(1);
   });
 });
 
@@ -137,9 +200,11 @@ describe('registry', () => {
     expect(LEVELS).not.toContain('azulzero');
   });
 
-  it('separates the alpha-beta levels by depth, and gives master a narrow beam', () => {
+  it('separates the alpha-beta levels by depth, and narrows as they deepen', () => {
     expect(MINIMAX_DEPTHS).toEqual({ medium: 2, hard: 3, expert: 4, master: 5 });
-    expect(MINIMAX_WIDTHS).toEqual({ master: 8 });
+    // Every level has a beam: a level that cannot finish its depth is not a
+    // level, it is whatever the device had time for.
+    expect(MINIMAX_WIDTHS).toEqual({ medium: 20, hard: 16, expert: 12, master: 8 });
   });
 
   it('builds an agent for every level', () => {
@@ -148,14 +213,25 @@ describe('registry', () => {
     }
   });
 
-  it('gives the extreme level the Daily budget of 450ms (AC-012)', () => {
+  it('gives the extreme level a work budget, not a clock (AC-012)', () => {
     const agent = makeAgent('extreme', 1) as MctsAgent;
     expect(agent.level).toBe('extreme');
     const game = new QuadroGame(1);
-    const started = performance.now();
     agent.choose(game.state, 0);
-    const elapsed = performance.now() - started;
-    expect(elapsed).toBeGreaterThan(300);
-    expect(elapsed).toBeLessThan(900);
+    // Whatever the machine, the level did the same amount of thinking. It
+    // overshoots by at most the last simulation, which cannot be split.
+    expect(agent.steps).toBeGreaterThanOrEqual(EXTREME_STEPS_BY_ROUND[0]);
+    expect(agent.simulations).toBeGreaterThan(0);
+    expect(agent.cappedOut).toBe(false);
+  });
+
+  it('spends more on the endgame, where the search actually converges', () => {
+    const table = EXTREME_STEPS_BY_ROUND;
+    for (let i = 1; i < table.length; i += 1) expect(table[i]).toBeGreaterThan(table[i - 1]);
+    expect(extremeSteps(1)).toBe(table[0]);
+    expect(extremeSteps(table.length)).toBe(table[table.length - 1]);
+    // Past the end of the schedule the last entry stands.
+    expect(extremeSteps(99)).toBe(table[table.length - 1]);
+    expect(extremeSteps(0)).toBe(table[0]);
   });
 });

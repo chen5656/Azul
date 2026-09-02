@@ -197,7 +197,7 @@
 }
 
 .azul-board .azul-tile {
-  --azul-tile: clamp(1.2rem, min(calc((100cqi - 3rem) / 10), calc((100dvh - 300px) / 14)), 2.65rem);
+  --azul-tile: clamp(1rem, min(calc((100cqi - 5rem) / 10), calc((100dvh - 300px) / 14)), 2.65rem);
 }
 
 .azul-tile {
@@ -212,7 +212,7 @@
  */
 @media (min-width: 768px) {
   .azul-board .azul-tile {
-    --azul-tile: clamp(1.3rem, min(calc((100cqi - 3.2rem) / 10), calc((100dvh - 280px) / 13)), 2.75rem);
+    --azul-tile: clamp(1rem, min(calc((100cqi - 5rem) / 10), calc((100dvh - 280px) / 13)), 2.75rem);
   }
 
   .azul-display-area .azul-tile {
@@ -236,7 +236,7 @@
 }
 
 .azul-board-stacked .azul-tile {
-  --azul-tile: clamp(1.1rem, min(calc((100cqi - 3rem) / 10), calc((100dvh - 240px) / 21)), 3.25rem);
+  --azul-tile: clamp(1.1rem, min(calc((100cqi - 5rem) / 10), calc((100dvh - 240px) / 21)), 3.25rem);
 }
 
 /*

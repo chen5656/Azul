@@ -6,18 +6,18 @@
  */
 
 import { GameState } from '../engine';
-import { type Agent, type AgentLevel, makeAgent } from '../ai';
+import { type Agent, type AgentBudget, type AgentLevel, makeAgent } from '../ai';
 
 export interface AiRequest {
   id: number;
   /** Rebuild the agent before searching; sent on the first request of a game. */
-  init?: { level: AgentLevel; seed?: number; timeBudget?: number };
+  init?: { level: AgentLevel; seed?: number; budget?: AgentBudget };
   state: Record<string, unknown>;
   player: number;
 }
 
 export type AiResponse =
-  | { id: number; ok: true; actionId: number; elapsedMs: number }
+  | { id: number; ok: true; actionId: number; elapsedMs: number; capped: boolean }
   | { id: number; ok: false; error: string };
 
 let agent: Agent | null = null;
@@ -28,7 +28,7 @@ self.onmessage = (event: MessageEvent<AiRequest>) => {
   try {
     if (init || agent === null) {
       const spec = init ?? { level: 'medium' as AgentLevel };
-      agent = makeAgent(spec.level, spec.seed, spec.timeBudget);
+      agent = makeAgent(spec.level, spec.seed, spec.budget);
     }
     const action = agent.choose(GameState.fromDict(state), player);
     const reply: AiResponse = {
@@ -36,6 +36,7 @@ self.onmessage = (event: MessageEvent<AiRequest>) => {
       ok: true,
       actionId: action.actionId,
       elapsedMs: performance.now() - started,
+      capped: agent.cappedOut === true,
     };
     self.postMessage(reply);
   } catch (err) {

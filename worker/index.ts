@@ -5,11 +5,13 @@
  * rather than throwing past the runtime, so a bug never becomes an opaque 1101.
  */
 
-import { verifyRequest } from './auth';
+import { enabledProviders, getAuth, requireSession, verifyRequest } from './auth';
+import { deleteAvatars, serveAvatar, uploadAvatar } from './avatar';
 import { purgeOldRows } from './cron';
 import { currentPuzzleId, isPuzzleId, nextRolloverMs, seedForPuzzle } from './daily';
 import { HttpError, corsHeaders, fail, json } from './http';
 import { AI_LEVELS, DEFAULT_AI_LEVEL, isAiLevel, leaderboard } from './leaderboard';
+import { history } from './history';
 import { deleteMe, submitScore } from './scores';
 
 export default {
@@ -49,6 +51,23 @@ export default {
 async function route(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
   const path = url.pathname.replace(/\/+$/, '') || '/';
+
+  // Sign-in, sign-out, OAuth callbacks, session, and profile updates. Handed
+  // over whole: better-auth owns every route under its base path, and the list
+  // grows with the plugins it is configured with.
+  if (url.pathname.startsWith('/api/auth/')) {
+    return getAuth(env).handler(request);
+  }
+
+  // Which sign-in buttons to render. A provider whose credentials are not set
+  // must not show a button: the redirect would dead-end in a 500.
+  if (path === '/api/providers' && request.method === 'GET') {
+    return json({ social: enabledProviders(env), email_password: true });
+  }
+
+  if (path.startsWith('/api/avatar/') && request.method === 'GET') {
+    return serveAvatar(env, path.slice('/api/avatar/'.length));
+  }
   if ((path === '/api/daily' || path === '/quadro/api/daily') && request.method === 'GET') {
     const puzzleId = currentPuzzleId();
     return json({
@@ -81,15 +100,42 @@ async function route(request: Request, env: Env): Promise<Response> {
   }
 
   if ((path === '/api/scores' || path === '/quadro/api/scores') && request.method === 'POST') {
-    const session = await verifyRequest(request, env);
-    if (!session) throw new HttpError(401, 'UNAUTHENTICATED', 'Sign in to post a time');
+    const session = await requireSession(request, env);
     const body = await request.json().catch(() => null);
     return submitScore(env.DB, session, body);
   }
 
+  if (
+    (path === '/api/me/history' || path === '/quadro/api/me/history') &&
+    request.method === 'GET'
+  ) {
+    const session = await requireSession(request, env);
+    const before = url.searchParams.get('before');
+    if (before !== null && !isPuzzleId(before)) {
+      throw new HttpError(422, 'INVALID_PAYLOAD', 'before must be YYYY-MM-DD');
+    }
+    const limitParam = url.searchParams.get('limit');
+    return history(env.DB, session, {
+      limit: limitParam === null ? undefined : Number(limitParam),
+      before,
+    });
+  }
+
+  if (path === '/api/me/avatar' && request.method === 'PUT') {
+    const session = await requireSession(request, env);
+    return uploadAvatar(env, session, request, async (image) => {
+      // Written through better-auth so its hooks and the cached session cookie
+      // both see the new value.
+      await getAuth(env).api.updateUser({
+        body: { image },
+        headers: request.headers,
+      });
+    });
+  }
+
   if ((path === '/api/me' || path === '/quadro/api/me') && request.method === 'DELETE') {
-    const session = await verifyRequest(request, env);
-    if (!session) throw new HttpError(401, 'UNAUTHENTICATED', 'Sign in first');
+    const session = await requireSession(request, env);
+    await deleteAvatars(env, session.userId).catch(() => {});
     return deleteMe(env.DB, session);
   }
 

@@ -8,7 +8,6 @@ import { describe, expect, it } from 'vitest';
 import { GameState, fnv1a32 } from '../../src/engine';
 import {
   HUMAN_SEAT,
-  agentSeedForPuzzle,
   newDailyGame,
   nextRolloverMs,
   puzzleIdFor,
@@ -99,9 +98,6 @@ describe('rollover', () => {
 describe('the daily deal', () => {
   it('derives the seed exactly as BR-002 specifies', () => {
     expect(seedForPuzzle('2026-08-28')).toBe(fnv1a32('quadro-daily-v1:2026-08-28'));
-    expect(agentSeedForPuzzle('2026-08-28')).toBe(
-      (seedForPuzzle('2026-08-28') ^ 0x9e3779b9) >>> 0,
-    );
   });
 
   it('deals the same initial state every time for one puzzle id (AC-010)', () => {

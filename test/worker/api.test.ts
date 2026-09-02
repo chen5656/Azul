@@ -4,14 +4,20 @@
  * `DELETE /api/me`.
  */
 
-import { env, createExecutionContext, waitOnExecutionContext } from 'cloudflare:test';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { env } from 'cloudflare:test';
+import { beforeEach, describe, expect, it } from 'vitest';
 
-import worker from '../../worker/index';
 import { purgeOldRows } from '../../worker/cron';
 import { currentPuzzleId } from '../../worker/daily';
 import { MIN_ELAPSED_MS, RATE_LIMIT_PER_HOUR } from '../../worker/scores';
-import { apiRequest, makeToken, migrate, stubJwks } from './helpers';
+import {
+  type TestSession,
+  apiRequest,
+  call,
+  migrate,
+  signInAnonymously,
+  signUp,
+} from './helpers';
 
 const TODAY = currentPuzzleId();
 
@@ -24,24 +30,12 @@ const WIN = {
   client_version: '1.0.0',
 };
 
-async function call(request: Request): Promise<Response> {
-  const ctx = createExecutionContext();
-  const response = await worker.fetch(request, env, ctx);
-  await waitOnExecutionContext(ctx);
-  return response;
-}
-
-async function post(body: unknown, token?: string): Promise<Response> {
-  return call(apiRequest('/api/scores', { method: 'POST', body: JSON.stringify(body), token }));
+async function post(body: unknown, session?: TestSession): Promise<Response> {
+  return call(apiRequest('/api/scores', { method: 'POST', body: JSON.stringify(body), session }));
 }
 
 beforeEach(async () => {
   await migrate();
-  await stubJwks();
-});
-
-afterEach(() => {
-  vi.unstubAllGlobals();
 });
 
 describe('GET /api/daily', () => {
@@ -65,24 +59,20 @@ describe('POST /api/scores', () => {
     expect(rows?.n).toBe(0);
   });
 
-  it('rejects a token signed by someone else', async () => {
-    const response = await post(WIN, 'not.a.jwt');
+  it('rejects a forged session cookie', async () => {
+    const response = await call(
+      apiRequest('/api/scores', {
+        method: 'POST',
+        body: JSON.stringify(WIN),
+        headers: { cookie: '__Secure-better-auth.session_token=made.up' },
+      }),
+    );
     expect(response.status).toBe(401);
   });
 
-  it('rejects an expired token', async () => {
-    const token = await makeToken({ expiresInSeconds: -10 });
-    expect((await post(WIN, token)).status).toBe(401);
-  });
-
-  it('rejects a token minted for another origin', async () => {
-    const token = await makeToken({ azp: 'https://evil.example' });
-    expect((await post(WIN, token)).status).toBe(401);
-  });
-
   it('accepts a win and reports rank 1 on an empty board', async () => {
-    const token = await makeToken({ username: 'ada' });
-    const response = await post(WIN, token);
+    const session = await signUp('ada');
+    const response = await post(WIN, session);
     expect(response.status).toBe(200);
     expect(await response.json()).toMatchObject({
       accepted: true, improved: true, best_elapsed_ms: 461_230, rank: 1, total_entries: 1,
@@ -91,16 +81,23 @@ describe('POST /api/scores', () => {
     expect(row?.display_name).toBe('ada');
   });
 
+  it('accepts a post from an anonymous session', async () => {
+    const session = await signInAnonymously();
+    const response = await post(WIN, session);
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ accepted: true, rank: 1 });
+  });
+
   it("rejects yesterday's puzzle with 409 (AC-021)", async () => {
-    const token = await makeToken();
-    const response = await post({ ...WIN, puzzle_id: '2020-01-01' }, token);
+    const session = await signUp();
+    const response = await post({ ...WIN, puzzle_id: '2020-01-01' }, session);
     expect(response.status).toBe(409);
     expect(await response.json()).toMatchObject({ error: { code: 'STALE_PUZZLE' } });
   });
 
   it('rejects an implausible time and audits the rejection (AC-022)', async () => {
-    const token = await makeToken();
-    const response = await post({ ...WIN, elapsed_ms: 5000 }, token);
+    const session = await signUp();
+    const response = await post({ ...WIN, elapsed_ms: 5000 }, session);
     expect(response.status).toBe(422);
     expect(await response.json()).toMatchObject({ error: { code: 'IMPLAUSIBLE_TIME' } });
 
@@ -110,59 +107,66 @@ describe('POST /api/scores', () => {
     expect(audit).toMatchObject({ accepted: 0, reason: 'IMPLAUSIBLE_TIME' });
   });
 
+  it('rejects an attempt against anything but the ranked level', async () => {
+    const session = await signUp();
+    const response = await post({ ...WIN, ai_level: 'medium' }, session);
+    expect(response.status).toBe(422);
+    expect(await response.json()).toMatchObject({ error: { code: 'UNRANKED_LEVEL' } });
+  });
+
   it('rejects a time above the upper bound', async () => {
-    const token = await makeToken();
-    expect((await post({ ...WIN, elapsed_ms: 7_200_001 }, token)).status).toBe(422);
+    const session = await signUp();
+    expect((await post({ ...WIN, elapsed_ms: 7_200_001 }, session)).status).toBe(422);
   });
 
   it('accepts a submission with a tie or loss (negative score margin)', async () => {
-    const token = await makeToken();
-    const response = await post({ ...WIN, final_score: 40, opponent_score: 45 }, token);
+    const session = await signUp();
+    const response = await post({ ...WIN, final_score: 40, opponent_score: 45 }, session);
     expect(response.status).toBe(200);
     expect(await response.json()).toMatchObject({ accepted: true, rank: 1 });
   });
 
   it('rejects a malformed payload and audits it', async () => {
-    const token = await makeToken();
-    const response = await post({ puzzle_id: 'nope' }, token);
+    const session = await signUp();
+    const response = await post({ puzzle_id: 'nope' }, session);
     expect(response.status).toBe(422);
     const audit = await env.DB.prepare('SELECT reason FROM submissions_audit').first<{ reason: string }>();
     expect(audit?.reason).toBe('INVALID_PAYLOAD');
   });
 
   it('keeps the attempt with better score margin, in one row (AC-018, AC-019)', async () => {
-    const token = await makeToken();
-    await post(WIN, token); // 64 - 51 = 13 diff
+    const session = await signUp();
+    await post(WIN, session); // 64 - 51 = 13 diff
 
     // Smaller diff (10 diff) even if faster elapsed time is not improved
-    const smallerDiff = await post({ ...WIN, elapsed_ms: 300_000, final_score: 60, opponent_score: 50 }, token);
+    const smallerDiff = await post({ ...WIN, elapsed_ms: 300_000, final_score: 60, opponent_score: 50 }, session);
     expect(await smallerDiff.json()).toMatchObject({ improved: false, best_elapsed_ms: 461_230 });
 
     // Larger diff (20 diff) is improved
-    const largerDiff = await post({ ...WIN, elapsed_ms: 500_000, final_score: 70, opponent_score: 50 }, token);
+    const largerDiff = await post({ ...WIN, elapsed_ms: 500_000, final_score: 70, opponent_score: 50 }, session);
     expect(await largerDiff.json()).toMatchObject({ improved: true, best_final_score: 70, best_opponent_score: 50 });
 
     // Same diff (20 diff) but faster time is improved
-    const fasterSameDiff = await post({ ...WIN, elapsed_ms: 400_000, final_score: 70, opponent_score: 50 }, token);
+    const fasterSameDiff = await post({ ...WIN, elapsed_ms: 400_000, final_score: 70, opponent_score: 50 }, session);
     expect(await fasterSameDiff.json()).toMatchObject({ improved: true, best_elapsed_ms: 400_000 });
 
     const rows = await env.DB.prepare(
       'SELECT COUNT(*) AS n, MIN(elapsed_ms) AS best, MAX(final_score) AS score FROM scores WHERE user_id = ?',
-    ).bind('user_ada').first<{ n: number; best: number; score: number }>();
+    ).bind(session.userId).first<{ n: number; best: number; score: number }>();
     expect(rows).toMatchObject({ n: 1, best: 400_000, score: 70 });
   });
 
   it('rate-limits the 61st submission in an hour (AC-024)', async () => {
-    const token = await makeToken();
+    const session = await signUp();
     const now = Date.now();
     // Fill the audit trail directly; the limit counts submissions, accepted or not.
     for (let i = 0; i < RATE_LIMIT_PER_HOUR; i += 1) {
       await env.DB.prepare(
         `INSERT INTO submissions_audit (puzzle_id, user_id, elapsed_ms, accepted, reason, created_at)
          VALUES (?, ?, ?, 1, NULL, ?)`,
-      ).bind(TODAY, 'user_ada', MIN_ELAPSED_MS, now - i).run();
+      ).bind(TODAY, session.userId, MIN_ELAPSED_MS, now - i).run();
     }
-    const response = await post(WIN, token);
+    const response = await post(WIN, session);
     expect(response.status).toBe(429);
     expect(await response.json()).toMatchObject({ error: { code: 'RATE_LIMITED' } });
   });
@@ -209,11 +213,11 @@ describe('GET /api/leaderboard', () => {
   it('reports a true rank outside the top of the board (AC-026)', async () => {
     const rows: [string, string, number, number, number, number][] = [];
     for (let i = 0; i < 111; i += 1) rows.push([`user_${i}`, `p${i}`, 100_000 + i, 80, 50, 1000 + i]);
-    rows.push(['user_ada', 'ada', 900_000, 55, 50, 5000]); // diff = +5 vs +30 of others
+    const session = await signUp('ada');
+    rows.push([session.userId, 'ada', 900_000, 55, 50, 5000]); // diff = +5 vs +30 of others
     await seed(rows);
 
-    const token = await makeToken();
-    const response = await call(apiRequest('/api/leaderboard?limit=100', { token }));
+    const response = await call(apiRequest('/api/leaderboard?limit=100', { session }));
     const body = await response.json<{ entries: unknown[]; me: { rank: number; elapsed_ms: number; final_score: number; opponent_score: number } }>();
     expect(body.entries).toHaveLength(100);
     expect(body.me).toEqual({ rank: 112, elapsed_ms: 900_000, final_score: 55, opponent_score: 50 });
@@ -232,10 +236,10 @@ describe('GET /api/leaderboard', () => {
 
 describe('DELETE /api/me', () => {
   it('removes every row for the user and returns the counts (AC-029)', async () => {
-    const token = await makeToken();
-    await post(WIN, token);
+    const session = await signUp();
+    await post(WIN, session);
 
-    const response = await call(apiRequest('/api/me', { method: 'DELETE', token }));
+    const response = await call(apiRequest('/api/me', { method: 'DELETE', session }));
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ deleted_scores: 1, deleted_audit: 1 });
 

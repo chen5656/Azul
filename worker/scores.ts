@@ -1,15 +1,20 @@
 /**
  * `POST /api/scores` — the only write path (BR-010).
  *
- * Anti-cheat posture for v1.0.0 is "trust the client" (D-015): the Worker
- * authenticates, applies the two sanity rules (BR-011, BR-012), rate-limits
- * (BR-013), and stores. It does not re-simulate the game.
+ * The Worker authenticates, applies the two sanity rules (BR-011, BR-012),
+ * rate-limits (BR-013), and stores.
+ *
+ * D-015's "trust the client" posture holds only for submissions with no
+ * replay attached. When one is attached the Worker *does* re-simulate: it
+ * re-runs the recorded moves through the engine and refuses the submission
+ * unless they produce the posted score. See `worker/replay.ts`.
  */
 
 import type { Session } from './auth';
-import { currentPuzzleId, isPuzzleId } from './daily';
+import { currentPuzzleId, isPuzzleId, seedForPuzzle } from './daily';
 import { HttpError, json } from './http';
-import { DEFAULT_AI_LEVEL, type AiLevel, isAiLevel, rankOf } from './leaderboard';
+import { DEFAULT_AI_LEVEL, RANKED_AI_LEVEL, type AiLevel, isAiLevel, rankOf } from './leaderboard';
+import { MAX_REPLAY_CHARS, checkReplay } from './replay';
 
 /** BR-011: a five-round game against a 450ms agent cannot be won in 20 seconds. */
 export const MIN_ELAPSED_MS = 20_000;
@@ -26,6 +31,12 @@ export interface SubmissionPayload {
   rounds: number;
   ai_level: AiLevel;
   client_version: string;
+  /**
+   * The base64url replay code (`src/replay/codec.ts`). Optional: clients from
+   * before replays existed do not send it. When present it is re-run here and
+   * the submission is refused if the moves do not produce the posted score.
+   */
+  replay?: string;
 }
 
 function isInteger(value: unknown, min: number, max: number): value is number {
@@ -47,7 +58,9 @@ function parsePayload(body: unknown): SubmissionPayload {
     isInteger(p.rounds, 1, 150) &&
     isAiLevel(level) &&
     typeof p.client_version === 'string' &&
-    p.client_version.length <= 32;
+    p.client_version.length <= 32 &&
+    (p.replay === undefined ||
+      (typeof p.replay === 'string' && p.replay.length <= MAX_REPLAY_CHARS));
   if (!valid) throw new HttpError(422, 'INVALID_PAYLOAD', 'Malformed submission');
   return { ...(p as SubmissionPayload), ai_level: level as AiLevel };
 }
@@ -119,8 +132,29 @@ export async function submitScore(
   if (payload.puzzle_id !== currentPuzzleId(new Date(now))) {
     await reject(409, 'STALE_PUZZLE', 'That puzzle is no longer the current one');
   }
+  if (payload.ai_level !== RANKED_AI_LEVEL) {
+    await reject(422, 'UNRANKED_LEVEL', 'Only the strongest opponent is ranked');
+  }
   if (payload.elapsed_ms < MIN_ELAPSED_MS || payload.elapsed_ms > MAX_ELAPSED_MS) {
     await reject(422, 'IMPLAUSIBLE_TIME', 'That time is not plausible');
+  }
+
+  // A replay is the strongest evidence the Worker can get, so a wrong one is
+  // fatal to the submission rather than merely unverified.
+  let verified = false;
+  if (payload.replay !== undefined) {
+    const check = checkReplay(payload.replay, {
+      puzzleId: payload.puzzle_id,
+      aiLevel: payload.ai_level,
+      seed: seedForPuzzle(payload.puzzle_id),
+      finalScore: payload.final_score,
+      opponentScore: payload.opponent_score,
+      rounds: payload.rounds,
+    });
+    if (!check.ok) {
+      await reject(422, check.reason ?? 'REPLAY_INVALID', check.message ?? 'Replay does not match');
+    }
+    verified = true;
   }
 
   const existing = await db
@@ -142,13 +176,14 @@ export async function submitScore(
     await db
       .prepare(
         `INSERT INTO scores (puzzle_id, user_id, display_name, elapsed_ms, final_score,
-                             opponent_score, ai_level, rounds, client_version, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                             opponent_score, ai_level, rounds, client_version, replay,
+                             verified, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .bind(
         payload.puzzle_id, session.userId, session.displayName, payload.elapsed_ms,
         payload.final_score, payload.opponent_score, payload.ai_level, payload.rounds,
-        payload.client_version, now, now,
+        payload.client_version, payload.replay ?? null, verified ? 1 : 0, now, now,
       )
       .run();
     improved = true;
@@ -167,13 +202,13 @@ export async function submitScore(
         .prepare(
           `UPDATE scores
               SET display_name = ?, elapsed_ms = ?, final_score = ?, opponent_score = ?,
-                  rounds = ?, client_version = ?, updated_at = ?
+                  rounds = ?, client_version = ?, replay = ?, verified = ?, updated_at = ?
             WHERE puzzle_id = ? AND user_id = ? AND ai_level = ?`,
         )
         .bind(
           session.displayName, payload.elapsed_ms, payload.final_score, payload.opponent_score,
-          payload.rounds, payload.client_version, now, payload.puzzle_id, session.userId,
-          payload.ai_level,
+          payload.rounds, payload.client_version, payload.replay ?? null, verified ? 1 : 0,
+          now, payload.puzzle_id, session.userId, payload.ai_level,
         )
         .run();
       improved = true;
@@ -205,6 +240,7 @@ export async function submitScore(
   return json({
     accepted: true,
     improved,
+    verified,
     best_elapsed_ms: bestElapsedMs,
     best_final_score: bestFinalScore,
     best_opponent_score: bestOpponentScore,

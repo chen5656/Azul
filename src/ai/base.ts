@@ -7,6 +7,12 @@ export class AgentError extends Error {}
 export interface Agent {
   readonly level: AgentLevel;
   /**
+   * Set by the searching agents when the last `choose` hit the safety cap and
+   * had to answer with less work than the level calls for. Always false on a
+   * device fast enough to play the level as designed.
+   */
+  readonly cappedOut?: boolean;
+  /**
    * Pick one legal action for `player` in `state`.
    * Implementations must not leave `state` mutated: clone it, or use undo.
    */

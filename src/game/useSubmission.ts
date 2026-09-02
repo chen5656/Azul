@@ -14,7 +14,7 @@ import {
   postScore,
   withBackoff,
 } from '../api/client';
-import type { Identity } from '../auth/clerk';
+import type { Identity } from '../auth';
 
 export type SubmissionState =
   | { kind: 'idle' }
@@ -45,27 +45,17 @@ export function useSubmission(identity: Identity): Submitter {
 
     setState({ kind: 'submitting' });
     try {
-      let token = await identity.getToken();
-      if (!token) {
-        setState({ kind: 'awaiting-auth' });
-        return;
-      }
-
       let result;
       try {
-        result = await withBackoff(() => postScore(attempt, token!));
+        result = await withBackoff(() => postScore(attempt));
       } catch (err) {
-        // An expired session gets exactly one refresh-and-retry (§15).
+        // The session cookie is gone or expired: there is nothing to refresh
+        // client-side, so ask for a sign-in and keep the attempt in memory.
         if (err instanceof ApiError && err.status === 401) {
-          token = await identity.getToken();
-          if (!token) {
-            setState({ kind: 'awaiting-auth' });
-            return;
-          }
-          result = await postScore(attempt, token);
-        } else {
-          throw err;
+          setState({ kind: 'awaiting-auth' });
+          return;
         }
+        throw err;
       }
 
       setState(
@@ -86,7 +76,7 @@ export function useSubmission(identity: Identity): Submitter {
         message: explain(apiError),
       });
     }
-  }, [identity]);
+  }, []);
 
   const submit = useCallback(
     async (attempt: Omit<ScoreSubmission, 'client_version'>) => {

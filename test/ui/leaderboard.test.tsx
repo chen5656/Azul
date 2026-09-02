@@ -5,12 +5,16 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Leaderboard } from '../../src/components/Leaderboard';
 
-vi.mock('../../src/auth/clerk', () => ({
+vi.mock('../../src/auth', () => ({
   useIdentity: () => ({
     signedIn: false,
-    available: false,
+    ready: true,
+    isAnonymous: false,
     displayName: null,
-    getToken: async () => null,
+    imageUrl: null,
+    hasNickname: false,
+    openSignIn: () => {},
+    openAccount: () => {},
   }),
 }));
 

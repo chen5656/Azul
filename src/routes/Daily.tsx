@@ -9,27 +9,34 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { DAILY_TIME_BUDGET, LEVELS, LEVEL_LABELS, type AgentLevel } from '../ai';
+import { LEVELS, LEVEL_LABELS, type AgentLevel } from '../ai';
 import { getLeaderboard } from '../api/client';
-import { useIdentity } from '../auth/clerk';
+import { useIdentity } from '../auth';
 import { Board } from '../components/Board';
 import { Leaderboard } from '../components/Leaderboard';
 import { Modal } from '../components/Modal';
 import { RobotAvatar } from '../components/RobotAvatar';
+import { ShareReplay } from '../components/ShareReplay';
+import { encodeReplay } from '../replay/codec';
+import { replayOf } from '../replay/share';
 import { SubmitPanel } from '../components/SubmitPanel';
 import { Timer } from '../components/Timer';
 import { useGameStyle } from '../context/GameStyleContext';
-import {
-  HUMAN_SEAT,
-  agentSeedForPuzzle,
-  newDailyGame,
-  puzzleIdFor,
-} from '../daily/puzzle';
+import { HUMAN_SEAT, newDailyGame, puzzleIdFor } from '../daily/puzzle';
 import { setAttemptRunning } from '../game/attemptGuard';
 import { useGameSession } from '../game/useGameSession';
 import { useSubmission } from '../game/useSubmission';
 import { useRouter } from '../router';
 import { storage } from '../storage';
+
+/**
+ * The only level the board ranks (mirrored by `RANKED_AI_LEVEL` in the Worker,
+ * which refuses anything else). The weaker levels stay playable on the Daily —
+ * they are how a new player learns the deal — but a board per level split the
+ * day's field six ways and ranked attempts against each other that were never
+ * comparable.
+ */
+const RANKED_LEVEL: AgentLevel = 'extreme';
 
 // Strongest first: the Daily's default opponent leads the row.
 const DAILY_LEVELS: readonly AgentLevel[] = [
@@ -152,8 +159,7 @@ function DailyAttempt({
     let active = true;
     async function loadCount() {
       try {
-        const token = (await identity.getToken()) ?? undefined;
-        const data = await getLeaderboard(puzzleId, level, token);
+        const data = await getLeaderboard(puzzleId, level);
         if (active) {
           setTotalEntries(data.total_entries);
         }
@@ -167,17 +173,13 @@ function DailyAttempt({
     return () => {
       active = false;
     };
-  }, [puzzleId, level, boardRefresh, identity]);
+  }, [puzzleId, level, boardRefresh]);
 
   const newGame = useCallback(() => newDailyGame(puzzleId), [puzzleId]);
-  const ai = useMemo(
-    () => ({
-      level,
-      seed: agentSeedForPuzzle(puzzleId),
-      timeBudget: DAILY_TIME_BUDGET,
-    }),
-    [puzzleId, level],
-  );
+  // No seed: the session draws one per attempt, so reopening the day's deal
+  // and repeating your moves does not replay the same game (FR-025 is about
+  // the deal being fixed, not the opponent being a recording).
+  const ai = useMemo(() => ({ level }), [level]);
   const session = useGameSession({ newGame, ai, humanSeat: HUMAN_SEAT, timed: true, maxUndos: 0 });
 
   const done = session.status === 'game-over' && session.error === null;
@@ -196,7 +198,22 @@ function DailyAttempt({
     if (!done || offered.current) return;
     offered.current = true;
     storage.setLastDailyPlayed(puzzleId);
+    // Playable, shareable, replayable — just not ranked. The Worker rejects it
+    // too (UNRANKED_LEVEL); not posting keeps the player from seeing an error
+    // for something they did nothing wrong to cause.
+    if (level !== RANKED_LEVEL) return;
     const result = session.game.result();
+    // The replay travels with the score, so the Worker can re-run the game
+    // rather than take the numbers on trust. Encoding is best-effort: a game
+    // that cannot be encoded still posts, just unverified.
+    let replay: string | undefined;
+    try {
+      replay = encodeReplay(
+        replayOf(session.game, { aiLevel: level, humanSeat: HUMAN_SEAT, puzzleId }),
+      );
+    } catch {
+      replay = undefined;
+    }
     void submission.submit({
       puzzle_id: puzzleId,
       elapsed_ms: Math.round(session.elapsedMs),
@@ -204,6 +221,7 @@ function DailyAttempt({
       opponent_score: result.scores[1 - HUMAN_SEAT],
       rounds: result.rounds,
       ai_level: level,
+      replay,
     });
     // `submission` is rebuilt every render; the completion edge is the trigger.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -295,7 +313,8 @@ function DailyAttempt({
     <div className="flex flex-col gap-3 sm:gap-4 w-full">
       {session.status === 'game-over' && (
         <SubmitPanel
-          admissible={true}
+          admissible={level === RANKED_LEVEL}
+          unrankedReason={`Only games against ${LEVEL_LABELS[RANKED_LEVEL]} are ranked, so this one was not posted.`}
           humanWon={session.humanWon}
           draw={session.game.result().draw}
           elapsedMs={session.elapsedMs}
@@ -304,7 +323,18 @@ function DailyAttempt({
           onRetry={() => void submission.retry()}
           onDiscard={submission.discard}
           onPlayAgain={onPlayAgain}
-        />
+        >
+          <ShareReplay
+            game={session.game}
+            aiLevel={level}
+            levelLabel={opponentLabel}
+            humanSeat={HUMAN_SEAT}
+            puzzleId={puzzleId}
+            elapsedMs={session.elapsedMs}
+            rank={submission.state.kind === 'posted' ? submission.state.rank : null}
+            totalEntries={totalEntries}
+          />
+        </SubmitPanel>
       )}
 
       <Board
@@ -379,7 +409,7 @@ function DailyAttempt({
       >
         <Leaderboard
           puzzleId={puzzleId}
-          aiLevel={level}
+          aiLevel={RANKED_LEVEL}
           refreshKey={boardRefresh}
           variant="full"
           onLoaded={(b) => setTotalEntries(b.total_entries)}

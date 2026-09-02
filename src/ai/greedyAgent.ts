@@ -17,6 +17,7 @@ import {
 } from '../engine';
 import { type Agent, type AgentLevel, AgentError, choice } from './base';
 import { DEFAULT_WEIGHTS, type Weights, evaluate } from './evaluate';
+import { rngForPosition } from './position';
 
 /**
  * Value of `state` after `action`, settling the round if the action ends it.
@@ -51,7 +52,8 @@ export const EASY_EPSILON = 0.5;
 
 export class GreedyAgent implements Agent {
   readonly level: AgentLevel;
-  private readonly rng: Rng;
+  /** Base seed; the RNG itself is derived per position (see `./position`). */
+  private readonly seed: number;
 
   constructor(
     seed?: number,
@@ -59,14 +61,18 @@ export class GreedyAgent implements Agent {
     private readonly weights: Weights = DEFAULT_WEIGHTS,
     level: AgentLevel = 'easy',
   ) {
-    this.rng = new Rng(seed);
+    this.seed = seed ?? new Rng().nextInt(2 ** 31);
     this.level = level;
   }
 
   choose(state: GameState, player: number): Action {
     const actions = legalActions(state);
     if (!actions.length) throw new AgentError('no legal action available');
-    if (this.epsilon && this.rng.next() < this.epsilon) return choice(this.rng, actions);
+
+    // Same seed, same position, same move — always, and whatever else this
+    // agent has been asked before now.
+    const rng = rngForPosition(this.seed, state, player);
+    if (this.epsilon && rng.next() < this.epsilon) return choice(rng, actions);
 
     let best: Action[] = [];
     let bestValue = -Infinity;
@@ -79,6 +85,6 @@ export class GreedyAgent implements Agent {
         best.push(action);
       }
     }
-    return best.length > 1 ? choice(this.rng, best) : best[0];
+    return best.length > 1 ? choice(rng, best) : best[0];
   }
 }

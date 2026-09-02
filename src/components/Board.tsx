@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { useEffect, useRef } from 'react';
 
-import { useIdentity } from '../auth/clerk';
+import { useIdentity } from '../auth';
 import { useGameStyle } from '../context/GameStyleContext';
 import { COLOR_NAMES, NUM_COLORS } from '../engine';
 import type { Session } from '../game/useGameSession';

@@ -19,30 +19,44 @@ import {
   undoAction,
 } from '../engine';
 import { type Agent, type AgentLevel, AgentError, choice } from './base';
+import { AI_SAFETY_CAP_MS } from './budget';
 import { now } from './clock';
+import { rngForPosition } from './position';
 import { DEFAULT_WEIGHTS, type Weights, evaluate } from './evaluate';
 import { actionValue } from './greedyAgent';
 
 const INF = Infinity;
 
-/** Thrown to unwind the search when the deadline passes mid-node. */
-class SearchTimeout extends Error {}
+/** Thrown to unwind the search when the safety cap passes mid-node. */
+class SearchCapped extends Error {}
 
 /** Search depth per alpha-beta level. */
 export const MINIMAX_DEPTHS = { medium: 2, hard: 3, expert: 4, master: 5 } as const;
 export type MinimaxLevel = keyof typeof MINIMAX_DEPTHS;
 
 /**
- * Children searched per node, where the whole tree is too wide to finish.
+ * Children searched per node.
  *
- * Only `master` narrows. At a branching factor of 30-80 a full-width depth 5
- * cannot complete inside the move budget, so it would time out and hand back
- * the depth 4 answer — the same move `expert` already played, one level down.
- * Searching the eight best-ordered moves buys the extra ply instead, and the
- * bench says the trade is worth it in both directions: narrowing beats
- * full-width at equal depth, and the deeper narrow search beats both.
+ * A level is a promise about how deep the opponent looks, so every level has to
+ * be able to *finish* its depth on any device — a search that runs out of clock
+ * and hands back a shallower answer is a different, weaker opponent, and which
+ * device gets that opponent is an accident of hardware. Full width does not
+ * finish: at a branching factor of 30-80 the worst positions cost seconds even
+ * at depth 3, and on the bench machine the old 450ms clock was truncating 8% of
+ * `medium`'s moves, 34% of `hard`'s and 55% of `expert`'s.
+ *
+ * So every level narrows to its best-ordered moves, more tightly the deeper it
+ * looks. That is the trade `master` already made, and the bench found it worth
+ * making in both directions — narrowing beats full width at equal depth, and
+ * the deeper narrow search beats both. It collapses the cost tail by roughly an
+ * order of magnitude, which is what buys the depth guarantee.
  */
-export const MINIMAX_WIDTHS: Partial<Record<MinimaxLevel, number>> = { master: 8 };
+export const MINIMAX_WIDTHS: Record<MinimaxLevel, number> = {
+  medium: 20,
+  hard: 16,
+  expert: 12,
+  master: 8,
+};
 
 function levelForDepth(depth: number): AgentLevel {
   if (depth <= 2) return 'medium';
@@ -54,21 +68,28 @@ export class MinimaxAgent implements Agent {
   readonly level: AgentLevel;
   nodes = 0;
   reachedDepth = 0;
+  /** True when the last `choose` hit the safety cap and answered short of `depth`. */
+  cappedOut = false;
 
-  private readonly rng: Rng;
+  /** Base seed; the RNG itself is derived per position (see `./position`). */
+  private readonly seed: number;
   private deadline = Infinity;
 
   constructor(
     seed?: number,
     private readonly depth = 4,
-    /** seconds, matching the Python agent's `time_budget` */
-    private readonly timeBudget = 0.45,
+    /**
+     * Milliseconds after which the search gives up and answers from the deepest
+     * ply it finished. This is a stop-loss for pathological devices, not the
+     * budget: strength is `depth`, and every level is sized to complete it.
+     */
+    private readonly safetyCapMs = AI_SAFETY_CAP_MS,
     private readonly weights: Weights = DEFAULT_WEIGHTS,
     level: AgentLevel = levelForDepth(depth),
     /** children searched per node; the whole tree is searched by default */
     private readonly width = Infinity,
   ) {
-    this.rng = new Rng(seed);
+    this.seed = seed ?? new Rng().nextInt(2 ** 31);
     this.level = level;
   }
 
@@ -104,7 +125,7 @@ export class MinimaxAgent implements Agent {
     alpha: number,
     beta: number,
   ): number {
-    if (now() > this.deadline) throw new SearchTimeout();
+    if (now() > this.deadline) throw new SearchCapped();
     this.nodes += 1;
 
     if (state.draftingDone()) return this.leaf(state, player);
@@ -169,12 +190,13 @@ export class MinimaxAgent implements Agent {
     if (!actions.length) throw new AgentError('no legal action available');
     if (actions.length === 1) return actions[0];
 
-    this.deadline = now() + this.timeBudget * 1000;
+    this.deadline = now() + this.safetyCapMs;
     this.nodes = 0;
+    this.cappedOut = false;
     const scratch = state.clone();
     let ordering = this.ordered(scratch);
-    // Depth 1 is already answered by the ordering pass, so an expired budget
-    // still leaves a legal, non-arbitrary move to return (FR-009).
+    // Depth 1 is already answered by the ordering pass, so even a cap tripped
+    // in the first node leaves a legal, non-arbitrary move to return (FR-009).
     let chosen = ordering.slice(0, 1);
     this.reachedDepth = 1;
 
@@ -186,7 +208,10 @@ export class MinimaxAgent implements Agent {
       try {
         [best, values] = this.root(scratch, player, depth, ordering);
       } catch (err) {
-        if (err instanceof SearchTimeout) break;
+        if (err instanceof SearchCapped) {
+          this.cappedOut = true;
+          break;
+        }
         throw err;
       }
       chosen = best;
@@ -195,6 +220,10 @@ export class MinimaxAgent implements Agent {
       ordering = values.map(([, a]) => a);
     }
 
-    return chosen.length > 1 ? choice(this.rng, chosen) : chosen[0];
+    // Ties are common and the tie-break must not depend on how many searches
+    // this agent has run before; deriving the RNG from the position keeps the
+    // whole reply a function of the position alone.
+    if (chosen.length === 1) return chosen[0];
+    return choice(rngForPosition(this.seed, state, player), chosen);
   }
 }

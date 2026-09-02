@@ -22,7 +22,9 @@ import {
   settleAndDeal,
 } from '../engine';
 import { type Agent, AgentError, choice, sample } from './base';
+import { AI_SAFETY_CAP_MS, extremeSteps } from './budget';
 import { now } from './clock';
+import { rngForPosition } from './position';
 import { DEFAULT_WEIGHTS, type Weights, evaluate } from './evaluate';
 import { actionValue } from './greedyAgent';
 
@@ -58,8 +60,23 @@ class Node {
 
 export interface MctsOptions {
   seed?: number;
-  /** seconds; the Daily keeps 0.45 (D-013) */
-  timeBudget?: number;
+  /**
+   * Fixes the simulations per move, overriding the work budget.
+   *
+   * Only the bench and the tests want this: a flat count makes the cost per
+   * move swing by a factor of thirty across positions (see `./budget`), which
+   * is why the level itself budgets work instead. Either way it is a count and
+   * not a stopwatch, so the opponent never depends on the machine.
+   */
+  simulations?: number;
+  /** Overrides the by-round work budget; for calibration and tests. */
+  stepBudget?: number;
+  /**
+   * Milliseconds after which the search gives up mid-budget, to keep a pathological
+   * device from hanging the game. Normal hardware never reaches it; when it does,
+   * `cappedOut` is set so the caller can tell that this move was short-changed.
+   */
+  safetyCapMs?: number;
   exploration?: number;
   treeWidth?: number;
   rolloutEpsilon?: number;
@@ -67,36 +84,47 @@ export interface MctsOptions {
   rolloutRounds?: number;
   /** 0 disables margin awareness and restores pure win/loss rewards. */
   marginBonus?: number;
-  maxSimulations?: number;
   weights?: Weights;
 }
 
 export class MctsAgent implements Agent {
   readonly level = 'extreme' as const;
+  /** Simulations actually run on the last `choose`. */
   simulations = 0;
+  /** Engine operations spent on the last `choose` — the budget's real unit. */
+  steps = 0;
+  /** True when the last `choose` hit the safety cap before spending its budget. */
+  cappedOut = false;
 
-  private readonly rng: Rng;
-  private readonly timeBudget: number;
+  /** Base seed; `rng` is rebuilt from it and the position on every `choose`. */
+  private readonly seed: number;
+  private rng: Rng;
+  /** A fixed override, or null to follow the by-round schedule. */
+  private readonly simulationBudget: number | null;
+  /** A fixed work budget, or null to follow the by-round schedule. */
+  private readonly stepBudgetOverride: number | null;
+  private readonly safetyCapMs: number;
   private readonly exploration: number;
   private readonly treeWidth: number;
   private readonly rolloutEpsilon: number;
   private readonly rolloutWidth: number;
   private readonly rolloutRounds: number;
   private readonly marginBonus: number;
-  private readonly maxSimulations: number | null;
   private readonly weights: Weights;
   private rootPlayer = 0;
 
   constructor(options: MctsOptions = {}) {
-    this.rng = new Rng(options.seed);
-    this.timeBudget = options.timeBudget ?? 0.45;
+    this.seed = options.seed ?? new Rng().nextInt(2 ** 31);
+    this.rng = new Rng(this.seed);
+    this.simulationBudget = options.simulations ?? null;
+    this.stepBudgetOverride = options.stepBudget ?? null;
+    this.safetyCapMs = options.safetyCapMs ?? AI_SAFETY_CAP_MS;
     this.exploration = options.exploration ?? 1.2;
     this.treeWidth = options.treeWidth ?? 12;
     this.rolloutEpsilon = options.rolloutEpsilon ?? 0.15;
     this.rolloutWidth = options.rolloutWidth ?? 6;
     this.rolloutRounds = options.rolloutRounds ?? 2;
     this.marginBonus = options.marginBonus ?? MARGIN_BONUS;
-    this.maxSimulations = options.maxSimulations ?? null;
     this.weights = options.weights ?? DEFAULT_WEIGHTS;
   }
 
@@ -170,10 +198,12 @@ export class MctsAgent implements Agent {
     while (state.phase !== GAME_OVER && budget > 0) {
       if (state.draftingDone()) {
         settleAndDeal(state);
+        this.steps += 1;
         budget -= 1;
         continue;
       }
       applyAction(state, this.rolloutAction(state));
+      this.steps += 1;
     }
     if (state.phase !== GAME_OVER && state.draftingDone()) settleAndDeal(state);
     return this.reward(state);
@@ -219,6 +249,7 @@ export class MctsAgent implements Agent {
           break;
         }
         settleAndDeal(state);
+        this.steps += 1;
         roundsLeft -= 1;
         continue;
       }
@@ -232,6 +263,7 @@ export class MctsAgent implements Agent {
         node.children.set(action.actionId, child);
       }
       applyAction(state, action);
+      this.steps += 1;
       node = child;
       path.push(child);
       if (expanding) {
@@ -254,12 +286,26 @@ export class MctsAgent implements Agent {
     if (actions.length === 1) return actions[0];
 
     this.rootPlayer = player;
+    // Every determinization this search draws comes from the position, so the
+    // same position always gets the same answer — however many searches this
+    // agent has run, and whatever their budgets were.
+    this.rng = rngForPosition(this.seed, state, player);
     const root = new Node(player);
-    const deadline = now() + this.timeBudget * 1000;
+    const stepBudget = this.stepBudgetOverride ?? extremeSteps(state.round_num);
+    const deadline = now() + this.safetyCapMs;
     this.simulations = 0;
+    this.steps = 0;
+    this.cappedOut = false;
 
-    while (now() < deadline) {
-      if (this.maxSimulations !== null && this.simulations >= this.maxSimulations) break;
+    while (
+      this.simulationBudget === null ? this.steps < stepBudget : this.simulations < this.simulationBudget
+    ) {
+      // The budget is measured in work, not seconds; the clock is only a
+      // stop-loss. Checking it every 16 keeps `now()` off the hot path.
+      if ((this.simulations & 15) === 0 && now() > deadline) {
+        this.cappedOut = true;
+        break;
+      }
       const scratch = state.clone();
       // Each simulation deals its own future: an independent determinization.
       scratch.rng = new Rng(this.rng.nextInt(2 ** 31));
@@ -268,8 +314,8 @@ export class MctsAgent implements Agent {
     }
 
     // Robust child: most visited, not highest mean — it is far less noisy.
-    // Equal visits are common at a 450ms budget; break those on mean value so
-    // the tie goes to the higher-scoring line rather than to map order.
+    // Equal visits are common at this budget; break those on mean value so the
+    // tie goes to the higher-scoring line rather than to map order.
     let best: Action | null = null;
     let bestVisits = -1;
     let bestMean = -Infinity;
@@ -283,7 +329,7 @@ export class MctsAgent implements Agent {
         bestMean = mean;
       }
     }
-    // An expired budget before the first simulation still yields a legal move.
+    // A cap tripped before the first simulation still yields a legal move.
     return best ?? choice(this.rng, actions);
   }
 }
