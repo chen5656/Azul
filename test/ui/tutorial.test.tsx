@@ -16,6 +16,7 @@ import {
   STEPS,
   TUTORIAL_FIRST_PLAYER,
   TUTORIAL_HUMAN_SEAT,
+  TUTORIAL_OPPONENT_SEED,
   TUTORIAL_SEED,
 } from '../../src/tutorial/script';
 
@@ -24,7 +25,7 @@ afterEach(cleanup);
 describe('the lesson script', () => {
   it('is legal from start to finish against the seeded deal', () => {
     const game = new QuadroGame(TUTORIAL_SEED, TUTORIAL_FIRST_PLAYER);
-    const opponent = new GreedyAgent(TUTORIAL_SEED ^ 0x5f3759df);
+    const opponent = new GreedyAgent(TUTORIAL_OPPONENT_SEED);
 
     for (const step of MOVE_STEPS) {
       expect(game.isOver()).toBe(false);

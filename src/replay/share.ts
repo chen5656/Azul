@@ -21,7 +21,7 @@ export function replayOf(
   return {
     engineVersion: ENGINE_VERSION,
     seed: game.seed,
-    firstPlayer: game.state.first_player,
+    firstPlayer: game.firstPlayer,
     humanSeat: options.humanSeat,
     aiLevel: options.aiLevel,
     scores: [scores[0], scores[1]],

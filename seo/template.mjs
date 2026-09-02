@@ -122,7 +122,7 @@ function nav(currentPath) {
   return `<nav class="site-nav" aria-label="Main">${links}</nav>`;
 }
 
-export function guidePage({ path, title, description, headings, html, updated, structuredData }) {
+export function guidePage({ path, title, description, headings, html, updated, structuredData, crumbs }) {
   const toc =
     headings.length >= 3
       ? `<nav class="toc" aria-label="On this page"><h2>On this page</h2><ol>${headings
@@ -150,7 +150,9 @@ export function guidePage({ path, title, description, headings, html, updated, s
       </div>
     </header>
     <main>
-      <p class="crumbs"><a href="/">${SITE_NAME}</a> › <a href="/guide">Guide</a></p>
+      <p class="crumbs">${(crumbs ?? [['/guide', 'Guide']])
+        .map(([href, label]) => `<a href="${href}">${escapeHtml(label)}</a>`)
+        .reduce((trail, link) => `${trail} › ${link}`, `<a href="/">${SITE_NAME}</a>`)}</p>
       <h1>${escapeHtml(title)}</h1>
       <p class="lead">${escapeHtml(description)}</p>
       ${toc}

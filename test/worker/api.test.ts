@@ -248,6 +248,28 @@ describe('DELETE /api/me', () => {
     expect([scores?.n, audit?.n]).toEqual([0, 0]);
   });
 
+  it('deletes the account itself, sessions and linked providers included', async () => {
+    const session = await signUp();
+    await post(WIN, session);
+
+    expect((await call(apiRequest('/api/me', { method: 'DELETE', session }))).status).toBe(200);
+
+    // The cascade is the part worth asserting: a `user` row that vanishes while
+    // its `session` and `account` rows survive would leave the password hash
+    // and the provider tokens behind, and the deletion promise would be false.
+    for (const table of ['user', 'session', 'account']) {
+      const left = await env.DB.prepare(
+        `SELECT COUNT(*) AS n FROM "${table}" WHERE ${table === 'user' ? 'id' : '"userId"'} = ?`,
+      )
+        .bind(session.userId)
+        .first<{ n: number }>();
+      expect(left?.n, `${table} rows left behind`).toBe(0);
+    }
+
+    // And the session cookie is dead, not merely orphaned.
+    expect((await call(apiRequest('/api/me/history', { session }))).status).toBe(401);
+  });
+
   it('needs auth', async () => {
     expect((await call(apiRequest('/api/me', { method: 'DELETE' }))).status).toBe(401);
   });

@@ -111,7 +111,7 @@ describe('verifyReplay', () => {
     const replay = {
       ...base,
       seed: 555,
-      firstPlayer: game.state.first_player,
+      firstPlayer: game.firstPlayer,
       scores: [game.state.players[0].score, game.state.players[1].score] as [number, number],
       actions: game.history.map((a) => a.actionId),
     };
@@ -131,7 +131,7 @@ describe('verifyReplay', () => {
     const replay = {
       ...base,
       seed: 777,
-      firstPlayer: game.state.first_player,
+      firstPlayer: game.firstPlayer,
       scores: [game.state.players[0].score, game.state.players[1].score] as [number, number],
       actions,
     };
@@ -143,7 +143,7 @@ describe('verifyReplay', () => {
     const replay = {
       ...base,
       seed: 888,
-      firstPlayer: game.state.first_player,
+      firstPlayer: game.firstPlayer,
       scores: [1, 2] as [number, number],
       actions: game.history.map((a) => a.actionId),
     };
@@ -157,7 +157,7 @@ describe('verifyReplay', () => {
     const replay = {
       ...base,
       seed: 999,
-      firstPlayer: game.state.first_player,
+      firstPlayer: game.firstPlayer,
       actions: game.history.slice(0, 5).map((a) => a.actionId),
     };
     expect(() => verifyReplay(replay)).toThrow(expect.objectContaining({ code: 'SHORT' }));

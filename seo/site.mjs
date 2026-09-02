@@ -119,3 +119,16 @@ export const GUIDES = [
 export function guidePath(slug) {
   return slug === 'index' ? '/guide' : `/guide/${slug}`;
 }
+
+/**
+ * The legal pages. They are static HTML for the same reason the guides are:
+ * Google's OAuth consent screen, and anyone checking what the app does with
+ * their data, must be able to read them without running the SPA — and the SPA
+ * router normalizes unknown paths to `/`, so a policy served only by the app
+ * would silently be the home page. Files live in `content/legal/`.
+ */
+export const LEGAL = ['privacy', 'terms'];
+
+export function legalPath(slug) {
+  return `/${slug}`;
+}

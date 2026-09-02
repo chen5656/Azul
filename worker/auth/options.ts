@@ -115,7 +115,16 @@ export function authOptions(env: AuthSecrets, onLink?: LinkAccount): BetterAuthO
     session: {
       expiresIn: 60 * 60 * 24 * 30,
       updateAge: 60 * 60 * 24,
-      cookieCache: { enabled: true, maxAge: 5 * 60 },
+      /**
+       * Deliberately off. The cookie cache stores a signed copy of the session
+       * in a second cookie and answers `getSession` from it without touching
+       * the database — which means a deleted account keeps working until that
+       * copy expires, and nothing the server does can revoke it in the
+       * meantime. Account deletion has to take effect on the next request, so
+       * every authenticated call reads the session row. That is one indexed D1
+       * lookup on endpoints that already query D1.
+       */
+      cookieCache: { enabled: false },
     },
 
     advanced: {

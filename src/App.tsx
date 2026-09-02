@@ -98,6 +98,26 @@ export function App() {
         {route === '/replay' && <ReplayPage />}
         {route === '/history' && <HistoryPage />}
       </main>
+
+      {/*
+        Static pages emitted by the SEO build, outside the router — plain <a>,
+        not <Link>, or the router would normalize them to `/` and the policy
+        would silently render as the home page. Google's consent screen links
+        here too, so it has to be reachable.
+      */}
+      {!immersive && (
+        <footer className="mt-8 border-t border-neutral-800">
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-4 gap-y-1 px-4 py-4 text-xs text-neutral-500">
+            <span>Quadro — a free daily tile-drafting puzzle.</span>
+            <a href="/privacy" className="hover:text-neutral-300">
+              Privacy
+            </a>
+            <a href="/terms" className="hover:text-neutral-300">
+              Terms
+            </a>
+          </div>
+        </footer>
+      )}
     </div>
   );
 }

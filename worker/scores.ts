@@ -250,13 +250,21 @@ export async function submitScore(
   });
 }
 
-/** `DELETE /api/me` — the account-deletion path (§12.2). Required, not optional. */
+/**
+ * `DELETE /api/me` — the account-deletion path (§12.2). Required, not optional.
+ *
+ * This deletes the account itself, not just its scores: the `user` row goes,
+ * and `session` and `account` cascade off it, so the linked providers, the
+ * stored provider tokens and the password hash go with it. Anything short of
+ * that would make the privacy policy's deletion promise untrue.
+ */
 export async function deleteMe(db: D1Database, session: Session): Promise<Response> {
   const scores = await db.prepare('DELETE FROM scores WHERE user_id = ?').bind(session.userId).run();
   const audits = await db
     .prepare('DELETE FROM submissions_audit WHERE user_id = ?')
     .bind(session.userId)
     .run();
+  await db.prepare('DELETE FROM "user" WHERE id = ?').bind(session.userId).run();
   return json({
     deleted_scores: scores.meta.changes ?? 0,
     deleted_audit: audits.meta.changes ?? 0,

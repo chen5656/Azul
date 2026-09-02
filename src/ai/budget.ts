@@ -31,10 +31,10 @@ export const AI_SAFETY_CAP_MS = 8000;
  * Counting simulations is the obvious knob and the wrong one. A simulation
  * plays out to the end of the game, so what one costs depends entirely on where
  * the position sits: at the start of a round, with full displays and the whole
- * game ahead, a single simulation costs ~25ms on the bench machine; late in a
- * round near the end of the game it costs ~0.3ms. A fixed count therefore makes
- * the time per move swing by a factor of thirty, and picking a count that is
- * affordable at a round boundary starves the level everywhere else.
+ * game still ahead, one costs ~18 engine operations, against ~8 in the endgame.
+ * A fixed count therefore makes the time per move swing by more than a factor
+ * of two, and a count affordable at a round boundary starves the endgame — the
+ * phase this level exists to win.
  *
  * Budgeting the *work* instead — one unit per action applied or round settled
  * inside the search — normalizes that automatically. Expensive positions get
@@ -47,16 +47,20 @@ export const AI_SAFETY_CAP_MS = 8000;
  * The schedule climbs by round on top of that, deliberately spending more real
  * time as the game closes, where a precise read decides it.
  *
- * PROVISIONAL: these five numbers are the one part of this file not measured on
- * a quiet machine — the calibration runs were taken at load average 62, where
- * the same budget on the same positions timed 12x apart between processes. The
- * *shape* is sound and the counts behind it (steps per simulation: ~25 at a
- * round boundary, ~9 in the endgame) are load-independent, but the absolute
- * level needs a re-measure on an idle machine, and the ladder bench needs to be
- * re-run after it. Until then this is sized to land near the simulation counts
- * the level used to get, not to be the level's final strength.
+ * Sized from counts rather than from a stopwatch, because the search only
+ * stops being noise once each root candidate has been visited enough to rank:
+ * the shortlist is twelve moves wide, so a few hundred simulations is the floor
+ * below which "most visited" is picking between ties. A round-boundary position
+ * spends ~18 steps per simulation and an endgame one ~8, so the schedule buys
+ * roughly 250 simulations in round 1 climbing to ~2300 in round 5 — the shape
+ * the level wants, and close to what the old 450ms clock happened to buy on an
+ * unloaded machine before it was replaced.
+ *
+ * Costs ~0.5s of CPU per move early and ~1.3s late on the bench machine. Most
+ * of that is hidden: the client starts the search under the animation of the
+ * move that provoked it (see `AiClient.prefetch`).
  */
-export const EXTREME_STEPS_BY_ROUND = [800, 1000, 1400, 2000, 2800] as const;
+export const EXTREME_STEPS_BY_ROUND = [4500, 5500, 8000, 12000, 18000] as const;
 
 /** The schedule's last entry stands for every round beyond it. */
 export function extremeSteps(round: number): number {

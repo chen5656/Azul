@@ -1,5 +1,5 @@
 /**
- * Serves the static guide pages during `vite dev`.
+ * Serves the static guide and legal pages during `vite dev`.
  *
  * The guides are emitted by `scripts/seo-build.mjs`, which only runs after
  * `vite build` — so without this, every `/guide/*` URL falls through to Vite's
@@ -10,13 +10,17 @@
  * hitting reload shows the change.
  */
 
-import { GUIDES, guidePath } from './site.mjs';
-import { renderGuide } from './guides.mjs';
+import { GUIDES, LEGAL, guidePath, legalPath } from './site.mjs';
+import { renderGuide, renderLegal } from './guides.mjs';
 
-/** `/guide` -> `index`, `/guide/rules` -> `rules`; anything else -> null. */
-function slugFor(pathname) {
+/** The path -> renderer map for every page the SEO pass emits as static HTML. */
+function rendererFor(pathname) {
   const trimmed = pathname.replace(/\/+$/, '') || '/';
-  return GUIDES.find((slug) => guidePath(slug) === trimmed) ?? null;
+  const guide = GUIDES.find((slug) => guidePath(slug) === trimmed);
+  if (guide) return () => renderGuide(guide);
+  const legal = LEGAL.find((slug) => legalPath(slug) === trimmed);
+  if (legal) return () => renderLegal(legal);
+  return null;
 }
 
 export function guidePagesDevServer() {
@@ -25,10 +29,10 @@ export function guidePagesDevServer() {
     apply: 'serve',
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
-        const slug = slugFor(new URL(req.url, 'http://localhost').pathname);
-        if (!slug) return next();
+        const render = rendererFor(new URL(req.url, 'http://localhost').pathname);
+        if (!render) return next();
         try {
-          const { html } = await renderGuide(slug);
+          const { html } = await render();
           res.setHeader('Content-Type', 'text/html; charset=utf-8');
           res.setHeader('Cache-Control', 'no-store');
           res.end(html);

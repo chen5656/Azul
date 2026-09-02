@@ -34,7 +34,7 @@ function playToday() {
     replay: encodeReplay({
       engineVersion: ENGINE_VERSION,
       seed: game.seed,
-      firstPlayer: game.state.first_player,
+      firstPlayer: game.firstPlayer,
       humanSeat: HUMAN_SEAT,
       aiLevel: 'extreme',
       scores: [result.scores[0], result.scores[1]],

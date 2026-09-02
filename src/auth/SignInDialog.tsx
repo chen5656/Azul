@@ -213,6 +213,7 @@ export function Field({
       <span className="mb-1 block text-xs text-neutral-400">{label}</span>
       <input
         {...input}
+        aria-label={label}
         value={value}
         onChange={(event) => onChange(event.target.value)}
         className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm outline-none focus:border-sky-600"

@@ -48,7 +48,7 @@ function codeForGame(engineVersion = ENGINE_VERSION) {
     code: encodeReplay({
       engineVersion,
       seed: game.seed,
-      firstPlayer: game.state.first_player,
+      firstPlayer: game.firstPlayer,
       humanSeat: 0,
       aiLevel: 'extreme',
       scores: [result.scores[0], result.scores[1]],

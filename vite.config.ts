@@ -23,7 +23,7 @@ export default defineConfig({
         // Never serve an /api response from the cache: a stale leaderboard is
         // worse than an honest offline state. /guide/* is static HTML built
         // after this plugin runs, so the app shell must not shadow it either.
-        navigateFallbackDenylist: [/^\/api\//, /^\/guide(\/|$)/],
+        navigateFallbackDenylist: [/^\/api\//, /^\/guide(\/|$)/, /^\/(privacy|terms)$/],
       },
       manifest: {
         name: 'Quadro — Daily Challenge',
@@ -44,10 +44,17 @@ export default defineConfig({
     // `/api/*` call hits Vite and 404s, so the leaderboard silently never
     // loads and no score is ever posted. Proxying keeps the browser on one
     // origin, which also sidesteps the Worker's ALLOWED_ORIGIN CORS check.
+    //
+    // `changeOrigin` rewrites only the Host header, and it has to be on:
+    // `wrangler.jsonc` declares a route on `acgame.win`, and wrangler dev maps
+    // any request whose Host is not its own onto that route — rewriting the
+    // browser's `Origin` to `http://acgame.win` along with it. better-auth
+    // then sees an origin that is not the one it trusts and 403s every
+    // state-changing call (sign-up, sign-out) with INVALID_ORIGIN.
     proxy: {
       '/api': {
         target: process.env.API_ORIGIN || 'http://127.0.0.1:8787',
-        changeOrigin: false,
+        changeOrigin: true,
       },
     },
   },

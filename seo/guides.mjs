@@ -12,9 +12,12 @@ import { fileURLToPath } from 'node:url';
 
 import { parseFrontmatter, renderMarkdown } from './markdown.mjs';
 import { guidePage, absolute } from './template.mjs';
-import { ORIGIN, SITE_NAME, guidePath } from './site.mjs';
+import { ORIGIN, SITE_NAME, guidePath, legalPath } from './site.mjs';
 
-export const GUIDES_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'content', 'guides');
+const CONTENT_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'content');
+
+export const GUIDES_DIR = join(CONTENT_DIR, 'guides');
+export const LEGAL_DIR = join(CONTENT_DIR, 'legal');
 
 export function breadcrumbs(path, title) {
   return {
@@ -78,6 +81,46 @@ export async function renderGuide(slug) {
       html,
       updated: data.updated ?? new Date().toISOString().slice(0, 10),
       structuredData,
+    }),
+  };
+}
+
+/**
+ * `'privacy'` -> the complete HTML document for `/privacy`.
+ *
+ * `updated` is required rather than defaulted to today's date: a policy that
+ * silently restamps itself on every deploy tells the reader nothing about when
+ * the terms they are agreeing to last changed.
+ */
+export async function renderLegal(slug) {
+  const source = await readFile(join(LEGAL_DIR, `${slug}.md`), 'utf8');
+  const { data, body } = parseFrontmatter(source);
+  if (!data.title || !data.description || !data.updated) {
+    throw new Error(`seo: content/legal/${slug}.md needs a title, a description and an updated date`);
+  }
+  const path = legalPath(slug);
+  const { html, headings } = renderMarkdown(body);
+
+  return {
+    path,
+    html: guidePage({
+      path,
+      title: data.title,
+      description: data.description,
+      headings,
+      html,
+      updated: data.updated,
+      structuredData: [
+        {
+          '@context': 'https://schema.org',
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            { '@type': 'ListItem', position: 1, name: SITE_NAME, item: ORIGIN },
+            { '@type': 'ListItem', position: 2, name: data.title, item: absolute(path) },
+          ],
+        },
+      ],
+      crumbs: [],
     }),
   };
 }

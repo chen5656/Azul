@@ -77,8 +77,19 @@ export interface Session {
   canUndo: boolean;
   undosRemaining: number;
   maxUndos: number;
-  /** Elapsed milliseconds; frozen once the game ends (FR-019). */
+  /**
+   * Elapsed milliseconds. Only meaningful once the game is over (FR-019) — it
+   * is stamped by `finish`, not ticked. For a live readout use `startedAt`.
+   */
   elapsedMs: number;
+  /**
+   * `performance.now()` at the player's first committed move, or null before
+   * it. Whoever draws a running clock ticks off this itself, so the tick does
+   * not re-render the game.
+   */
+  startedAt?: number | null;
+  /** `performance.now()` at the end of the game, or null while it runs. */
+  stoppedAt?: number | null;
   humanSeat: number;
   humanWon: boolean;
   events: GameEvent[];
@@ -159,17 +170,11 @@ export function useGameSession(options: SessionOptions): Session {
 
   // ---- clock -------------------------------------------------------
 
-  useEffect(() => {
-    if (!timed || startedAt === null || stoppedAt !== null) return;
-    // An interval rather than requestAnimationFrame: rAF stops in a background
-    // tab, and the displayed time would then sit still while the clock that
-    // actually gets submitted keeps running. 50ms is smooth enough for a
-    // millisecond readout.
-    const tick = () => setElapsedMs(performance.now() - startedAt);
-    tick();
-    const timer = window.setInterval(tick, 50);
-    return () => window.clearInterval(timer);
-  }, [timed, startedAt, stoppedAt]);
+  // No ticker here on purpose. `elapsedMs` is stamped once, by `finish`, and is
+  // what gets submitted; the running readout is the Timer's own business (see
+  // `startedAt` below). A ticker at this level re-rendered the whole page —
+  // board, avatars, the lot — 20 times a second for as long as a game sat open,
+  // which cost real CPU on a game nobody was playing.
 
   const finish = useCallback(() => {
     // Stamped from the same clock the ticker uses, so the recorded time is the
@@ -493,6 +498,8 @@ export function useGameSession(options: SessionOptions): Session {
     undosRemaining,
     maxUndos: options.maxUndos ?? config.maxUndos,
     elapsedMs,
+    startedAt: timed ? startedAt : null,
+    stoppedAt,
     humanSeat,
     humanWon: result !== null && !result.draw && result.winner === humanSeat,
     events: game.events,

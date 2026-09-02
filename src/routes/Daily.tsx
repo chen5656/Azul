@@ -250,6 +250,7 @@ function DailyAttempt({
     <div className="flex flex-wrap items-center justify-end gap-1.5 sm:gap-2">
       <Timer
         ms={session.elapsedMs}
+        startedAt={session.startedAt}
         running={session.status !== 'idle' && session.status !== 'game-over'}
         done={session.status === 'game-over'}
       />

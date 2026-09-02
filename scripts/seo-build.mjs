@@ -7,7 +7,8 @@
  *
  *   1. one HTML file per SPA route, with its own title/description/canonical/OG
  *      and a crawler-visible first paint that React replaces on mount;
- *   2. the static guide pages, rendered from `content/guides/*.md`;
+ *   2. the static guide pages, rendered from `content/guides/*.md`, and the
+ *      legal pages from `content/legal/*.md`;
  *   3. `sitemap.xml` and `robots.txt`.
  *
  * It only ever *adds* files beside Vite's output, so `npm run build` stays the
@@ -21,12 +22,13 @@ import { fileURLToPath } from 'node:url';
 
 import { escapeHtml } from '../seo/markdown.mjs';
 import { head, jsonLd, absolute } from '../seo/template.mjs';
-import { APP_ROUTES, GUIDES, ORIGIN, SITE_NAME, guidePath } from '../seo/site.mjs';
-import { renderGuide } from '../seo/guides.mjs';
+import { APP_ROUTES, GUIDES, LEGAL, ORIGIN, SITE_NAME, guidePath, legalPath } from '../seo/site.mjs';
+import { renderGuide, renderLegal } from '../seo/guides.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const dist = join(root, 'dist');
 const guidesDir = join(root, 'content', 'guides');
+const legalDir = join(root, 'content', 'legal');
 
 /** `/guide/rules` -> `dist/guide/rules/index.html`; `/` -> `dist/index.html`. */
 async function emit(path, html) {
@@ -118,6 +120,17 @@ async function buildGuides() {
   return written;
 }
 
+async function buildLegal() {
+  const files = new Set(await readdir(legalDir));
+  const written = [];
+  for (const slug of LEGAL) {
+    if (!files.has(`${slug}.md`)) throw new Error(`seo: content/legal/${slug}.md is missing`);
+    const { path, html } = await renderLegal(slug);
+    written.push(await emit(path, html));
+  }
+  return written;
+}
+
 async function buildSitemap() {
   // Guides change on edit and the app routes are evergreen; `lastmod` is the
   // build date for everything, which is honest for a site rebuilt on deploy.
@@ -125,6 +138,7 @@ async function buildSitemap() {
   const urls = [
     ...APP_ROUTES.map((r) => ({ loc: r.path, priority: r.path === '/' ? '1.0' : '0.8' })),
     ...GUIDES.map((slug) => ({ loc: guidePath(slug), priority: '0.7' })),
+    ...LEGAL.map((slug) => ({ loc: legalPath(slug), priority: '0.3' })),
   ];
   const body = urls
     .map(
@@ -169,10 +183,12 @@ async function main() {
   const shell = await readFile(join(dist, 'index.html'), 'utf8');
   const app = await buildAppRoutes(shell);
   const guides = await buildGuides();
+  const legal = await buildLegal();
   const count = await buildSitemap();
   const sw = await refreshServiceWorkerRevision();
   console.log(
-    `seo: ${app.length} app routes, ${guides.length} guide pages, ${count} sitemap entries` +
+    `seo: ${app.length} app routes, ${guides.length} guide pages, ${legal.length} legal pages, ` +
+      `${count} sitemap entries` +
       (sw ? ', sw revision re-stamped' : ''),
   );
 }

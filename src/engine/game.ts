@@ -102,6 +102,12 @@ export function settleAndDeal(state: GameState): GameEvent[] {
 
 export class QuadroGame {
   readonly seed: number;
+  /**
+   * Who led round 1. `state.first_player` moves to whoever took the “1” marker
+   * as each round settles, so it is not the opening leader once play is under
+   * way — a replay has to be rebuilt from this.
+   */
+  readonly firstPlayer: number;
   readonly state: GameState;
   readonly history: Action[] = [];
   readonly events: GameEvent[];
@@ -113,7 +119,8 @@ export class QuadroGame {
   constructor(seed?: number, firstPlayer?: number) {
     this.seed = seed ?? Math.floor(Math.random() * 2 ** 31);
     this.state = new GameState(new Rng(this.seed));
-    this.state.first_player = firstPlayer ?? this.state.rng.nextInt(2);
+    this.firstPlayer = firstPlayer ?? this.state.rng.nextInt(2);
+    this.state.first_player = this.firstPlayer;
     this.events = [startRound(this.state)];
   }
 
@@ -162,7 +169,7 @@ export class QuadroGame {
   }
 
   clone(): QuadroGame {
-    const copy = new QuadroGame(this.seed, this.state.first_player);
+    const copy = new QuadroGame(this.seed, this.firstPlayer);
     (copy as { state: GameState }).state = this.state.clone();
     (copy as { history: Action[] }).history = this.history.map(
       (a) => new Action(a.source, a.color, a.dest),

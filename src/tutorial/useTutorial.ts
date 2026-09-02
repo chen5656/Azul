@@ -35,6 +35,7 @@ import {
   type Step,
   TUTORIAL_FIRST_PLAYER,
   TUTORIAL_HUMAN_SEAT,
+  TUTORIAL_OPPONENT_SEED,
   TUTORIAL_SEED,
 } from './script';
 
@@ -87,7 +88,7 @@ export function useTutorial(): Tutorial {
 
   // Plain greedy, not a difficulty level: the scripted deal was authored
   // against its replies, so the tutorial must not drift when the levels move.
-  const opponent = useMemo(() => new GreedyAgent(TUTORIAL_SEED ^ 0x5f3759df), []);
+  const opponent = useMemo(() => new GreedyAgent(TUTORIAL_OPPONENT_SEED), []);
 
   // ---- gating -------------------------------------------------------
 

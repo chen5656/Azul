@@ -18,6 +18,13 @@ export const TUTORIAL_SEED = 7;
 /** The human always leads, so step 1 is the very first move of the game. */
 export const TUTORIAL_FIRST_PLAYER = 0;
 export const TUTORIAL_HUMAN_SEAT = 0;
+/**
+ * The greedy opponent's seed. It only ever breaks ties between equally valued
+ * replies, but those ties decide the exact line the lesson text describes, so
+ * it is pinned here next to the deal rather than derived somewhere else — the
+ * script test replays the whole round against it.
+ */
+export const TUTORIAL_OPPONENT_SEED = 4;
 export const OPPONENT_LABEL = 'Coach';
 
 /**
