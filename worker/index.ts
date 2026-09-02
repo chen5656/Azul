@@ -56,7 +56,7 @@ async function route(request: Request, env: Env): Promise<Response> {
   // over whole: better-auth owns every route under its base path, and the list
   // grows with the plugins it is configured with.
   if (url.pathname.startsWith('/api/auth/')) {
-    return getAuth(env).handler(request);
+    return (await getAuth(env)).handler(request);
   }
 
   // Which sign-in buttons to render. A provider whose credentials are not set
@@ -126,7 +126,7 @@ async function route(request: Request, env: Env): Promise<Response> {
     return uploadAvatar(env, session, request, async (image) => {
       // Written through better-auth so its hooks and the cached session cookie
       // both see the new value.
-      await getAuth(env).api.updateUser({
+      await (await getAuth(env)).api.updateUser({
         body: { image },
         headers: request.headers,
       });

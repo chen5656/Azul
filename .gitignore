@@ -24,3 +24,4 @@ backend/zero/weights/*.npz
 backend/tests/test_game.py
 .wrangler/
 .dev.vars.example
+AuthKey_97R8FVDKSP.p8

@@ -11,13 +11,18 @@ import { Kysely } from 'kysely';
 import { D1Dialect } from 'kysely-d1';
 
 import { HttpError } from '../http';
+import { appleClientSecret } from './apple-secret';
 import { authOptions, enabledProviders } from './options';
 
 export { enabledProviders };
 
-function buildAuth(env: Env) {
+function buildAuth(env: Env, appleSecret?: string) {
   return betterAuth({
-    ...authOptions(env, (anonymousId, userId) => linkAnonymousScores(env.DB, anonymousId, userId)),
+    ...authOptions(
+      env,
+      (anonymousId, userId) => linkAnonymousScores(env.DB, anonymousId, userId),
+      appleSecret,
+    ),
     // D1 speaks SQLite; Kysely is how better-auth talks to it.
     database: {
       db: new Kysely({ dialect: new D1Dialect({ database: env.DB }) }),
@@ -33,15 +38,22 @@ export type Auth = ReturnType<typeof buildAuth>;
  * D1 bindings are per-request objects, but within one isolate the same binding
  * comes back each time, so the instance is cached against it. Nothing
  * request-scoped is captured.
+ *
+ * The Apple secret is minted, not read, and it eventually expires — so the
+ * instance is keyed by the secret it was built with. In practice that mints
+ * once per isolate; on the day the JWT ages out, the next request rebuilds
+ * around a fresh one instead of serving a dead credential.
  */
-const instances = new WeakMap<D1Database, Auth>();
+const instances = new WeakMap<D1Database, { auth: Auth; appleSecret?: string }>();
 
-export function getAuth(env: Env): Auth {
+export async function getAuth(env: Env): Promise<Auth> {
+  const appleSecret = await appleClientSecret(env);
+
   const cached = instances.get(env.DB);
-  if (cached) return cached;
+  if (cached && cached.appleSecret === appleSecret) return cached.auth;
 
-  const auth = buildAuth(env);
-  instances.set(env.DB, auth);
+  const auth = buildAuth(env, appleSecret);
+  instances.set(env.DB, { auth, appleSecret });
   return auth;
 }
 
@@ -67,7 +79,8 @@ export function displayNameFor(user: {
  * require auth turn that into a 401, and `/api/leaderboard` simply omits `me`.
  */
 export async function verifyRequest(request: Request, env: Env): Promise<Session | null> {
-  const result = await getAuth(env).api.getSession({ headers: request.headers });
+  const auth = await getAuth(env);
+  const result = await auth.api.getSession({ headers: request.headers });
   if (!result?.user) return null;
 
   const user = result.user as {

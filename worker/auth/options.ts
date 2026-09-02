@@ -10,13 +10,13 @@
 import type { BetterAuthOptions } from 'better-auth';
 import { anonymous } from 'better-auth/plugins/anonymous';
 
+import { appleIsConfigured, type AppleKeySecrets } from './apple-secret';
+
 /** Credentials the Worker holds as secrets; absent ones disable that provider. */
-export interface AuthSecrets {
+export interface AuthSecrets extends AppleKeySecrets {
   BETTER_AUTH_SECRET?: string;
   GOOGLE_CLIENT_ID?: string;
   GOOGLE_CLIENT_SECRET?: string;
-  APPLE_CLIENT_ID?: string;
-  APPLE_CLIENT_SECRET?: string;
   APPLE_APP_BUNDLE_IDENTIFIER?: string;
   LINKEDIN_CLIENT_ID?: string;
   LINKEDIN_CLIENT_SECRET?: string;
@@ -31,7 +31,10 @@ export type LinkAccount = (anonymousUserId: string, newUserId: string) => Promis
  * provider would render a button that dead-ends in a 500 after the redirect —
  * far worse than a button that is simply not there.
  */
-function socialProviders(env: AuthSecrets): BetterAuthOptions['socialProviders'] {
+function socialProviders(
+  env: AuthSecrets,
+  appleClientSecret?: string,
+): BetterAuthOptions['socialProviders'] {
   const providers: NonNullable<BetterAuthOptions['socialProviders']> = {};
 
   if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
@@ -41,10 +44,17 @@ function socialProviders(env: AuthSecrets): BetterAuthOptions['socialProviders']
     };
   }
 
-  if (env.APPLE_CLIENT_ID && env.APPLE_CLIENT_SECRET) {
+  /**
+   * Apple's secret is a JWT the Worker signs from the .p8 key (see
+   * `apple-secret.ts`), so it arrives here already minted rather than read off
+   * `env`. `appleIsConfigured` is the sync answer for `/api/providers`; a
+   * missing `appleClientSecret` here means the caller did not mint one, and the
+   * button stays off rather than dead-ending after the redirect.
+   */
+  if (env.APPLE_CLIENT_ID && appleIsConfigured(env) && appleClientSecret) {
     providers.apple = {
       clientId: env.APPLE_CLIENT_ID,
-      clientSecret: env.APPLE_CLIENT_SECRET,
+      clientSecret: appleClientSecret,
       // Only set for the native app flow; harmless and required by the types
       // to be a string, so fall back to the services id.
       appBundleIdentifier: env.APPLE_APP_BUNDLE_IDENTIFIER,
@@ -61,12 +71,21 @@ function socialProviders(env: AuthSecrets): BetterAuthOptions['socialProviders']
   return providers;
 }
 
-/** The provider ids the client should render buttons for. */
+/**
+ * The provider ids the client should render buttons for. Sync on purpose:
+ * `/api/providers` answers from configuration alone, never by signing anything.
+ */
 export function enabledProviders(env: AuthSecrets): string[] {
-  return Object.keys(socialProviders(env) ?? {});
+  const ids = Object.keys(socialProviders(env) ?? {});
+  if (appleIsConfigured(env) && !ids.includes('apple')) ids.push('apple');
+  return ids;
 }
 
-export function authOptions(env: AuthSecrets, onLink?: LinkAccount): BetterAuthOptions {
+export function authOptions(
+  env: AuthSecrets,
+  onLink?: LinkAccount,
+  appleClientSecret?: string,
+): BetterAuthOptions {
   const origin = env.ALLOWED_ORIGIN ?? 'https://acgame.win';
 
   return {
@@ -96,7 +115,7 @@ export function authOptions(env: AuthSecrets, onLink?: LinkAccount): BetterAuthO
       requireEmailVerification: false,
     },
 
-    socialProviders: socialProviders(env),
+    socialProviders: socialProviders(env, appleClientSecret),
 
     /**
      * One person, one row. Signing in with Google and later with Apple on the
@@ -132,6 +151,34 @@ export function authOptions(env: AuthSecrets, onLink?: LinkAccount): BetterAuthO
       // plain same-origin cookie; no cross-subdomain handling needed.
       useSecureCookies: origin.startsWith('https://'),
       defaultCookieAttributes: { sameSite: 'lax' },
+
+      /**
+       * The one cookie that cannot be `lax`.
+       *
+       * Apple returns from its consent screen with `response_mode=form_post`:
+       * a cross-site POST from `appleid.apple.com` to our callback. A `lax`
+       * cookie is withheld on a cross-site POST, and better-auth's callback
+       * requires the signed `state` cookie to match the `state` it looks up in
+       * the `verification` table — so with `lax` every Apple sign-in fails with
+       * `state_security_mismatch`, 100% of the time.
+       *
+       * Widening only this cookie keeps the session cookie `lax`. CSRF cover is
+       * unchanged: `state` is 32 random characters minted per attempt, stored
+       * server-side, single-use, and 5 minutes from expiry — the cookie is the
+       * second copy of it, not the secret itself. Google and LinkedIn come back
+       * as a plain GET redirect and are indifferent to the attribute.
+       */
+      cookies: {
+        state: {
+          // `None` is only honoured on a Secure cookie — a browser drops
+          // `None` without `Secure` outright, which would break sign-in over
+          // plain http in dev. There is no cross-site POST to survive there,
+          // so dev keeps `lax`.
+          attributes: origin.startsWith('https://')
+            ? { sameSite: 'none' as const, secure: true }
+            : { sameSite: 'lax' as const },
+        },
+      },
     },
 
     plugins: [
