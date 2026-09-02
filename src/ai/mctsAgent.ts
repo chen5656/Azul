@@ -72,6 +72,14 @@ export interface MctsOptions {
   /** Overrides the by-round work budget; for calibration and tests. */
   stepBudget?: number;
   /**
+   * Multiplies the by-round work budget, keeping its shape.
+   *
+   * The bench uses this to find the budget a strength target needs: the level's
+   * cost cannot be calibrated with a stopwatch (that is the whole point of a
+   * work budget), so its size is chosen by playing it, not by timing it.
+   */
+  stepScale?: number;
+  /**
    * Milliseconds after which the search gives up mid-budget, to keep a pathological
    * device from hanging the game. Normal hardware never reaches it; when it does,
    * `cappedOut` is set so the caller can tell that this move was short-changed.
@@ -103,6 +111,7 @@ export class MctsAgent implements Agent {
   private readonly simulationBudget: number | null;
   /** A fixed work budget, or null to follow the by-round schedule. */
   private readonly stepBudgetOverride: number | null;
+  private readonly stepScale: number;
   private readonly safetyCapMs: number;
   private readonly exploration: number;
   private readonly treeWidth: number;
@@ -118,6 +127,7 @@ export class MctsAgent implements Agent {
     this.rng = new Rng(this.seed);
     this.simulationBudget = options.simulations ?? null;
     this.stepBudgetOverride = options.stepBudget ?? null;
+    this.stepScale = options.stepScale ?? 1;
     this.safetyCapMs = options.safetyCapMs ?? AI_SAFETY_CAP_MS;
     this.exploration = options.exploration ?? 1.2;
     this.treeWidth = options.treeWidth ?? 12;
@@ -291,7 +301,8 @@ export class MctsAgent implements Agent {
     // agent has run, and whatever their budgets were.
     this.rng = rngForPosition(this.seed, state, player);
     const root = new Node(player);
-    const stepBudget = this.stepBudgetOverride ?? extremeSteps(state.round_num);
+    const stepBudget =
+      this.stepBudgetOverride ?? Math.round(extremeSteps(state.round_num) * this.stepScale);
     const deadline = now() + this.safetyCapMs;
     this.simulations = 0;
     this.steps = 0;
