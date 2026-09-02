@@ -37,26 +37,18 @@ export type MinimaxLevel = keyof typeof MINIMAX_DEPTHS;
 /**
  * Children searched per node.
  *
- * A level is a promise about how deep the opponent looks, so every level has to
- * be able to *finish* its depth on any device — a search that runs out of clock
- * and hands back a shallower answer is a different, weaker opponent, and which
- * device gets that opponent is an accident of hardware. Full width does not
- * finish: at a branching factor of 30-80 the worst positions cost seconds even
- * at depth 3, and on the bench machine the old 450ms clock was truncating 8% of
- * `medium`'s moves, 34% of `hard`'s and 55% of `expert`'s.
+ * Only `master` narrows. At a branching factor of 30-80 a full-width depth 5
+ * costs seconds in the worst positions, so `master` searches the eight
+ * best-ordered moves to afford its extra ply; the shallower levels can carry
+ * full width and are stronger for it.
  *
- * So every level narrows to its best-ordered moves, more tightly the deeper it
- * looks. That is the trade `master` already made, and the bench found it worth
- * making in both directions — narrowing beats full width at equal depth, and
- * the deeper narrow search beats both. It collapses the cost tail by roughly an
- * order of magnitude, which is what buys the depth guarantee.
+ * Narrowing every level was tried (it is what buys a depth guarantee without a
+ * clock, and it collapses the cost tail by roughly an order of magnitude) and
+ * reverted: at depth 2-4 a beam of 12-20 drops too many of the blocking moves
+ * that live low in the move ordering, and the opponent played visibly softer.
+ * Full width is the strength; the deep level is the one that pays for depth.
  */
-export const MINIMAX_WIDTHS: Record<MinimaxLevel, number> = {
-  medium: 20,
-  hard: 16,
-  expert: 12,
-  master: 8,
-};
+export const MINIMAX_WIDTHS: Partial<Record<MinimaxLevel, number>> = { master: 8 };
 
 function levelForDepth(depth: number): AgentLevel {
   if (depth <= 2) return 'medium';

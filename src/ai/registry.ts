@@ -51,7 +51,7 @@ export function makeAgent(
         budget.safetyCapMs ?? AI_SAFETY_CAP_MS,
         undefined,
         level,
-        MINIMAX_WIDTHS[level],
+        MINIMAX_WIDTHS[level] ?? Infinity,
       );
     case 'extreme':
       return new MctsAgent({

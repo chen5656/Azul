@@ -200,11 +200,10 @@ describe('registry', () => {
     expect(LEVELS).not.toContain('azulzero');
   });
 
-  it('separates the alpha-beta levels by depth, and narrows as they deepen', () => {
+  it('separates the alpha-beta levels by depth, and narrows only the deepest', () => {
     expect(MINIMAX_DEPTHS).toEqual({ medium: 2, hard: 3, expert: 4, master: 5 });
-    // Every level has a beam: a level that cannot finish its depth is not a
-    // level, it is whatever the device had time for.
-    expect(MINIMAX_WIDTHS).toEqual({ medium: 20, hard: 16, expert: 12, master: 8 });
+    // Full width is strength; only `master` trades it away to afford depth 5.
+    expect(MINIMAX_WIDTHS).toEqual({ master: 8 });
   });
 
   it('builds an agent for every level', () => {

@@ -23,7 +23,7 @@ export default defineConfig({
         // Never serve an /api response from the cache: a stale leaderboard is
         // worse than an honest offline state. /guide/* is static HTML built
         // after this plugin runs, so the app shell must not shadow it either.
-        navigateFallbackDenylist: [/^\/api\//, /^\/guide(\/|$)/, /^\/(privacy|terms)$/],
+        navigateFallbackDenylist: [/^\/api\//, /^\/guide(\/|$)/, /^\/(privacy|terms)(\/|$)/],
       },
       manifest: {
         name: 'Quadro — Daily Challenge',
