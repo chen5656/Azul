@@ -24,7 +24,6 @@ import {
 import { type Agent, AgentError, choice, sample } from './base';
 import { AI_SAFETY_CAP_MS, extremeSteps } from './budget';
 import { now } from './clock';
-import { rngForPosition } from './position';
 import { DEFAULT_WEIGHTS, type Weights, evaluate } from './evaluate';
 import { actionValue } from './greedyAgent';
 
@@ -34,18 +33,24 @@ import { actionValue } from './greedyAgent';
  */
 export const VALUE_SCALE = 25.0;
 
-/**
- * How much of a terminal reward the final margin is allowed to move it.
- *
- * Pure win/loss makes the search indifferent between +1 and +50, so once a line
- * is winning it wanders. Adding a bounded margin term orders wins by how big
- * they are; keeping the term below 1 keeps the ordering lexicographic — the
- * narrowest win (>= 1 - MARGIN_BONUS) still beats the widest loss.
- */
-export const MARGIN_BONUS = 0.15;
+/** Terminal score margin may refine, but never reverse, one playout's result. */
+export const SCORE_MARGIN_BONUS = 0.1;
+export const SCORE_MARGIN_SCALE = 30.0;
 
-/** Point difference at which the margin term is most of the way to saturated. */
-export const MARGIN_SCALE = 30.0;
+/**
+ * Prefer wins first, then prefer larger winning margins and narrower losses.
+ * The bounded bonus keeps every simulated win positive and every loss negative.
+ */
+export function terminalReward(state: GameState, player: number): number {
+  const mine = state.players[player].score;
+  const theirs = state.players[1 - player].score;
+  const margin = SCORE_MARGIN_BONUS * Math.tanh((mine - theirs) / SCORE_MARGIN_SCALE);
+  if (mine !== theirs) return (mine > theirs ? 1 : -1) + margin;
+  const myRows = state.players[player].completeRows();
+  const theirRows = state.players[1 - player].completeRows();
+  if (myRows !== theirRows) return myRows > theirRows ? 1 : -1;
+  return 0;
+}
 
 class Node {
   visits = 0;
@@ -60,57 +65,36 @@ class Node {
 
 export interface MctsOptions {
   seed?: number;
-  /**
-   * Fixes the simulations per move, overriding the work budget.
-   *
-   * Only the bench and the tests want this: a flat count makes the cost per
-   * move swing by a factor of thirty across positions (see `./budget`), which
-   * is why the level itself budgets work instead. Either way it is a count and
-   * not a stopwatch, so the opponent never depends on the machine.
-   */
+  /** Calibration override in seconds; production uses measured fixed work. */
+  timeBudget?: number;
+  /** Compatibility alias used by deterministic tests and benchmarks. */
   simulations?: number;
-  /** Overrides the by-round work budget; for calibration and tests. */
-  stepBudget?: number;
-  /**
-   * Multiplies the by-round work budget, keeping its shape.
-   *
-   * The bench uses this to find the budget a strength target needs: the level's
-   * cost cannot be calibrated with a stopwatch (that is the whole point of a
-   * work budget), so its size is chosen by playing it, not by timing it.
-   */
-  stepScale?: number;
-  /**
-   * Milliseconds after which the search gives up mid-budget, to keep a pathological
-   * device from hanging the game. Normal hardware never reaches it; when it does,
-   * `cappedOut` is set so the caller can tell that this move was short-changed.
-   */
+  /** Stop-loss for fixed-work searches, in milliseconds. */
   safetyCapMs?: number;
+  /** Fixed engine-work override used by tests and calibration. */
+  stepBudget?: number;
+  /** Multiplies the measured per-round work schedule. */
+  stepScale?: number;
   exploration?: number;
   treeWidth?: number;
   rolloutEpsilon?: number;
   rolloutWidth?: number;
   rolloutRounds?: number;
-  /** 0 disables margin awareness and restores pure win/loss rewards. */
-  marginBonus?: number;
+  maxSimulations?: number;
   weights?: Weights;
 }
 
 export class MctsAgent implements Agent {
   readonly level = 'extreme' as const;
-  /** Simulations actually run on the last `choose`. */
   simulations = 0;
-  /** Engine operations spent on the last `choose` — the budget's real unit. */
+  /** Engine operations performed by the last search. Calibration only. */
   steps = 0;
-  /** True when the last `choose` hit the safety cap before spending its budget. */
   cappedOut = false;
 
-  /** Base seed; `rng` is rebuilt from it and the position on every `choose`. */
-  private readonly seed: number;
-  private rng: Rng;
-  /** A fixed override, or null to follow the by-round schedule. */
-  private readonly simulationBudget: number | null;
-  /** A fixed work budget, or null to follow the by-round schedule. */
-  private readonly stepBudgetOverride: number | null;
+  private readonly rng: Rng;
+  private readonly timeBudget: number;
+  private readonly useClockBudget: boolean;
+  private readonly stepBudget: number | null;
   private readonly stepScale: number;
   private readonly safetyCapMs: number;
   private readonly exploration: number;
@@ -118,15 +102,15 @@ export class MctsAgent implements Agent {
   private readonly rolloutEpsilon: number;
   private readonly rolloutWidth: number;
   private readonly rolloutRounds: number;
-  private readonly marginBonus: number;
+  private readonly maxSimulations: number | null;
   private readonly weights: Weights;
   private rootPlayer = 0;
 
   constructor(options: MctsOptions = {}) {
-    this.seed = options.seed ?? new Rng().nextInt(2 ** 31);
-    this.rng = new Rng(this.seed);
-    this.simulationBudget = options.simulations ?? null;
-    this.stepBudgetOverride = options.stepBudget ?? null;
+    this.rng = new Rng(options.seed);
+    this.timeBudget = options.timeBudget ?? 0.45;
+    this.useClockBudget = options.timeBudget !== undefined;
+    this.stepBudget = options.stepBudget ?? null;
     this.stepScale = options.stepScale ?? 1;
     this.safetyCapMs = options.safetyCapMs ?? AI_SAFETY_CAP_MS;
     this.exploration = options.exploration ?? 1.2;
@@ -134,7 +118,7 @@ export class MctsAgent implements Agent {
     this.rolloutEpsilon = options.rolloutEpsilon ?? 0.15;
     this.rolloutWidth = options.rolloutWidth ?? 6;
     this.rolloutRounds = options.rolloutRounds ?? 2;
-    this.marginBonus = options.marginBonus ?? MARGIN_BONUS;
+    this.maxSimulations = options.maxSimulations ?? options.simulations ?? null;
     this.weights = options.weights ?? DEFAULT_WEIGHTS;
   }
 
@@ -183,23 +167,9 @@ export class MctsAgent implements Agent {
     return best as Action;
   }
 
-  /**
-   * Terminal games score ±1 nudged by the final margin; cut-off positions use a
-   * squashed evaluation. The nudge never crosses zero, so winning always
-   * outranks losing and the margin only orders same-result outcomes.
-   */
+  /** Terminal games score ±1; cut-off positions use a squashed evaluation. */
   private reward(state: GameState): number {
-    if (state.phase === GAME_OVER) {
-      const me = this.rootPlayer;
-      const mine = state.players[me].score;
-      const theirs = state.players[1 - me].score;
-      const margin = this.marginBonus * Math.tanh((mine - theirs) / MARGIN_SCALE);
-      if (mine !== theirs) return (mine > theirs ? 1 : -1) + margin;
-      const myRows = state.players[me].completeRows();
-      const theirRows = state.players[1 - me].completeRows();
-      if (myRows !== theirRows) return myRows > theirRows ? 1 : -1;
-      return 0;
-    }
+    if (state.phase === GAME_OVER) return terminalReward(state, this.rootPlayer);
     return Math.tanh(evaluate(state, this.rootPlayer, this.weights) / VALUE_SCALE);
   }
 
@@ -291,29 +261,23 @@ export class MctsAgent implements Agent {
   // ---- agent API ----------------------------------------------------
 
   choose(state: GameState, player: number): Action {
+    this.simulations = 0;
+    this.steps = 0;
+    this.cappedOut = false;
     const actions = legalActions(state);
     if (!actions.length) throw new AgentError('no legal action available');
     if (actions.length === 1) return actions[0];
 
     this.rootPlayer = player;
-    // Every determinization this search draws comes from the position, so the
-    // same position always gets the same answer — however many searches this
-    // agent has run, and whatever their budgets were.
-    this.rng = rngForPosition(this.seed, state, player);
     const root = new Node(player);
-    const stepBudget =
-      this.stepBudgetOverride ?? Math.round(extremeSteps(state.round_num) * this.stepScale);
-    const deadline = now() + this.safetyCapMs;
-    this.simulations = 0;
-    this.steps = 0;
-    this.cappedOut = false;
+    const useClockBudget = this.useClockBudget;
+    const deadline = now() + (useClockBudget ? this.timeBudget * 1000 : this.safetyCapMs);
+    const targetSteps =
+      this.stepBudget ?? Math.round(extremeSteps(state.round_num) * this.stepScale);
 
-    while (
-      this.simulationBudget === null ? this.steps < stepBudget : this.simulations < this.simulationBudget
-    ) {
-      // The budget is measured in work, not seconds; the clock is only a
-      // stop-loss. Checking it every 16 keeps `now()` off the hot path.
-      if ((this.simulations & 15) === 0 && now() > deadline) {
+    while (useClockBudget ? now() < deadline : this.steps < targetSteps) {
+      if (this.maxSimulations !== null && this.simulations >= this.maxSimulations) break;
+      if (!useClockBudget && (this.simulations & 15) === 0 && now() >= deadline) {
         this.cappedOut = true;
         break;
       }
@@ -325,22 +289,16 @@ export class MctsAgent implements Agent {
     }
 
     // Robust child: most visited, not highest mean — it is far less noisy.
-    // Equal visits are common at this budget; break those on mean value so the
-    // tie goes to the higher-scoring line rather than to map order.
     let best: Action | null = null;
     let bestVisits = -1;
-    let bestMean = -Infinity;
     for (const action of actions) {
       const child = root.children.get(action.actionId);
-      if (!child) continue;
-      const mean = child.visits ? child.value / child.visits : -Infinity;
-      if (child.visits > bestVisits || (child.visits === bestVisits && mean > bestMean)) {
+      if (child && child.visits > bestVisits) {
         best = action;
         bestVisits = child.visits;
-        bestMean = mean;
       }
     }
-    // A cap tripped before the first simulation still yields a legal move.
+    // An expired budget before the first simulation still yields a legal move.
     return best ?? choice(this.rng, actions);
   }
 }

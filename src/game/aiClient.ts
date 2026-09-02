@@ -7,7 +7,7 @@
  * so — the game always completes (AC-037), it just gets less responsive.
  */
 
-import { Action, type GameState } from '../engine';
+import { Action, type GameState, legalActions } from '../engine';
 import { type Agent, type AgentBudget, type AgentLevel, makeAgent } from '../ai';
 import type { AiRequest, AiResponse } from '../workers/ai.worker';
 
@@ -39,6 +39,22 @@ export interface AiMove {
    * for, and the opponent it faced was correspondingly weaker.
    */
   capped?: boolean;
+  simulations?: number;
+  steps?: number;
+}
+
+const CALIBRATION_LOG_KEY = 'azul:mcts-calibration:v1';
+
+interface MctsCalibrationEntry {
+  recordedAt: string;
+  round: number;
+  legalActions: number;
+  elapsedMs: number;
+  simulations: number;
+  steps: number;
+  actionId: number;
+  mode: AiMode;
+  prefetched: boolean;
 }
 
 export class AiClient {
@@ -95,7 +111,10 @@ export class AiClient {
       elapsedMs: performance.now() - started,
       mode: 'main-thread',
       capped: this.fallbackAgent.cappedOut === true,
+      simulations: this.fallbackAgent.simulations,
+      steps: this.fallbackAgent.steps,
     };
+    this.recordCalibration(state, move);
     this.warnIfCapped(move);
     return move;
   }
@@ -138,7 +157,9 @@ export class AiClient {
       this.speculative = null;
       if (pending.key === this.keyFor(state, player)) {
         const move = await pending.promise;
-        return { ...move, prefetched: true };
+        const prefetched = { ...move, prefetched: true };
+        this.recordCalibration(state, prefetched);
+        return prefetched;
       }
       // A different question than the one in flight: let that search finish and
       // be discarded, and ask the real one behind it.
@@ -187,7 +208,10 @@ export class AiClient {
         elapsedMs: response.elapsedMs,
         mode: 'worker',
         capped: response.capped,
+        simulations: response.simulations,
+        steps: response.steps,
       };
+      if (!speculative) this.recordCalibration(state, move);
       this.warnIfCapped(move);
       return move;
     } catch (err) {
@@ -213,6 +237,33 @@ export class AiClient {
       `AI search hit its safety cap after ${move.elapsedMs.toFixed(0)}ms; ` +
         `the ${this.spec.level} opponent is playing below strength on this device.`,
     );
+  }
+
+  /** Persist one JSON record per manually played Extreme move for calibration. */
+  private recordCalibration(state: GameState, move: AiMove): void {
+    if (this.spec.level !== 'extreme' || move.simulations === undefined || move.steps === undefined) {
+      return;
+    }
+    const entry: MctsCalibrationEntry = {
+      recordedAt: new Date().toISOString(),
+      round: state.round_num,
+      legalActions: legalActions(state).length,
+      elapsedMs: Number(move.elapsedMs.toFixed(3)),
+      simulations: move.simulations,
+      steps: move.steps,
+      actionId: move.action.actionId,
+      mode: move.mode,
+      prefetched: move.prefetched === true,
+    };
+    console.info('[MCTS calibration]', JSON.stringify(entry));
+    try {
+      const previous = JSON.parse(localStorage.getItem(CALIBRATION_LOG_KEY) ?? '[]');
+      const log = Array.isArray(previous) ? previous : [];
+      log.push(entry);
+      localStorage.setItem(CALIBRATION_LOG_KEY, JSON.stringify(log.slice(-1000)));
+    } catch {
+      // Console logging remains available when storage is blocked or full.
+    }
   }
 
   dispose(): void {

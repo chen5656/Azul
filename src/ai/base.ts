@@ -6,6 +6,9 @@ export class AgentError extends Error {}
 
 export interface Agent {
   readonly level: AgentLevel;
+  /** Search telemetry from the last move, when the algorithm exposes it. */
+  readonly simulations?: number;
+  readonly steps?: number;
   /**
    * Set by the searching agents when the last `choose` hit the safety cap and
    * had to answer with less work than the level calls for. Always false on a

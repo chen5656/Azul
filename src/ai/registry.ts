@@ -23,6 +23,8 @@ import { MINIMAX_DEPTHS, MINIMAX_WIDTHS, MinimaxAgent } from './minimaxAgent';
 export interface AgentBudget {
   /** `extreme` only: a flat simulation count, replacing the work budget. */
   simulations?: number;
+  /** `extreme` calibration only: wall-clock search budget in seconds. */
+  timeBudget?: number;
   /** `extreme` only: multiplies the work budget, keeping its by-round shape. */
   stepScale?: number;
   /** Stop-loss for a single search, in milliseconds. */
@@ -56,7 +58,8 @@ export function makeAgent(
     case 'extreme':
       return new MctsAgent({
         seed,
-        simulations: budget.simulations,
+        timeBudget: budget.timeBudget,
+        maxSimulations: budget.simulations,
         stepScale: budget.stepScale,
         safetyCapMs: budget.safetyCapMs ?? AI_SAFETY_CAP_MS,
       });

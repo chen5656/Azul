@@ -17,7 +17,15 @@ export interface AiRequest {
 }
 
 export type AiResponse =
-  | { id: number; ok: true; actionId: number; elapsedMs: number; capped: boolean }
+  | {
+      id: number;
+      ok: true;
+      actionId: number;
+      elapsedMs: number;
+      capped: boolean;
+      simulations?: number;
+      steps?: number;
+    }
   | { id: number; ok: false; error: string };
 
 let agent: Agent | null = null;
@@ -37,6 +45,8 @@ self.onmessage = (event: MessageEvent<AiRequest>) => {
       actionId: action.actionId,
       elapsedMs: performance.now() - started,
       capped: agent.cappedOut === true,
+      simulations: agent.simulations,
+      steps: agent.steps,
     };
     self.postMessage(reply);
   } catch (err) {

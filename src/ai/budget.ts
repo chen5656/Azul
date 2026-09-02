@@ -23,7 +23,7 @@
  * search that does trip the cap returns its best answer so far and sets
  * `cappedOut` — degraded, but never a hung tab.
  */
-export const AI_SAFETY_CAP_MS = 8000;
+export const AI_SAFETY_CAP_MS = 30000;
 
 /**
  * The work `extreme` may spend on a move, in engine operations.
@@ -47,20 +47,15 @@ export const AI_SAFETY_CAP_MS = 8000;
  * The schedule climbs by round on top of that, deliberately spending more real
  * time as the game closes, where a precise read decides it.
  *
- * Sized from counts rather than from a stopwatch, because the search only
- * stops being noise once each root candidate has been visited enough to rank:
- * the shortlist is twelve moves wide, so a few hundred simulations is the floor
- * below which "most visited" is picking between ties. A round-boundary position
- * spends ~18 steps per simulation and an endgame one ~8, so the schedule buys
- * roughly 250 simulations in round 1 climbing to ~2300 in round 5 — the shape
- * the level wants, and close to what the old 450ms clock happened to buy on an
- * unloaded machine before it was replaced.
- *
- * Costs ~0.5s of CPU per move early and ~1.3s late on the bench machine. Most
- * of that is hidden: the client starts the search under the animation of the
- * move that provoked it (see `AiClient.prefetch`).
+ * Calibrated from manual games played with the proven 450ms agent on 2026-09-02.
+ * That agent actually spent 82k-109k operations in round 1, 96k-118k in round
+ * 2, 100k-129k in round 3, 104k-153k in round 4, and 144k-429k in round 5.
+ * The earlier 4.5k-18k schedule therefore removed roughly 88-96% of its search
+ * and was not strength-equivalent. These conservative per-round ceilings retain
+ * at least the measured work of the strong version while making it independent
+ * of processor speed.
  */
-export const EXTREME_STEPS_BY_ROUND = [4500, 5500, 8000, 12000, 18000] as const;
+export const EXTREME_STEPS_BY_ROUND = [110000, 120000, 130000, 155000, 430000] as const;
 
 /** The schedule's last entry stands for every round beyond it. */
 export function extremeSteps(round: number): number {
