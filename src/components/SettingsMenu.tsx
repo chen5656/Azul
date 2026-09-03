@@ -1,9 +1,7 @@
 /**
- * The header's ⚙ overflow.
+ * The header's ⚙ settings menu.
  *
- * Style and scale are set once and then never touched, and Guide/History are
- * secondary destinations — six items in the nav bar made it wrap on a laptop,
- * so everything that isn't a place you go every day lives behind this button.
+ * Style, scale, and opponent AI level live behind this button.
  */
 
 import { useEffect, useRef, useState } from 'react';
@@ -12,7 +10,7 @@ import { DAILY_LEVELS, dailyHrefFor, isRankedLevel, resolveDailyLevel } from '..
 import { practiceHrefFor, resolvePracticeLevel } from '../practice/levels';
 import { DisplayScaleControl } from './DisplayScaleControl';
 import { GameStyleControl } from './GameStyleControl';
-import { Link, useRouter } from '../router';
+import { useRouter } from '../router';
 
 export function SettingsMenu() {
   const [open, setOpen] = useState(false);
@@ -47,7 +45,7 @@ export function SettingsMenu() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        aria-label="Settings and more"
+        aria-label="Settings"
         aria-expanded={open}
         aria-haspopup="menu"
         className={`flex h-8 w-8 items-center justify-center rounded border border-neutral-700 text-neutral-400 hover:bg-neutral-800 hover:text-neutral-100 ${
@@ -64,10 +62,16 @@ export function SettingsMenu() {
       </button>
 
       {open && (
-        <div
-          role="menu"
-          className="absolute right-0 z-50 mt-2 w-56 rounded-lg border border-neutral-700 bg-neutral-900 p-3 shadow-xl"
-        >
+        <>
+          <div
+            className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm transition-opacity"
+            onClick={() => setOpen(false)}
+            aria-hidden="true"
+          />
+          <div
+            role="menu"
+            className="absolute right-0 z-[60] mt-2 w-56 rounded-lg border border-neutral-700 bg-neutral-900 p-3 shadow-xl"
+          >
           {showOpponent && (
             <div className="mb-3 border-b border-neutral-800 pb-3">
               <label
@@ -98,24 +102,8 @@ export function SettingsMenu() {
             <GameStyleControl />
             <DisplayScaleControl />
           </div>
-          <div className="mt-3 flex flex-col border-t border-neutral-800 pt-2 text-sm">
-            <div onClick={() => setOpen(false)} className="contents">
-              <Link
-                to="/history"
-                className="rounded px-2 py-1 text-neutral-400 hover:bg-neutral-800 hover:text-neutral-100"
-              >
-                History
-              </Link>
-            </div>
-            {/* Static page emitted by the SEO build, outside the router. */}
-            <a
-              href="/guide"
-              className="rounded px-2 py-1 text-neutral-400 hover:bg-neutral-800 hover:text-neutral-100"
-            >
-              Guide
-            </a>
-          </div>
         </div>
+        </>
       )}
     </div>
   );

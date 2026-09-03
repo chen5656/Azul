@@ -25,6 +25,7 @@ describe('Gameplay Animations', () => {
 
     await expect(animator.flyTile(0, 'fac-0-0-0', 'stage-0-0-0')).resolves.toBeUndefined();
     await expect(animator.fadeOut(['stage-0-0-0'])).resolves.toBeUndefined();
+    await expect(animator.streakLine(['wall-0-0-0', 'wall-0-0-1', 'wall-0-0-2'])).resolves.toBeUndefined();
     expect(() => animator.popScore('+5', 'wall-0-0-0', true)).not.toThrow();
     expect(() => animator.popIn(['wall-0-0-0'])).not.toThrow();
     expect(() => animator.conceal(['wall-0-0-0'])()).not.toThrow();
@@ -47,6 +48,7 @@ describe('Gameplay Animations', () => {
       popScore: vi.fn(),
       fadeOut: vi.fn().mockResolvedValue(undefined),
       popIn: vi.fn(),
+      streakLine: vi.fn().mockResolvedValue(undefined),
       conceal: vi.fn().mockReturnValue(() => {}),
       clear: vi.fn(),
       isEnabled: () => true,

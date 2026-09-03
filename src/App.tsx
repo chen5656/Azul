@@ -60,8 +60,7 @@ function Nav() {
   );
 
   /*
-    Four destinations only. Home is the wordmark, and the rest (Learn's static
-    Guide, History, style and scale) sit behind the ⚙ so the bar never wraps.
+    Four destinations only. Home is the wordmark; preferences sit behind the ⚙.
   */
   return (
     <nav aria-label="Main" className="flex flex-wrap items-center justify-end gap-1">
@@ -87,7 +86,7 @@ export function App() {
     <div className="min-h-dvh">
       <AppBanners blockUpdates={attemptRunning} />
       {!immersive && (
-      <header className="border-b border-neutral-800">
+      <header className="relative z-50 border-b border-neutral-800 bg-neutral-950">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-x-3 px-4 py-3">
           <Link to="/" className="font-semibold tracking-tight">
             Quadro
@@ -127,6 +126,9 @@ export function App() {
         <footer className="mt-8 border-t border-neutral-800">
           <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-4 gap-y-1 px-4 py-4 text-xs text-neutral-500">
             <span>Quadro — a free daily tile-drafting puzzle.</span>
+            <a href="/guide" className="hover:text-neutral-300">
+              Guide
+            </a>
             <a href="/privacy" className="hover:text-neutral-300">
               Privacy
             </a>

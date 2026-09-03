@@ -12,7 +12,6 @@ import { LEVELS, LEVEL_LABELS, type AgentLevel } from '../ai';
 import { Board } from '../components/Board';
 import { ShareReplay } from '../components/ShareReplay';
 import { RobotAvatar } from '../components/RobotAvatar';
-import { SlowLevelNote } from '../components/SlowLevelNote';
 import { useGameStyle } from '../context/GameStyleContext';
 import { useGameSession } from '../game/useGameSession';
 import { practiceHrefFor, resolvePracticeLevel } from '../practice/levels';
@@ -124,7 +123,6 @@ function PracticeSetup({ onStart }: { onStart: (setup: Setup) => void }) {
             </button>
           ))}
         </div>
-        <SlowLevelNote level={level} />
       </fieldset>
 
       <details className="mt-5 text-sm" open={Boolean(seedParam && seedParam.trim() !== '')}>

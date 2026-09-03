@@ -32,6 +32,11 @@ export interface Animator {
   fadeOut: (elementIds: string[], ms?: number) => Promise<void>;
   /** Land a tile: the target snaps in with a bounce so the arrival registers. */
   popIn: (elementIds: string[], delay?: number) => void;
+  /** Draw a thin white line with tapered fading ends and a glowing neon streak travelling along it. */
+  streakLine: (
+    anchorIds: string[],
+    options?: { ms?: number; color?: string },
+  ) => Promise<void>;
   /**
    * Hold elements invisible for the length of a flight; the returned callback
    * puts them back. Nothing else can express "this tile is in the air" — the
@@ -88,6 +93,161 @@ export function createAnimator(rootRef: RefObject<HTMLElement | null>, style: Ga
       height: a.height,
     };
   };
+
+  const centerPoint = (id: string) => {
+    const r = rect(id);
+    if (!r) return null;
+    return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+  };
+
+  const streakLine = (
+    anchorIds: string[],
+    options: { ms?: number; color?: string } = {},
+  ): Promise<void> =>
+    new Promise<void>((resolve) => {
+      if (!isEnabled()) return resolve();
+      const root = rootRef.current;
+      if (!root || anchorIds.length < 2) return resolve();
+
+      const points = anchorIds
+        .map((id) => centerPoint(id))
+        .filter((p): p is { x: number; y: number } => p !== null);
+
+      if (points.length < 2) return resolve();
+
+      const duration = options.ms ?? 650;
+      const glowColor = options.color ?? '#38bdf8'; // default neon cyan/sky
+
+      const svgNs = 'http://www.w3.org/2000/svg';
+      const svg = document.createElementNS(svgNs, 'svg');
+      svg.setAttribute('class', 'pointer-events-none absolute inset-0 h-full w-full overflow-visible z-50');
+      svg.style.position = 'absolute';
+      svg.style.top = '0';
+      svg.style.left = '0';
+      svg.style.width = '100%';
+      svg.style.height = '100%';
+      svg.style.pointerEvents = 'none';
+
+      // Build SVG path definition
+      let d = `M ${points[0].x} ${points[0].y}`;
+      for (let i = 1; i < points.length; i += 1) {
+        d += ` L ${points[i].x} ${points[i].y}`;
+      }
+
+      const gradId = `streak-grad-${Math.random().toString(36).slice(2, 9)}`;
+      const pStart = points[0];
+      const pEnd = points[points.length - 1];
+
+      const defs = document.createElementNS(svgNs, 'defs');
+      const grad = document.createElementNS(svgNs, 'linearGradient');
+      grad.setAttribute('id', gradId);
+      grad.setAttribute('gradientUnits', 'userSpaceOnUse');
+      grad.setAttribute('x1', `${pStart.x}`);
+      grad.setAttribute('y1', `${pStart.y}`);
+      grad.setAttribute('x2', `${pEnd.x}`);
+      grad.setAttribute('y2', `${pEnd.y}`);
+
+      const s1 = document.createElementNS(svgNs, 'stop');
+      s1.setAttribute('offset', '0%');
+      s1.setAttribute('stop-color', '#ffffff');
+      s1.setAttribute('stop-opacity', '0');
+
+      const s2 = document.createElementNS(svgNs, 'stop');
+      s2.setAttribute('offset', '15%');
+      s2.setAttribute('stop-color', '#ffffff');
+      s2.setAttribute('stop-opacity', '0.9');
+
+      const s3 = document.createElementNS(svgNs, 'stop');
+      s3.setAttribute('offset', '85%');
+      s3.setAttribute('stop-color', '#ffffff');
+      s3.setAttribute('stop-opacity', '0.9');
+
+      const s4 = document.createElementNS(svgNs, 'stop');
+      s4.setAttribute('offset', '100%');
+      s4.setAttribute('stop-color', '#ffffff');
+      s4.setAttribute('stop-opacity', '0');
+
+      grad.appendChild(s1);
+      grad.appendChild(s2);
+      grad.appendChild(s3);
+      grad.appendChild(s4);
+      defs.appendChild(grad);
+      svg.appendChild(defs);
+
+      // 1. Thin white line with tapered fading ends
+      const baseLine = document.createElementNS(svgNs, 'path');
+      baseLine.setAttribute('d', d);
+      baseLine.setAttribute('stroke', `url(#${gradId})`);
+      baseLine.setAttribute('stroke-width', '2');
+      baseLine.setAttribute('stroke-linecap', 'round');
+      baseLine.setAttribute('stroke-linejoin', 'round');
+      baseLine.setAttribute('fill', 'none');
+      baseLine.style.opacity = '0';
+      svg.appendChild(baseLine);
+
+      // 2. Glowing neon streak travelling along the line
+      const neonPath = document.createElementNS(svgNs, 'path');
+      neonPath.setAttribute('d', d);
+      neonPath.setAttribute('stroke', glowColor);
+      neonPath.setAttribute('stroke-width', '3.5');
+      neonPath.setAttribute('stroke-linecap', 'round');
+      neonPath.setAttribute('stroke-linejoin', 'round');
+      neonPath.setAttribute('fill', 'none');
+      neonPath.style.filter = `drop-shadow(0 0 6px ${glowColor}) drop-shadow(0 0 14px ${glowColor})`;
+      svg.appendChild(neonPath);
+
+      root.appendChild(svg as unknown as HTMLElement);
+      inFlight.add(svg as unknown as HTMLElement);
+
+      let totalLen = 100;
+      try {
+        if (typeof neonPath.getTotalLength === 'function') {
+          totalLen = neonPath.getTotalLength();
+        }
+      } catch {
+        totalLen = 100;
+      }
+
+      const headLength = Math.max(25, totalLen * 0.35);
+      neonPath.style.strokeDasharray = `${headLength} ${totalLen * 2}`;
+      neonPath.style.strokeDashoffset = `${headLength}`;
+
+      // Animation: fade in base line, travel neon streak, then fade out
+      if (typeof baseLine.animate === 'function' && typeof neonPath.animate === 'function') {
+        baseLine.animate(
+          [
+            { opacity: 0 },
+            { opacity: 0.95, offset: 0.15 },
+            { opacity: 0.95, offset: 0.75 },
+            { opacity: 0, offset: 1 },
+          ],
+          { duration: duration, easing: 'ease-in-out', fill: 'forwards' },
+        );
+
+        const neonAnim = neonPath.animate(
+          [
+            { strokeDashoffset: `${headLength}`, opacity: 0 },
+            { strokeDashoffset: `${headLength * 0.5}`, opacity: 1, offset: 0.15 },
+            { strokeDashoffset: `${-totalLen}`, opacity: 1, offset: 0.85 },
+            { strokeDashoffset: `${-totalLen - headLength}`, opacity: 0, offset: 1 },
+          ],
+          { duration: duration, easing: 'cubic-bezier(0.4, 0, 0.2, 1)', fill: 'forwards' },
+        );
+
+        const done = () => {
+          inFlight.delete(svg as unknown as HTMLElement);
+          svg.remove();
+          resolve();
+        };
+
+        neonAnim.onfinish = done;
+        setTimeout(done, duration + 200);
+      } else {
+        inFlight.delete(svg as unknown as HTMLElement);
+        svg.remove();
+        resolve();
+      }
+    });
 
   const flyTile = (
     color: number,
@@ -296,6 +456,7 @@ export function createAnimator(rootRef: RefObject<HTMLElement | null>, style: Ga
     popScore,
     fadeOut,
     popIn,
+    streakLine,
     conceal,
     clear,
     isEnabled,
@@ -418,6 +579,14 @@ function applyPenalty(view: GameState, event: PenaltyApplied): void {
   board.penalty_overflow = 0;
 }
 
+const NEON_COLORS = [
+  '#38bdf8', // blue
+  '#facc15', // yellow / gold
+  '#fb7185', // red / rose
+  '#34d399', // green / emerald
+  '#f8fafc', // white
+];
+
 /**
  * Walk the settlement one tile at a time.
  *
@@ -436,8 +605,9 @@ export async function animateSettlement(
 ): Promise<void> {
   const scoredEvents = events.filter((e): e is TileScored => e.kind === 'tile_scored');
   const penaltyEvents = events.filter((e): e is PenaltyApplied => e.kind === 'penalty');
+  const bonusEvents = events.filter((e): e is import('../engine').BonusAwarded => e.kind === 'bonus');
 
-  if (scoredEvents.length === 0 && penaltyEvents.length === 0) return;
+  if (scoredEvents.length === 0 && penaltyEvents.length === 0 && bonusEvents.length === 0) return;
 
   if (!animator.isEnabled()) {
     for (const event of scoredEvents) applyScored(view, event);
@@ -449,7 +619,7 @@ export async function animateSettlement(
   await sleep(220);
 
   for (const event of scoredEvents) {
-    const { player, row, col, color, points } = event;
+    const { player, row, col, color, points, horizontal, vertical } = event;
     const fromId = `stage-${player}-${row}-0`;
     const toId = `wall-${player}-${row}-${col}`;
     const spareIds = Array.from({ length: row }, (_, i) => `stage-${player}-${row}-${i + 1}`);
@@ -466,6 +636,36 @@ export async function animateSettlement(
 
     animator.popIn([toId]);
     animator.popScore(`+${points}`, toId, true);
+
+    const neon = NEON_COLORS[color] ?? '#38bdf8';
+
+    // Scoring streak animations for connected runs formed during placement
+    const streaks: Promise<void>[] = [];
+    if (horizontal > 1) {
+      // Find row run extent around col
+      const grid = view.players[player].grid;
+      let startCol = col;
+      while (startCol > 0 && grid[row][startCol - 1]) startCol -= 1;
+      let endCol = col;
+      while (endCol < 4 && grid[row][endCol + 1]) endCol += 1;
+      const rowIds = Array.from({ length: endCol - startCol + 1 }, (_, i) => `wall-${player}-${row}-${startCol + i}`);
+      streaks.push(animator.streakLine(rowIds, { color: neon, ms: 500 }));
+    }
+
+    if (vertical > 1) {
+      const grid = view.players[player].grid;
+      let startRow = row;
+      while (startRow > 0 && grid[startRow - 1][col]) startRow -= 1;
+      let endRow = row;
+      while (endRow < 4 && grid[endRow + 1][col]) endRow += 1;
+      const colIds = Array.from({ length: endRow - startRow + 1 }, (_, i) => `wall-${player}-${startRow + i}-${col}`);
+      streaks.push(animator.streakLine(colIds, { color: neon, ms: 500 }));
+    }
+
+    if (streaks.length > 0) {
+      await Promise.all(streaks);
+    }
+
     await sleep(340);
   }
 
@@ -479,5 +679,65 @@ export async function animateSettlement(
     applyPenalty(view, event);
     commit();
     if (tiles > 0) await sleep(260);
+  }
+
+  // End-of-game bonus animations:
+  // 2 points: row bonus
+  // 7 points: column bonus
+  // 10 points: color bonus (angled/diagonal)
+  for (const event of bonusEvents) {
+    const { player, rows, columns, colors } = event;
+    const grid = view.players[player].grid;
+
+    // 2-point complete rows
+    if (rows > 0) {
+      for (let r = 0; r < 5; r += 1) {
+        if (grid[r].every(Boolean)) {
+          const rowIds = Array.from({ length: 5 }, (_, c) => `wall-${player}-${r}-${c}`);
+          animator.popScore('+2', `wall-${player}-${r}-2`, true);
+          await animator.streakLine(rowIds, { color: '#ffffff', ms: 600 });
+          await sleep(200);
+        }
+      }
+    }
+
+    // 7-point complete columns
+    if (columns > 0) {
+      for (let c = 0; c < 5; c += 1) {
+        let full = true;
+        for (let r = 0; r < 5; r += 1) {
+          if (!grid[r][c]) {
+            full = false;
+            break;
+          }
+        }
+        if (full) {
+          const colIds = Array.from({ length: 5 }, (_, r) => `wall-${player}-${r}-${c}`);
+          animator.popScore('+7', `wall-${player}-2-${c}`, true);
+          await animator.streakLine(colIds, { color: '#38bdf8', ms: 650 });
+          await sleep(200);
+        }
+      }
+    }
+
+    // 10-point complete colors (angled line)
+    if (colors > 0) {
+      for (let color = 0; color < 5; color += 1) {
+        let full = true;
+        for (let r = 0; r < 5; r += 1) {
+          const c = (color + r) % 5;
+          if (!grid[r][c]) {
+            full = false;
+            break;
+          }
+        }
+        if (full) {
+          const colorIds = Array.from({ length: 5 }, (_, r) => `wall-${player}-${r}-${(color + r) % 5}`);
+          animator.popScore('+10', `wall-${player}-2-${(color + 2) % 5}`, true);
+          await animator.streakLine(colorIds, { color: NEON_COLORS[color] ?? '#facc15', ms: 750 });
+          await sleep(200);
+        }
+      }
+    }
   }
 }

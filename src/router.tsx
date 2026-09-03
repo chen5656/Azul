@@ -115,12 +115,14 @@ export function useRouter(): RouterValue {
 export function Link({
   to,
   className,
+  onClick,
   children,
 }: {
   /** Any in-app href, not just a bare `Route`: dated boards and replay links
    *  carry a path segment or a fragment. */
   to: string;
   className?: string;
+  onClick?: (event: React.MouseEvent<HTMLAnchorElement>) => void;
   children: ReactNode;
 }) {
   const { navigate } = useRouter();
@@ -129,7 +131,8 @@ export function Link({
       href={to}
       className={className}
       onClick={(event) => {
-        if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
+        onClick?.(event);
+        if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
         event.preventDefault();
         navigate(to);
       }}

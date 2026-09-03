@@ -123,16 +123,16 @@ export function TutorialPopover({
               left: '50%',
               top: '50%',
               transform: 'translate(-50%, -50%)',
-              zIndex: 50,
+              zIndex: 30,
             }
           : {
               position: 'fixed',
               left: `${coords.x}px`,
               top: `${coords.y}px`,
-              zIndex: 50,
+              zIndex: 30,
             }
       }
-      className="fixed z-50 w-[calc(100vw-24px)] max-w-sm sm:max-w-md rounded-xl border border-sky-400/80 bg-neutral-900/95 p-3.5 sm:p-4 shadow-2xl backdrop-blur-md ring-2 ring-sky-500/40 text-neutral-100 transition-all duration-200 ease-out"
+      className="fixed z-30 w-[calc(100vw-24px)] max-w-sm sm:max-w-md rounded-xl border border-sky-400/80 bg-neutral-900/80 p-3.5 sm:p-4 shadow-2xl backdrop-blur-xl ring-2 ring-sky-500/40 text-neutral-100 transition-all duration-200 ease-out"
     >
       {/* Arrow Indicator when anchored next to a target */}
       {!isCenter && coords && (
