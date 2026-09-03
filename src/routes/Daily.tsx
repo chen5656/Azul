@@ -9,7 +9,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { LEVELS, LEVEL_LABELS, type AgentLevel } from '../ai';
+import { LEVEL_LABELS, type AgentLevel } from '../ai';
 import { getLeaderboard } from '../api/client';
 import { useIdentity } from '../auth';
 import { Board } from '../components/Board';
@@ -24,11 +24,11 @@ import { useGameStyle } from '../context/GameStyleContext';
 import { HUMAN_SEAT, newDailyGame, puzzleIdFor } from '../daily/puzzle';
 import {
   DAILY_LEVELS,
-  DEFAULT_LEVEL,
   LEVEL_DESCRIPTIONS,
   RANKED_LEVELS as DAILY_RANKED_LEVELS,
   dailyHrefFor,
   isRankedLevel,
+  resolveDailyLevel,
 } from '../daily/levels';
 import { setAttemptRunning } from '../game/attemptGuard';
 import { useGameSession } from '../game/useGameSession';
@@ -50,18 +50,6 @@ function rankedLevelList(): string {
   return `${labels.slice(0, -1).join(', ')} and ${labels[labels.length - 1]}`;
 }
 
-function getLevelFromSearch(search: string): AgentLevel {
-  const params = new URLSearchParams(search);
-  const ai = params.get('ai') ?? params.get('level');
-  if (ai && (LEVELS as readonly string[]).includes(ai)) {
-    return ai as AgentLevel;
-  }
-  // The opening opponent for someone who has never played. Note this is *not*
-  // `RANKED_LEVEL`: a Daily played on the default difficulty is not posted to
-  // the board, and the panel says so.
-  return DEFAULT_LEVEL;
-}
-
 export function Daily() {
   const { search, navigate } = useRouter();
   // The id the attempt is played under. It is captured when the attempt starts
@@ -70,7 +58,13 @@ export function Daily() {
   const [today, setToday] = useState(puzzleId);
   const [attempt, setAttempt] = useState(0);
 
-  const level = useMemo(() => getLevelFromSearch(search), [search]);
+  const level = useMemo(() => resolveDailyLevel(search), [search]);
+
+  // Remember whatever is in view, however it got there — the ⚙ menu navigates
+  // straight to a level URL without going through `handleSelectLevel`.
+  useEffect(() => {
+    storage.setDailyLevel(level);
+  }, [level]);
 
   // Re-resolve the New York date on focus and once a minute (§8.1).
   useEffect(() => {

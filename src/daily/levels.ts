@@ -5,7 +5,8 @@
  * change it — the board's opponent chip and the header's ⚙ menu both do.
  */
 
-import type { AgentLevel } from '../ai';
+import { LEVELS, type AgentLevel } from '../ai';
+import { storage } from '../storage';
 
 /** Strongest first: the board's headline opponent leads the row. */
 export const DAILY_LEVELS: readonly AgentLevel[] = [
@@ -35,14 +36,33 @@ export const LEVEL_DESCRIPTIONS: Record<AgentLevel, string> = {
 };
 
 /**
- * The Daily URL for `level`. `DEFAULT_LEVEL` is the absence of the parameter,
- * so it is the one value that must be dropped rather than written.
+ * The Daily URL for `level`. Every level is written out, including the default:
+ * an absent `?ai=` means "has not chosen", which is what lets a returning player
+ * be handed the opponent they picked last time instead of Easy.
  */
+const isLevel = (value: string | null): value is AgentLevel =>
+  value !== null && (LEVELS as readonly string[]).includes(value);
+
+/**
+ * Which opponent a Daily URL means. The URL wins; failing that, the one this
+ * device last played; failing that, `DEFAULT_LEVEL` for a first-time player.
+ */
+export function resolveDailyLevel(search: string): AgentLevel {
+  const params = new URLSearchParams(search);
+  const ai = params.get('ai') ?? params.get('level');
+  if (isLevel(ai)) return ai;
+
+  const remembered = storage.dailyLevel();
+  if (isLevel(remembered)) return remembered;
+
+  // Note this is *not* `RANKED_LEVEL`: a Daily played on the default difficulty
+  // is not posted to the board, and the panel says so.
+  return DEFAULT_LEVEL;
+}
+
 export function dailyHrefFor(level: AgentLevel, search = window.location.search): string {
   const params = new URLSearchParams(search);
   params.delete('level');
-  if (level === DEFAULT_LEVEL) params.delete('ai');
-  else params.set('ai', level);
-  const qs = params.toString();
-  return qs ? `/daily?${qs}` : '/daily';
+  params.set('ai', level);
+  return `/daily?${params.toString()}`;
 }

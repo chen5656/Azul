@@ -29,6 +29,10 @@ export const storage = {
   practiceLevel: () => read('practiceLevel'),
   setPracticeLevel: (level: string) => write('practiceLevel', level),
 
+  /** The opponent the player last chose on the Daily, for their next visit. */
+  dailyLevel: () => read('dailyLevel'),
+  setDailyLevel: (level: string) => write('dailyLevel', level),
+
   practiceSeed: () => read('practiceSeed'),
   setPracticeSeed: (seed: string) => write('practiceSeed', seed),
 
