@@ -40,7 +40,7 @@ import { storage } from '../storage';
 const RANKED_LEVELS = DAILY_RANKED_LEVELS;
 
 /** The board the Daily leads with, and what an unranked game is nudged toward. */
-const RANKED_LEVEL: AgentLevel = 'extreme';
+const RANKED_LEVEL: AgentLevel = 'expert';
 
 const isRanked = isRankedLevel;
 
@@ -395,22 +395,22 @@ function UnrankedBanner({
   onSwitchToRanked: () => void;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-amber-600/70 bg-amber-950/40 p-3 text-sm">
-      <span className="rounded-full border border-amber-500/50 bg-amber-500/20 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-amber-300">
-        Not ranked
+    <div className="flex w-fit max-w-full flex-wrap items-center gap-2 rounded-full border border-neutral-800 bg-neutral-900/90 px-3.5 py-1.5 text-xs text-neutral-300 shadow-sm backdrop-blur-sm sm:text-sm">
+      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-500/10 text-xs">
+        🏆
       </span>
-      <span className="text-amber-100/90">
-        You are playing {LEVEL_LABELS[level]}. Only {rankedLevelList()} games go on today's
-        leaderboard.
+      <span className="font-semibold text-neutral-200">{LEVEL_LABELS[level]} is unranked</span>
+      <span className="text-neutral-500">•</span>
+      <span className="text-neutral-400">
+        Expert, Master &amp; Extreme count toward today&apos;s leaderboard
       </span>
       <button
         type="button"
         onClick={onSwitchToRanked}
-        className="rounded-md bg-amber-500 px-3 py-1 font-semibold text-neutral-950 transition hover:bg-amber-400"
+        className="ml-1 inline-flex items-center gap-1 font-semibold text-amber-400 transition hover:text-amber-300 hover:underline"
       >
-        Switch to {LEVEL_LABELS[RANKED_LEVEL]}
+        Play {LEVEL_LABELS[RANKED_LEVEL]} &rarr;
       </button>
-      <span className="text-xs text-amber-200/60">Switching starts a fresh game.</span>
     </div>
   );
 }
