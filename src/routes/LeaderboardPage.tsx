@@ -10,7 +10,7 @@
  * disclosure rather than splitting a day's field six ways.
  */
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import { LEVEL_LABELS, type AgentLevel } from '../ai';
 import { Leaderboard } from '../components/Leaderboard';
@@ -50,8 +50,6 @@ export function LeaderboardPage() {
 
   /** The ranked tab in view; an unranked `?ai=` leaves the default tab showing. */
   const rankedLevel = isRanked(level) ? level : RANKED_LEVEL;
-
-  const [showPractice, setShowPractice] = useState(!isRanked(level));
 
   const go = useCallback(
     (nextDate: string, nextLevel: AgentLevel) => {

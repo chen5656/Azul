@@ -14,15 +14,23 @@ export const RED = 2;
 export const GREEN = 3;
 export const WHITE = 4;
 
+/**
+ * What a color is called on the wire. Frozen: the Python exporter, the parity
+ * vectors and every stored payload spell color 3 "black", so serialization must
+ * keep doing so even though the tiles are drawn green.
+ */
+export const COLOR_WIRE_NAMES = ['blue', 'yellow', 'red', 'black', 'white'] as const;
+export type ColorName = (typeof COLOR_WIRE_NAMES)[number];
+
+/** What a color is called on screen. Display only — never serialize these. */
 export const COLOR_NAMES = ['blue', 'yellow', 'red', 'green', 'white'] as const;
 export const COLOR_INITIALS = ['B', 'Y', 'R', 'G', 'W'] as const;
-export type ColorName = (typeof COLOR_NAMES)[number];
 
 export const COLOR_BY_NAME: Record<string, number> = Object.fromEntries(
-  COLOR_NAMES.map((name, i) => [name, i]),
+  COLOR_WIRE_NAMES.map((name, i) => [name, i]),
 );
-// Legacy alias: this color used to serialize as "black"; keep old payloads readable.
-COLOR_BY_NAME.black = GREEN;
+// Accept the display spelling too, so a hand-written payload still parses.
+COLOR_BY_NAME.green = GREEN;
 
 export const FIRST_TOKEN = -1;
 

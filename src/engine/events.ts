@@ -7,7 +7,7 @@
  * is the discriminator.
  */
 
-import { COLOR_NAMES } from './constants';
+import { COLOR_WIRE_NAMES } from './constants';
 
 export interface Draft {
   kind: 'draft';
@@ -92,7 +92,7 @@ export type GameEvent =
 export function eventToDict(event: GameEvent): Record<string, unknown> {
   const out: Record<string, unknown> = { ...event };
   if (typeof out.color === 'number' && (out.color as number) >= 0) {
-    out.color = COLOR_NAMES[out.color as number];
+    out.color = COLOR_WIRE_NAMES[out.color as number];
   }
   return out;
 }

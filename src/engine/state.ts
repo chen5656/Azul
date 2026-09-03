@@ -11,6 +11,7 @@ import {
   CENTER,
   COLOR_BY_NAME,
   COLOR_NAMES,
+  COLOR_WIRE_NAMES,
   FIRST_TOKEN,
   GRID_COL,
   GRID_COLOR,
@@ -56,7 +57,7 @@ export class Action {
   toDict(): Record<string, unknown> {
     return {
       source: this.source,
-      color: COLOR_NAMES[this.color],
+      color: COLOR_WIRE_NAMES[this.color],
       dest: this.dest,
       action_id: this.actionId,
     };
@@ -137,11 +138,11 @@ export class PlayerBoard {
 
   toDict(): Record<string, unknown> {
     return {
-      staging_colors: this.staging_colors.map((c) => (c < 0 ? null : COLOR_NAMES[c])),
+      staging_colors: this.staging_colors.map((c) => (c < 0 ? null : COLOR_WIRE_NAMES[c])),
       staging_counts: this.staging_counts.slice(),
       grid: this.grid.map((row) => row.slice()),
       penalty_tiles: this.penalty_tiles.map((t) =>
-        t === FIRST_TOKEN ? 'first_token' : COLOR_NAMES[t],
+        t === FIRST_TOKEN ? 'first_token' : COLOR_WIRE_NAMES[t],
       ),
       penalty_overflow: this.penalty_overflow,
       score: this.score,
@@ -247,12 +248,12 @@ export class GameState {
   toDict(includeRng = false): Record<string, unknown> {
     const sparse = (counts: number[]): Record<string, number> => {
       const out: Record<string, number> = {};
-      counts.forEach((n, c) => { if (n) out[COLOR_NAMES[c]] = n; });
+      counts.forEach((n, c) => { if (n) out[COLOR_WIRE_NAMES[c]] = n; });
       return out;
     };
     const dense = (counts: number[]): Record<string, number> => {
       const out: Record<string, number> = {};
-      counts.forEach((n, c) => { out[COLOR_NAMES[c]] = n; });
+      counts.forEach((n, c) => { out[COLOR_WIRE_NAMES[c]] = n; });
       return out;
     };
     const d: Record<string, unknown> = {
