@@ -12,6 +12,9 @@ import { anonymous } from 'better-auth/plugins/anonymous';
 
 import { appleIsConfigured, type AppleKeySecrets } from './apple-secret';
 
+/** Where Apple posts its `form_post` callback from. */
+const APPLE_ORIGIN = 'https://appleid.apple.com';
+
 /** Credentials the Worker holds as secrets; absent ones disable that provider. */
 export interface AuthSecrets extends AppleKeySecrets {
   BETTER_AUTH_SECRET?: string;
@@ -93,7 +96,25 @@ export function authOptions(
     baseURL: origin,
     basePath: '/api/auth',
     secret: env.BETTER_AUTH_SECRET,
-    trustedOrigins: [origin],
+
+    /**
+     * Apple's `form_post` callback is a cross-site POST carrying
+     * `Origin: https://appleid.apple.com`, and better-auth validates the origin
+     * of *every* non-GET request against this list — so without Apple in it,
+     * the callback is rejected with `INVALID_ORIGIN` before it is ever read.
+     *
+     * The function form is what keeps that narrow. better-auth resolves it per
+     * request for the origin-header check only; the static list built at init
+     * (called with no request, hence the guard) is what `callbackURL`,
+     * `redirectTo` and friends are validated against. So Apple's origin is
+     * trusted to *send* us its one callback, and is never a URL this app can be
+     * talked into redirecting a player to.
+     */
+    trustedOrigins: (request?: Request) => {
+      if (!request) return [origin];
+      const { pathname } = new URL(request.url);
+      return pathname.endsWith('/callback/apple') ? [origin, APPLE_ORIGIN] : [origin];
+    },
 
     /**
      * The leaderboard shows a nickname, never a legal name. Google, Apple and

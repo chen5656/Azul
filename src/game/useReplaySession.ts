@@ -53,6 +53,14 @@ export interface ReplayControls {
 /** Beat between moves at 1x, so a viewer can follow what happened. */
 const STEP_DELAY_MS = 900;
 
+/**
+ * A shared link opens on a still board, which reads as broken to someone who
+ * followed it to *watch a game*. Playback starts on its own, after a beat long
+ * enough for the `Board` to mount and register its animator — starting before
+ * that would skip the first move's animation.
+ */
+const AUTOPLAY_DELAY_MS = 700;
+
 export function useReplaySession(replay: Replay): ReplayControls {
   const gameRef = useRef<QuadroGame | null>(null);
   if (gameRef.current === null) gameRef.current = replayGame(replay);
@@ -72,6 +80,8 @@ export function useReplaySession(replay: Replay): ReplayControls {
   /** Bumped on every rebuild, so an in-flight animation abandons its writes. */
   const generation = useRef(0);
   const stepping = useRef(false);
+  /** Set by any control, so autoplay never overrides a viewer's own choice. */
+  const viewerActed = useRef(false);
   const bump = useCallback(() => setVersion((v) => v + 1), []);
 
   const game = gameRef.current;
@@ -172,6 +182,16 @@ export function useReplaySession(replay: Replay): ReplayControls {
     [bump, playSettlement, replay.actions],
   );
 
+  // Autoplay, once per replay.
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      if (viewerActed.current) return;
+      if (gameRef.current?.isOver()) return;
+      setPlaying(true);
+    }, AUTOPLAY_DELAY_MS);
+    return () => window.clearTimeout(timer);
+  }, []);
+
   // ---- playback loop -------------------------------------------------
 
   useEffect(() => {
@@ -200,6 +220,7 @@ export function useReplaySession(replay: Replay): ReplayControls {
 
   const reset = useCallback(
     (upTo: number) => {
+      viewerActed.current = true;
       generation.current += 1;
       animatorRef.current?.clear();
       displayRef.current = null;
@@ -229,11 +250,16 @@ export function useReplaySession(replay: Replay): ReplayControls {
     total: replay.actions.length,
     playing,
     play: useCallback(() => {
+      viewerActed.current = true;
       if (gameRef.current?.isOver()) return;
       setPlaying(true);
     }, []),
-    pause: useCallback(() => setPlaying(false), []),
+    pause: useCallback(() => {
+      viewerActed.current = true;
+      setPlaying(false);
+    }, []),
     stepForward: useCallback(() => {
+      viewerActed.current = true;
       setPlaying(false);
       void advance(true);
     }, [advance]),

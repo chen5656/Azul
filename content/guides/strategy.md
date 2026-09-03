@@ -23,7 +23,7 @@ Take the penalty when it completes something. Refuse it when it does not. The pl
 
 ## 3. Remember that taking is also giving
 
-Every factory draw pushes the leftovers into the center. Taking one black off a factory holding a black, a blue, a yellow and a red hands your opponent three usable tiles in a single pile. Before committing, look at what your draw creates for the other side — sometimes the same tiles are available from a source that spills less, and sometimes a slightly worse tile for you is much worse for them.
+Every factory draw pushes the leftovers into the center. Taking one green off a factory holding a green, a blue, a yellow and a red hands your opponent three usable tiles in a single pile. Before committing, look at what your draw creates for the other side — sometimes the same tiles are available from a source that spills less, and sometimes a slightly worse tile for you is much worse for them.
 
 ## 4. Deny the line you can read
 

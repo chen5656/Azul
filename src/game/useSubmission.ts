@@ -2,10 +2,12 @@
  * The submission state machine from §7.2.
  *
  * An attempt lives in memory only. Nothing is queued to disk, and a failed
- * submission is discarded on unload (D-020, FR-032).
+ * submission is discarded on unload (D-020, FR-032). The single exception is an
+ * attempt waiting on sign-in, which is kept in sessionStorage so a provider
+ * redirect does not swallow it; see `pendingSubmission`.
  */
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
   ApiError,
@@ -15,6 +17,7 @@ import {
   withBackoff,
 } from '../api/client';
 import type { Identity } from '../auth';
+import { clearPending, loadPending, savePending } from './pendingSubmission';
 
 export type SubmissionState =
   | { kind: 'idle' }
@@ -52,12 +55,14 @@ export function useSubmission(identity: Identity): Submitter {
         // The session cookie is gone or expired: there is nothing to refresh
         // client-side, so ask for a sign-in and keep the attempt in memory.
         if (err instanceof ApiError && err.status === 401) {
+          savePending(attempt);
           setState({ kind: 'awaiting-auth' });
           return;
         }
         throw err;
       }
 
+      clearPending();
       setState(
         result.improved
           ? {
@@ -69,6 +74,9 @@ export function useSubmission(identity: Identity): Submitter {
           : { kind: 'not-improved', bestElapsedMs: result.best_elapsed_ms },
       );
     } catch (err) {
+      // A failure is retryable from memory, but it is no longer waiting on a
+      // sign-in redirect, so nothing should outlive this page.
+      clearPending();
       const apiError = err instanceof ApiError ? err : null;
       setState({
         kind: 'failed',
@@ -80,8 +88,10 @@ export function useSubmission(identity: Identity): Submitter {
 
   const submit = useCallback(
     async (attempt: Omit<ScoreSubmission, 'client_version'>) => {
-      held.current = { ...attempt, client_version: CLIENT_VERSION };
+      const full = { ...attempt, client_version: CLIENT_VERSION };
+      held.current = full;
       if (!identity.signedIn) {
+        savePending(full);
         setState({ kind: 'awaiting-auth' });
         return;
       }
@@ -90,12 +100,39 @@ export function useSubmission(identity: Identity): Submitter {
     [identity.signedIn, send],
   );
 
+  /**
+   * Sign-in is the one thing that gates a post, so completing it has to finish
+   * the attempt the player was already holding. Without this the score sits in
+   * `awaiting-auth` forever and never reaches the board (the sign-in dialog
+   * closes with nothing to show for it).
+   */
+  useEffect(() => {
+    if (!identity.signedIn) return;
+    if (state.kind !== 'awaiting-auth') return;
+    if (!held.current) return;
+    void send();
+  }, [identity.signedIn, state.kind, send]);
+
+  /**
+   * A sign-in that redirected away lands back here on a fresh page with the
+   * attempt only in sessionStorage. Pick it up so the effect above can post it.
+   */
+  useEffect(() => {
+    if (held.current) return;
+    const pending = loadPending();
+    if (!pending) return;
+    held.current = pending;
+    setState((current) => (current.kind === 'idle' ? { kind: 'awaiting-auth' } : current));
+  }, []);
+
   const discard = useCallback(() => {
+    clearPending();
     held.current = null;
     setState({ kind: 'discarded' });
   }, []);
 
   const reset = useCallback(() => {
+    clearPending();
     held.current = null;
     setState({ kind: 'idle' });
   }, []);

@@ -17,7 +17,7 @@ const FILL_NORMAL = [
   'bg-tile-blue text-white shadow-sm border-blue-400/40',
   'bg-tile-yellow text-neutral-900 shadow-sm border-amber-300/40',
   'bg-tile-red text-white shadow-sm border-rose-400/40',
-  'bg-tile-black text-neutral-200 shadow-sm border-neutral-600/40',
+  'bg-tile-green text-emerald-50 shadow-sm border-emerald-700/40',
   'bg-tile-white text-neutral-900 shadow-sm border-slate-300/40',
 ];
 

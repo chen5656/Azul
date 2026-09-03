@@ -9,6 +9,25 @@ export const LEVEL_BADGE_URLS: Record<AgentLevel, string> = {
   easy: '/badges/6_easy_cyan.png',
 };
 
+
+/**
+ * Chip colors that match each badge's own color, so the difficulty control
+ * reads as the agent you are facing rather than as generic UI.
+ */
+export const LEVEL_CHIP: Record<AgentLevel, string> = {
+  extreme: 'border-red-400/60 bg-red-500/15 text-red-200 hover:bg-red-500/30',
+  master: 'border-purple-400/60 bg-purple-500/15 text-purple-200 hover:bg-purple-500/30',
+  expert: 'border-sky-400/60 bg-sky-500/15 text-sky-200 hover:bg-sky-500/30',
+  hard: 'border-orange-400/60 bg-orange-500/15 text-orange-200 hover:bg-orange-500/30',
+  medium: 'border-emerald-400/60 bg-emerald-500/15 text-emerald-200 hover:bg-emerald-500/30',
+  easy: 'border-cyan-400/60 bg-cyan-500/15 text-cyan-200 hover:bg-cyan-500/30',
+};
+
+export function levelChip(level?: AgentLevel | string): string {
+  const norm = (level?.toLowerCase() ?? '') as AgentLevel;
+  return LEVEL_CHIP[norm] ?? 'border-rose-400/50 bg-rose-500/10 text-rose-300 hover:bg-rose-500/25';
+}
+
 export function getBadgeSrc(level?: AgentLevel | string): string {
   const normLevel = (level?.toLowerCase() ?? 'extreme') as AgentLevel;
   return LEVEL_BADGE_URLS[normLevel] ?? LEVEL_BADGE_URLS.extreme;

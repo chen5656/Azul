@@ -14,6 +14,7 @@ import {
 } from '../engine';
 import type { Session } from '../game/useGameSession';
 import type { Spotlight } from '../tutorial/script';
+import { levelChip, RobotAvatar } from './RobotAvatar';
 import { PenaltySlot, Tile, WALL_PLAIN, WALL_TINT } from './Tile';
 
 /**
@@ -37,6 +38,7 @@ export function PlayerBoard({
   badgeOverlay,
   variant = 'panel',
   score,
+  onLabelClick,
 }: {
   board: PlayerBoardState;
   label: string;
@@ -47,11 +49,19 @@ export function PlayerBoard({
   badgeOverlay?: ReactNode;
   variant?: 'panel' | 'stacked';
   score?: number;
+  /**
+   * Makes the name in the stacked header a button. The Daily hangs the
+   * difficulty picker off the opponent's name, which on a phone is the only
+   * place that name appears.
+   */
+  onLabelClick?: () => void;
 }) {
   const { style } = useGameStyle();
   const isFocus = style === 'focus';
   const { canPlace, place, previewFor, selection, spotlight } = session;
   const drop = (dest: number) => interactive && canPlace(dest);
+  /** `extreme` withholds the legal-destination highlight; the click still works. */
+  const showDrop = (dest: number) => !session.hideHints && drop(dest);
   const playerSeat = seat ?? (interactive ? session.humanSeat : 1 - session.humanSeat);
   /**
    * The tutorial rings one part of the board at a time. A real game leaves
@@ -89,10 +99,12 @@ export function PlayerBoard({
             aria-label={`Staging row ${row + 1}${p ? `, places ${p.placed} tiles` : ''}`}
             title={p ? `${p.placed} on the row, ${p.overflow} to the penalty row` : undefined}
             className={`flex justify-end gap-1 rounded-md px-1 py-0.5 transition-all ${
-              !isFocus && ok
+              !isFocus && ok && !session.hideHints
                 ? 'bg-sky-900/50 ring-2 ring-sky-400 shadow-sm hover:bg-sky-800/70'
                 : ''
-            } ${!isFocus && interactive && selection && !ok ? 'opacity-40' : ''} ${
+            } ${
+              !isFocus && !session.hideHints && interactive && selection && !ok ? 'opacity-40' : ''
+            } ${
               lit('row', row) ? 'ring-2 ring-sky-400' : ''
             }`}
           >
@@ -156,9 +168,9 @@ export function PlayerBoard({
       className={`azul-penalty-row flex items-center justify-between gap-1 rounded-lg border border-neutral-700/50 bg-neutral-950/40 p-1.5 transition-all ${
         isStacked ? 'min-w-0 shrink' : 'mt-2 sm:mt-2.5 w-full'
       } ${
-        !isFocus && drop(PENALTY_DEST)
+        !isFocus && showDrop(PENALTY_DEST)
           ? 'border-red-500 bg-red-950/50 ring-2 ring-red-500 shadow-sm hover:bg-red-900/60'
-          : !isFocus && interactive && selection
+          : !isFocus && !session.hideHints && interactive && selection
           ? 'opacity-40'
           : ''
       } ${lit('floor') ? 'ring-2 ring-sky-400' : ''}`}
@@ -210,9 +222,37 @@ export function PlayerBoard({
         >
           {isStacked ? (
             <div className="flex shrink-0 flex-col leading-tight">
-              <span className={`max-w-[7rem] truncate text-sm font-semibold tracking-wide ${accent}`}>
-                {label}
-              </span>
+              {onLabelClick ? (
+                <button
+                  type="button"
+                  onClick={onLabelClick}
+                  aria-label={`Opponent: ${label}. Change difficulty`}
+                  title="Change difficulty"
+                  className={`-ml-0.5 inline-flex max-w-[10rem] items-center gap-1.5 rounded-lg border px-1.5 py-0.5 text-xs font-bold uppercase tracking-wide transition ${
+                    isFocus
+                      ? 'border-neutral-600 text-neutral-300 hover:bg-neutral-700/40'
+                      : levelChip(label)
+                  }`}
+                >
+                  {!isFocus && <RobotAvatar level={label} className="h-6 w-6" />}
+                  <span className="truncate">{label}</span>
+                  <svg
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                    className="h-3 w-3 shrink-0 stroke-current opacity-80"
+                    fill="none"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M6 9l6 6 6-6" />
+                  </svg>
+                </button>
+              ) : (
+                <span className={`max-w-[7rem] truncate text-sm font-semibold tracking-wide ${accent}`}>
+                  {label}
+                </span>
+              )}
               <span
                 className={`text-xl font-black tabular-nums ${
                   isFocus ? 'text-neutral-300' : isHuman ? 'text-sky-300' : 'text-rose-300'

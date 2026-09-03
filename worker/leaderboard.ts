@@ -16,14 +16,18 @@ export type AiLevel = (typeof AI_LEVELS)[number];
 export const DEFAULT_AI_LEVEL: AiLevel = 'extreme';
 
 /**
- * The only level whose attempts are ranked.
+ * The levels whose attempts are ranked, strongest first.
  *
- * The other five are still playable on the Daily, but a board per level split
- * the day's field six ways and compared attempts that were never comparable.
- * Rows already posted against the weaker levels are left in place — the read
- * path still serves them for anyone who asks — but nothing new is written.
+ * The three weakest are still playable on the Daily, but a board per level
+ * split the day's field six ways and compared attempts that were never
+ * comparable. Rows already posted against the weaker levels are left in place
+ * — the read path still serves them — but nothing new is written there.
  */
-export const RANKED_AI_LEVEL: AiLevel = 'extreme';
+export const RANKED_AI_LEVELS = ['extreme', 'master', 'expert'] as const;
+
+export function isRankedAiLevel(value: AiLevel): boolean {
+  return (RANKED_AI_LEVELS as readonly string[]).includes(value);
+}
 
 export function isAiLevel(value: unknown): value is AiLevel {
   return typeof value === 'string' && (AI_LEVELS as readonly string[]).includes(value);

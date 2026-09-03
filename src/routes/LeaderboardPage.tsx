@@ -4,10 +4,10 @@
  *
  * The board's ordering key is the margin over the agent, and a margin against
  * Easy is not comparable to one against Extreme — so the levels can never be
- * mixed into one table. They are not, however, six equal boards: Extreme is the
- * ranked one the Daily is scored on, and the other five are practice boards
- * kept behind a disclosure. Six co-equal tabs split a day's players six ways
- * and leave most of them looking at an empty table.
+ * mixed into one table. They are not, however, six equal boards: the three
+ * strongest agents are ranked and get a tab each, and the three weakest are
+ * unranked — nothing new is written there, so their old rows stay behind a
+ * disclosure rather than splitting a day's field six ways.
  */
 
 import { useCallback, useMemo, useState } from 'react';
@@ -19,13 +19,17 @@ import { useGameStyle } from '../context/GameStyleContext';
 import { FIRST_PUZZLE_ID, isPlayablePuzzleId, puzzleIdFor, shiftPuzzleId } from '../daily/puzzle';
 import { Link, useRouter } from '../router';
 
-/** The one board the Daily is ranked on. */
-const RANKED_LEVEL: AgentLevel = 'extreme';
+/** The boards the Daily is ranked on, strongest first; the first is the default. */
+const RANKED_LEVELS: readonly AgentLevel[] = ['extreme', 'master', 'expert'];
 
-/** Shown under "Other opponents", strongest first. */
-const PRACTICE_LEVELS: readonly AgentLevel[] = ['master', 'expert', 'hard', 'medium', 'easy'];
+const RANKED_LEVEL: AgentLevel = RANKED_LEVELS[0];
 
-const ALL_LEVELS: readonly AgentLevel[] = [RANKED_LEVEL, ...PRACTICE_LEVELS];
+/** Closed boards, kept readable for the rows posted before they were retired. */
+const PRACTICE_LEVELS: readonly AgentLevel[] = ['hard', 'medium', 'easy'];
+
+const ALL_LEVELS: readonly AgentLevel[] = [...RANKED_LEVELS, ...PRACTICE_LEVELS];
+
+const isRanked = (level: AgentLevel) => RANKED_LEVELS.includes(level);
 
 function levelFromSearch(search: string): AgentLevel {
   const ai = new URLSearchParams(search).get('ai');
@@ -44,7 +48,10 @@ export function LeaderboardPage() {
     params.date && isPlayablePuzzleId(params.date, today) ? params.date : today;
   const isToday = date === today;
 
-  const [showPractice, setShowPractice] = useState(level !== RANKED_LEVEL);
+  /** The ranked tab in view; an unranked `?ai=` leaves the default tab showing. */
+  const rankedLevel = isRanked(level) ? level : RANKED_LEVEL;
+
+  const [showPractice, setShowPractice] = useState(!isRanked(level));
 
   const go = useCallback(
     (nextDate: string, nextLevel: AgentLevel) => {
@@ -105,84 +112,42 @@ export function LeaderboardPage() {
         )}
       </div>
 
-      {/* ---- the ranked board ---- */}
-      <div className="mb-2 flex items-center gap-2">
-        {style !== 'focus' && <RobotAvatar level={RANKED_LEVEL} className="h-6 w-6" />}
-        <h2 className="text-sm font-semibold">
-          {LEVEL_LABELS[RANKED_LEVEL]}
-          <span className="ml-2 text-xs font-normal uppercase tracking-wider text-sky-400">
-            Ranked
-          </span>
-        </h2>
+      {/* ---- the ranked boards ---- */}
+      <div className="mb-2 flex flex-wrap items-center gap-1.5">
+        {RANKED_LEVELS.map((candidate) => {
+          const active = rankedLevel === candidate;
+          return (
+            <button
+              key={candidate}
+              type="button"
+              onClick={() => go(date, candidate)}
+              aria-pressed={active}
+              className={`inline-flex cursor-pointer items-center gap-1.5 rounded-md px-2.5 py-1 text-sm font-medium transition ${active
+                  ? 'bg-sky-600 font-semibold text-white shadow-sm ring-1 ring-sky-400'
+                  : 'border border-neutral-700 bg-neutral-800 text-neutral-300 hover:bg-neutral-700 hover:text-white'
+                }`}
+            >
+              {style !== 'focus' && <RobotAvatar level={candidate} className="h-5 w-5" />}
+              <span>{LEVEL_LABELS[candidate]}</span>
+            </button>
+          );
+        })}
+        <span className="ml-1 text-xs font-normal uppercase tracking-wider text-sky-400">
+          Ranked
+        </span>
       </div>
 
       <Leaderboard
-        key={`${date}:${level === RANKED_LEVEL ? RANKED_LEVEL : RANKED_LEVEL}`}
+        key={`${date}:${rankedLevel}`}
         puzzleId={date}
-        aiLevel={RANKED_LEVEL}
+        aiLevel={rankedLevel}
         variant="full"
         emptyLabel={
           isToday
-            ? 'Nobody has posted a time today yet — be the first.'
-            : 'Nobody posted a time on this day.'
+            ? `Nobody has posted a time against ${LEVEL_LABELS[rankedLevel]} today — be the first.`
+            : `Nobody posted a time against ${LEVEL_LABELS[rankedLevel]} on this day.`
         }
       />
-
-      {/* ---- the practice boards ---- */}
-      <div className="mt-5">
-        <button
-          type="button"
-          onClick={() => setShowPractice((open) => !open)}
-          aria-expanded={showPractice}
-          className="flex w-full cursor-pointer items-center justify-between rounded-lg border border-neutral-800 bg-neutral-900/60 p-2.5 text-left transition hover:bg-neutral-900"
-        >
-          <span className="text-sm font-medium text-neutral-300">
-            Other opponents{' '}
-            <span className="text-xs font-normal text-neutral-500">· unranked</span>
-          </span>
-          <span className="text-neutral-500">{showPractice ? '▾' : '▸'}</span>
-        </button>
-
-        {showPractice && (
-          <div className="mt-2">
-            <p className="mb-2 text-xs text-neutral-500">
-              These boards are kept separately because a margin against an easier agent is not
-              comparable to one against {LEVEL_LABELS[RANKED_LEVEL]}. They do not count toward
-              the Daily ranking.
-            </p>
-            <div className="mb-3 flex flex-wrap gap-1.5">
-              {PRACTICE_LEVELS.map((candidate) => (
-                <button
-                  key={candidate}
-                  type="button"
-                  onClick={() => go(date, candidate)}
-                  aria-pressed={level === candidate}
-                  className={`inline-flex cursor-pointer items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition ${
-                    level === candidate
-                      ? 'bg-sky-600 font-semibold text-white shadow-sm ring-1 ring-sky-400'
-                      : 'border border-neutral-700 bg-neutral-800 text-neutral-300 hover:bg-neutral-700 hover:text-white'
-                  }`}
-                >
-                  {style !== 'focus' && <RobotAvatar level={candidate} className="h-5 w-5" />}
-                  <span>{LEVEL_LABELS[candidate]}</span>
-                </button>
-              ))}
-            </div>
-
-            {level !== RANKED_LEVEL && (
-              <Leaderboard
-                key={`${date}:${level}`}
-                puzzleId={date}
-                aiLevel={level}
-                variant="full"
-                emptyLabel={`Nobody has posted a time against ${LEVEL_LABELS[level]}${
-                  isToday ? ' today' : ' on this day'
-                }.`}
-              />
-            )}
-          </div>
-        )}
-      </div>
 
       <p className="mt-4 text-sm text-neutral-500">
         Score is your margin over the agent.{' '}

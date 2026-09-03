@@ -7,7 +7,7 @@ export const COLOR_DOTS = [
   'bg-tile-blue ring-sky-300/60',
   'bg-tile-yellow ring-amber-300/60',
   'bg-tile-red ring-rose-300/60',
-  'bg-tile-black ring-neutral-400/60',
+  'bg-tile-green ring-emerald-300/60',
   'bg-tile-white ring-slate-300/60',
 ];
 

@@ -85,7 +85,22 @@ describe('the replay page', () => {
     expect(screen.getByText(new RegExp(`move 0 / ${game.history.length}`))).toBeInTheDocument();
   });
 
-  it('advances one recorded move at a time', async () => {
+  it('starts playing on its own, so a shared link is a game and not a still board', async () => {
+    const { code } = codeForGame();
+    renderAt(code);
+
+    await screen.findByText(/move 0 \//);
+    // Nobody pressed anything: the button flips to Pause and the game advances.
+    await waitFor(
+      () => expect(screen.getByRole('button', { name: 'Pause' })).toBeInTheDocument(),
+      { timeout: 3000 },
+    );
+    await waitFor(() => expect(screen.getByText(/move [1-9]\d* \//)).toBeInTheDocument(), {
+      timeout: 5000,
+    });
+  });
+
+  it('leaves a viewer who steps first in control, without autoplay taking over', async () => {
     const user = userEvent.setup();
     const { code } = codeForGame();
     renderAt(code);
@@ -93,6 +108,32 @@ describe('the replay page', () => {
     await screen.findByText(/move 0 \//);
     await user.click(screen.getByRole('button', { name: 'Step' }));
     await waitFor(() => expect(screen.getByText(/move 1 \//)).toBeInTheDocument());
+
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    expect(screen.getByRole('button', { name: 'Play' })).toBeInTheDocument();
+    expect(screen.getByText(/move 1 \//)).toBeInTheDocument();
+  });
+
+  it('advances one recorded move at a time', async () => {
+    const user = userEvent.setup();
+    const { code } = codeForGame();
+    renderAt(code);
+
+    await screen.findByText(/move 0 \//);
+    // Playback starts on its own, so stepping is what a viewer does *after*
+    // taking control: pause first, then step from wherever they paused.
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Pause' })).toBeInTheDocument(), {
+      timeout: 3000,
+    });
+    await user.click(screen.getByRole('button', { name: 'Pause' }));
+    // Let the move that was already in flight land before reading the cursor.
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    const paused = Number(/move (\d+) \//.exec(document.body.textContent ?? '')?.[1]);
+
+    await user.click(screen.getByRole('button', { name: 'Step' }));
+    await waitFor(() =>
+      expect(screen.getByText(new RegExp(`move ${paused + 1} /`))).toBeInTheDocument(),
+    );
   });
 
   it('seeks to any move and back to the start', async () => {

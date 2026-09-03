@@ -11,16 +11,18 @@ export const NUM_COLORS = 5;
 export const BLUE = 0;
 export const YELLOW = 1;
 export const RED = 2;
-export const BLACK = 3;
+export const GREEN = 3;
 export const WHITE = 4;
 
-export const COLOR_NAMES = ['blue', 'yellow', 'red', 'black', 'white'] as const;
-export const COLOR_INITIALS = ['B', 'Y', 'R', 'K', 'W'] as const;
+export const COLOR_NAMES = ['blue', 'yellow', 'red', 'green', 'white'] as const;
+export const COLOR_INITIALS = ['B', 'Y', 'R', 'G', 'W'] as const;
 export type ColorName = (typeof COLOR_NAMES)[number];
 
 export const COLOR_BY_NAME: Record<string, number> = Object.fromEntries(
   COLOR_NAMES.map((name, i) => [name, i]),
 );
+// Legacy alias: this color used to serialize as "black"; keep old payloads readable.
+COLOR_BY_NAME.black = GREEN;
 
 export const FIRST_TOKEN = -1;
 

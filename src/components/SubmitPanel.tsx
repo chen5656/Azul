@@ -14,6 +14,7 @@ import { formatElapsed } from './Timer';
 export function SubmitPanel({
   admissible = true,
   unrankedReason,
+  unrankedAction,
   humanWon,
   draw,
   elapsedMs,
@@ -27,6 +28,8 @@ export function SubmitPanel({
   admissible?: boolean;
   /** Shown instead of the rank when `admissible` is false. */
   unrankedReason?: string;
+  /** The way out of an unranked game — a control, not just an explanation. */
+  unrankedAction?: ReactNode;
   humanWon?: boolean;
   draw?: boolean;
   elapsedMs: number;
@@ -40,7 +43,7 @@ export function SubmitPanel({
 }) {
   if (!admissible) {
     return (
-      <div className="rounded-xl border border-neutral-800 p-3">
+      <div className="rounded-xl border border-amber-600/70 bg-amber-950/30 p-3">
         <p className="text-sm">
           {draw
             ? `Game tied vs ${opponentLabel}`
@@ -53,9 +56,13 @@ export function SubmitPanel({
           </span>
           .
         </p>
-        <p className="mt-2 text-sm text-neutral-400">
+        <p className="mt-2 flex flex-wrap items-center gap-2 text-sm text-amber-100/90">
+          <span className="rounded-full border border-amber-500/50 bg-amber-500/20 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide text-amber-300">
+            Not ranked
+          </span>
           {unrankedReason ?? 'Nothing was recorded.'}
         </p>
+        {unrankedAction}
         {/* The game is still worth sharing even when it is not worth ranking. */}
         {children}
         <PlayAgain onPlayAgain={onPlayAgain} />

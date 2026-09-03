@@ -56,7 +56,7 @@ function PracticeSetup({ onStart }: { onStart: (setup: Setup) => void }) {
   const { search } = useRouter();
   const remembered = storage.practiceLevel() as AgentLevel | null;
   const [level, setLevel] = useState<AgentLevel>(
-    remembered && LEVELS.includes(remembered) ? remembered : 'medium',
+    remembered && LEVELS.includes(remembered) ? remembered : 'easy',
   );
   const { style } = useGameStyle();
 

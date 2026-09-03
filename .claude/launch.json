@@ -4,14 +4,23 @@
     {
       "name": "api",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["wrangler", "dev", "--port", "8787"],
+      "runtimeArgs": [
+        "wrangler",
+        "dev",
+        "--port",
+        "8787"
+      ],
       "port": 8787
     },
     {
       "name": "web",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
-      "port": 5173
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
+      "port": 5173,
+      "autoPort": true
     }
   ]
 }

@@ -8,7 +8,7 @@ Quadro is a game of complete information. Five factories, a center pile, and two
 
 ## The table
 
-Each round begins with **five factories holding four tiles each**, and an empty **center**. Tiles come in five colors: blue, yellow, red, black and white. Every tile also carries its initial, so you never have to rely on color alone to read the board.
+Each round begins with **five factories holding four tiles each**, and an empty **center**. Tiles come in five colors: blue, yellow, red, green and white. Every tile also carries its initial, so you never have to rely on color alone to read the board.
 
 Your board sits on the left, your opponent's on the right. Each board has three parts:
 

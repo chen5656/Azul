@@ -51,6 +51,7 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  window.sessionStorage.clear();
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
@@ -107,6 +108,70 @@ describe('useSubmission', () => {
     // The same elapsed time that was displayed is the one that gets posted.
     expect(JSON.parse(fetchMock.mock.calls[0][1].body).elapsed_ms).toBe(461_230);
     expect(result.current.state).toMatchObject({ kind: 'posted', rank: 7 });
+  });
+
+  it('posts the held attempt as soon as sign-in completes, with no extra tap', async () => {
+    const { rerender, result } = renderHook(
+      ({ signedIn }) => useSubmission(identity({ signedIn })),
+      { initialProps: { signedIn: false } },
+    );
+
+    await act(() => result.current.submit(ATTEMPT));
+    expect(result.current.state).toEqual({ kind: 'awaiting-auth' });
+
+    fetchMock.mockResolvedValue(
+      jsonResponse(200, {
+        accepted: true, improved: true, best_elapsed_ms: 461_230, rank: 7, total_entries: 38,
+      }),
+    );
+    // Signing in is the whole interaction: nothing calls retry() for the player.
+    await act(async () => {
+      rerender({ signedIn: true });
+    });
+
+    await waitFor(() =>
+      expect(result.current.state).toMatchObject({ kind: 'posted', rank: 7 }),
+    );
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('recovers an attempt held across a sign-in redirect and posts it (D-020 exception)', async () => {
+    // The player finishes signed out, then a social sign-in reloads the page.
+    const first = renderHook(() => useSubmission(identity({ signedIn: false })));
+    await act(() => first.result.current.submit(ATTEMPT));
+    expect(first.result.current.state).toEqual({ kind: 'awaiting-auth' });
+    first.unmount();
+
+    fetchMock.mockResolvedValue(
+      jsonResponse(200, {
+        accepted: true, improved: true, best_elapsed_ms: 461_230, rank: 4, total_entries: 38,
+      }),
+    );
+    const second = renderHook(() => useSubmission(identity({ signedIn: true })));
+
+    await waitFor(() =>
+      expect(second.result.current.state).toMatchObject({ kind: 'posted', rank: 4 }),
+    );
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body).elapsed_ms).toBe(461_230);
+
+    // Posted once: a third page load must not repost it.
+    second.unmount();
+    const third = renderHook(() => useSubmission(identity({ signedIn: true })));
+    await act(async () => {});
+    expect(third.result.current.state).toEqual({ kind: 'idle' });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('forgets a redirect-held attempt once the player discards it', async () => {
+    const first = renderHook(() => useSubmission(identity({ signedIn: false })));
+    await act(() => first.result.current.submit(ATTEMPT));
+    act(() => first.result.current.discard());
+    first.unmount();
+
+    const second = renderHook(() => useSubmission(identity({ signedIn: true })));
+    await act(async () => {});
+    expect(second.result.current.state).toEqual({ kind: 'idle' });
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it('explains a stale puzzle rather than showing a generic error (FR-025)', async () => {

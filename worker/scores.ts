@@ -13,7 +13,7 @@
 import type { Session } from './auth';
 import { currentPuzzleId, isPuzzleId, seedForPuzzle } from './daily';
 import { HttpError, json } from './http';
-import { DEFAULT_AI_LEVEL, RANKED_AI_LEVEL, type AiLevel, isAiLevel, rankOf } from './leaderboard';
+import { DEFAULT_AI_LEVEL, type AiLevel, isAiLevel, isRankedAiLevel, rankOf } from './leaderboard';
 import { MAX_REPLAY_CHARS, checkReplay } from './replay';
 
 /** BR-011: a five-round game against a 450ms agent cannot be won in 20 seconds. */
@@ -132,8 +132,8 @@ export async function submitScore(
   if (payload.puzzle_id !== currentPuzzleId(new Date(now))) {
     await reject(409, 'STALE_PUZZLE', 'That puzzle is no longer the current one');
   }
-  if (payload.ai_level !== RANKED_AI_LEVEL) {
-    await reject(422, 'UNRANKED_LEVEL', 'Only the strongest opponent is ranked');
+  if (!isRankedAiLevel(payload.ai_level)) {
+    await reject(422, 'UNRANKED_LEVEL', 'Only the three strongest opponents are ranked');
   }
   if (payload.elapsed_ms < MIN_ELAPSED_MS || payload.elapsed_ms > MAX_ELAPSED_MS) {
     await reject(422, 'IMPLAUSIBLE_TIME', 'That time is not plausible');

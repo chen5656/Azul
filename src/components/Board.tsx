@@ -12,7 +12,7 @@ import { COLOR_DOTS } from './GameHeader';
 import { GameOverBurst } from './GameOverBurst';
 import { StackedLayout, WideLayout, type BoardSlots } from './layouts';
 import { PlayerBoard } from './PlayerBoard';
-import { getBadgeSrc, HumanAvatar, RobotAvatar } from './RobotAvatar';
+import { getBadgeSrc, HumanAvatar, levelChip, RobotAvatar } from './RobotAvatar';
 import { useLayoutMode } from './useLayoutMode';
 
 function UndoIcon() {
@@ -45,6 +45,7 @@ export function Board({
   topLeft,
   topRight,
   title,
+  onChangeLevel,
 }: {
   session: Session;
   humanLabel?: string;
@@ -53,6 +54,11 @@ export function Board({
   topLeft?: ReactNode;
   topRight?: ReactNode;
   title?: ReactNode;
+  /**
+   * Set by the Daily: the opponent's name doubles as the difficulty control, so
+   * "who you are playing" lives where you already look for the score.
+   */
+  onChangeLevel?: () => void;
 }) {
   const identity = useIdentity();
   const playerDisplayName = humanLabel !== 'You' ? humanLabel : (identity.displayName || 'You');
@@ -296,13 +302,15 @@ export function Board({
     opponentProfile: (
       <>
         <div className="flex min-w-0 flex-col items-start">
-          <span
-            className={`text-[11px] sm:text-xs font-semibold tracking-wide uppercase ${
-              style === 'focus' ? 'text-neutral-400' : 'text-rose-400'
-            }`}
-          >
-            {opponentLabel}
-          </span>
+          {!onChangeLevel && (
+            <span
+              className={`text-[11px] sm:text-xs font-semibold tracking-wide uppercase ${
+                style === 'focus' ? 'text-neutral-400' : 'text-rose-400'
+              }`}
+            >
+              {opponentLabel}
+            </span>
+          )}
           <span
             className={`text-xl sm:text-2xl font-extrabold tabular-nums tracking-tight ${
               style === 'focus' ? 'text-neutral-300' : 'text-rose-400'
@@ -312,7 +320,37 @@ export function Board({
           </span>
           {turnUnderline(isOpponentTurn, 'rose')}
         </div>
-        {renderOpponentAvatar()}
+        {onChangeLevel ? (
+          // Badge, name and caret are one control: the opponent *is* the
+          // difficulty, so the thing you look at is the thing you click.
+          <button
+            type="button"
+            onClick={onChangeLevel}
+            aria-label={`Opponent: ${opponentLabel}. Change difficulty`}
+            title="Change difficulty"
+            className={`inline-flex shrink-0 items-center gap-1.5 rounded-xl border px-2 py-1 text-xs sm:text-sm font-bold uppercase tracking-wide transition ${
+              style === 'focus'
+                ? 'border-neutral-600 text-neutral-300 hover:bg-neutral-700/40'
+                : levelChip(opponentLabel)
+            }`}
+          >
+            {style !== 'focus' && <RobotAvatar level={opponentLabel} className="h-7 w-7 sm:h-8 sm:w-8" />}
+            <span>{opponentLabel}</span>
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              className="h-3.5 w-3.5 stroke-current opacity-80"
+              fill="none"
+              strokeWidth="3"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </button>
+        ) : (
+          renderOpponentAvatar()
+        )}
       </>
     ),
 
@@ -337,6 +375,7 @@ export function Board({
         session={session}
         seat={opponentSeat}
         variant={isStacked ? 'stacked' : 'panel'}
+        onLabelClick={onChangeLevel}
         badgeOverlay={
           style === 'classic' && !isStacked ? (
             <div

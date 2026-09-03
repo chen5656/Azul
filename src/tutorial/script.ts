@@ -11,7 +11,7 @@
  *   F1: BB K W   F2: Y RRR   F3: B Y R K   F4: B Y R K   F5: YY R W
  */
 
-import { BLACK, CENTER, RED, WHITE, YELLOW } from '../engine';
+import { CENTER, GREEN, RED, WHITE, YELLOW } from '../engine';
 
 /** The deal the lesson is written against. Changing it invalidates every step. */
 export const TUTORIAL_SEED = 7;
@@ -91,7 +91,7 @@ export const STEPS: Step[] = [
     ],
     after: [
       'Row 3 is full — at the end of the round it will move onto your wall and score.',
-      'Look at the center. The yellow you left in factory 2 slid there, and so did the black and white the opponent left behind in factory 1 — a factory empties completely the moment anyone takes from it.',
+      'Look at the center. The yellow you left in factory 2 slid there, and so did the green and white the opponent left behind in factory 1 — a factory empties completely the moment anyone takes from it.',
     ],
   },
   {
@@ -149,12 +149,12 @@ export const STEPS: Step[] = [
     kind: 'move',
     title: 'Feeding the center',
     source: 2,
-    color: BLACK,
+    color: GREEN,
     dest: 3,
-    pick: ['Factory 3 is the last one with tiles. Take its black tile.'],
-    place: ['Row 4 is empty and holds four. Start it with the black.'],
+    pick: ['Factory 3 is the last one with tiles. Take its green tile.'],
+    place: ['Row 4 is empty and holds four. Start it with the green.'],
     after: [
-      'One black to you, and the blue, yellow and red you left behind all poured into the center — where the opponent immediately helped itself.',
+      'One green to you, and the blue, yellow and red you left behind all poured into the center — where the opponent immediately helped itself.',
       'Taking a single tile off a full factory hands the other three to your opponent. Sometimes that is the price; sometimes it is the reason to take a different factory.',
     ],
   },

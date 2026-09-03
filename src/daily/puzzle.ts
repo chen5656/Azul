@@ -17,11 +17,11 @@ export const DAILY_TIME_ZONE = 'America/New_York';
 export const HUMAN_SEAT = 0;
 
 /**
- * The first day that has a board. Browsing back stops here rather than at an
- * arbitrary date, so the date picker cannot wander into days that were never
- * played and show a permanently empty board.
+ * The first day that has a board — launch day. Browsing back stops here rather
+ * than at an arbitrary date, so the date picker cannot wander into days that
+ * were never played and show a permanently empty board.
  */
-export const FIRST_PUZZLE_ID = '2025-01-31';
+export const FIRST_PUZZLE_ID = '2026-09-02';
 
 const DATE_FORMAT = new Intl.DateTimeFormat('en-CA', {
   timeZone: DAILY_TIME_ZONE,

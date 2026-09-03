@@ -1,6 +1,7 @@
+import type { ReactNode } from 'react';
+
 import { AppBanners } from './components/AppBanners';
-import { DisplayScaleControl } from './components/DisplayScaleControl';
-import { GameStyleControl } from './components/GameStyleControl';
+import { SettingsMenu } from './components/SettingsMenu';
 import { useAttemptRunning } from './game/attemptGuard';
 import { AuthControl } from './auth';
 import { Daily } from './routes/Daily';
@@ -16,40 +17,58 @@ import { useLayoutMode } from './components/useLayoutMode';
 /** Routes that are a game surface: on phones and tablets they own the screen. */
 const GAME_ROUTES = new Set(['/tutorial', '/practice', '/daily']);
 
+/** The cup that marks the board; the Daily no longer carries one of its own. */
+function TrophyIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      className="h-4 w-4 stroke-current text-amber-400"
+      fill="none"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+      <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+      <path d="M4 22h16" />
+      <path d="M10 14.66V17c0 .55-.45 1-1 1H7v4h10v-4h-2c-.55 0-1-.45-1-1v-2.34" />
+      <path d="M6 4h12v7a6 6 0 0 1-12 0V4z" />
+    </svg>
+  );
+}
+
 function Nav() {
   const { route } = useRouter();
   const item = (
-    to: '/' | '/tutorial' | '/daily' | '/practice' | '/leaderboard' | '/history',
+    to: '/tutorial' | '/daily' | '/practice' | '/leaderboard',
     label: string,
+    icon?: ReactNode,
   ) => (
     <Link
       to={to}
-      className={`rounded px-2 py-1 text-sm ${
+      className={`inline-flex items-center gap-1.5 rounded px-2 py-1 text-sm ${
         route === to ||
         (to === '/leaderboard' && route.startsWith('/leaderboard'))
           ? 'bg-neutral-800 text-neutral-100'
           : 'text-neutral-400 hover:text-neutral-100'
       }`}
     >
+      {icon}
       {label}
     </Link>
   );
 
+  /*
+    Four destinations only. Home is the wordmark, and the rest (Learn's static
+    Guide, History, style and scale) sit behind the ⚙ so the bar never wraps.
+  */
   return (
-    <nav aria-label="Main" className="flex flex-wrap items-center gap-1">
-      {item('/', 'Home')}
-      {item('/tutorial', 'Learn')}
+    <nav aria-label="Main" className="flex items-center gap-1">
       {item('/daily', 'Daily')}
       {item('/practice', 'Practice')}
-      {item('/leaderboard', 'Leaderboard')}
-      {item('/history', 'History')}
-      {/* Static pages emitted by the SEO build, outside the router. */}
-      <a
-        href="/guide"
-        className="rounded px-2 py-1 text-sm text-neutral-400 hover:text-neutral-100"
-      >
-        Guide
-      </a>
+      {item('/leaderboard', 'Leaderboard', <TrophyIcon />)}
+      {item('/tutorial', 'Learn')}
     </nav>
   );
 }
@@ -69,14 +88,13 @@ export function App() {
       <AppBanners blockUpdates={attemptRunning} />
       {!immersive && (
       <header className="border-b border-neutral-800">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 py-3">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-x-3 px-4 py-3">
           <Link to="/" className="font-semibold tracking-tight">
             Quadro
           </Link>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <div className="flex items-center gap-x-2">
             <Nav />
-            <GameStyleControl />
-            <DisplayScaleControl />
+            <SettingsMenu />
             <AuthControl />
           </div>
         </div>

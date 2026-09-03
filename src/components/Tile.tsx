@@ -5,7 +5,7 @@ const FILL_NORMAL = [
   'bg-tile-blue text-white shadow-sm border-blue-400/40',
   'bg-tile-yellow text-neutral-900 shadow-sm border-amber-300/40',
   'bg-tile-red text-white shadow-sm border-rose-400/40',
-  'bg-tile-black text-neutral-200 shadow-sm border-neutral-600/40',
+  'bg-tile-green text-emerald-50 shadow-sm border-emerald-700/40',
   'bg-tile-white text-neutral-900 shadow-sm border-slate-300/40',
 ];
 
@@ -13,7 +13,7 @@ export const FILL_FOCUS = [
   'bg-blue-950/40 text-blue-300 border-blue-600/40 font-black',
   'bg-amber-950/40 text-amber-300 border-amber-600/40 font-black',
   'bg-rose-950/40 text-rose-300 border-rose-600/40 font-black',
-  'bg-neutral-950 text-neutral-400 border-neutral-700/60 font-black',
+  'bg-emerald-950/40 text-emerald-300 border-emerald-600/40 font-black',
   'bg-slate-700/40 text-slate-100 border-slate-300/50 font-black',
 ];
 
@@ -26,7 +26,7 @@ export const WALL_TINT = [
   'border-blue-500/25 bg-blue-500/[0.07] text-blue-300/50',
   'border-amber-400/25 bg-amber-400/[0.07] text-amber-200/50',
   'border-rose-500/25 bg-rose-500/[0.07] text-rose-300/50',
-  'border-neutral-500/30 bg-neutral-400/[0.07] text-neutral-300/50',
+  'border-emerald-500/25 bg-emerald-500/[0.07] text-emerald-300/50',
   'border-slate-300/25 bg-slate-200/[0.07] text-slate-200/55',
 ];
 

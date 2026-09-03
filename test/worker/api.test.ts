@@ -107,11 +107,18 @@ describe('POST /api/scores', () => {
     expect(audit).toMatchObject({ accepted: 0, reason: 'IMPLAUSIBLE_TIME' });
   });
 
-  it('rejects an attempt against anything but the ranked level', async () => {
+  it('rejects an attempt against a retired, unranked level', async () => {
     const session = await signUp();
     const response = await post({ ...WIN, ai_level: 'medium' }, session);
     expect(response.status).toBe(422);
     expect(await response.json()).toMatchObject({ error: { code: 'UNRANKED_LEVEL' } });
+  });
+
+  it.each(['master', 'expert'])('accepts an attempt against %s', async (aiLevel) => {
+    const session = await signUp();
+    const response = await post({ ...WIN, ai_level: aiLevel }, session);
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ accepted: true });
   });
 
   it('rejects a time above the upper bound', async () => {

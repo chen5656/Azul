@@ -104,6 +104,11 @@ export interface Session {
    * back to its normal appearance.
    */
   spotlight?: Spotlight;
+  /**
+   * True when the board must not highlight the destinations a selection may
+   * legally land on. `extreme` withholds that hint as part of its difficulty.
+   */
+  hideHints?: boolean;
 }
 
 export function useGameSession(options: SessionOptions): Session {
@@ -506,6 +511,7 @@ export function useGameSession(options: SessionOptions): Session {
     aiMode: aiRef.current?.mode ?? 'worker',
     error,
     setAnimator,
+    hideHints: ai.level === 'extreme',
   };
 }
 
