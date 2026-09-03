@@ -10,11 +10,12 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { QuadroGame } from '../engine';
 import { LEVELS, LEVEL_LABELS, type AgentLevel } from '../ai';
 import { Board } from '../components/Board';
-import { ShareReplay } from '../components/ShareReplay';
+import { GameResultCard } from '../components/GameResultCard';
 import { RobotAvatar } from '../components/RobotAvatar';
 import { useGameStyle } from '../context/GameStyleContext';
 import { useGameSession } from '../game/useGameSession';
 import { practiceHrefFor, resolvePracticeLevel } from '../practice/levels';
+import { replayOf, replayUrl } from '../replay/share';
 import { storage } from '../storage';
 import { useRouter } from '../router';
 
@@ -213,32 +214,36 @@ function PracticeGame({
     </div>
   );
 
+  const { navigate } = useRouter();
   const result = session.status === 'game-over' ? session.game.result() : null;
 
   return (
     <div className="flex w-full flex-col gap-3">
-      {/* Nothing is recorded in Practice (FR-015), but the game can still be
-          shared: the replay link carries the whole game on its own. */}
       {result && (
-        <div className="rounded-xl border border-neutral-800 bg-neutral-900/60 p-3">
-          <p className="text-sm">
-            {result.draw
-              ? `Tied with ${opponentLabel}`
-              : session.humanWon
-                ? `You beat ${opponentLabel}`
-                : `${opponentLabel} won`}{' '}
-            <span className="text-neutral-400">
-              {result.scores[session.humanSeat]}–{result.scores[1 - session.humanSeat]}
-            </span>
-          </p>
-          <ShareReplay
-            game={session.game}
-            aiLevel={setup.level}
-            levelLabel={opponentLabel}
-            humanSeat={session.humanSeat}
-            puzzleId={null}
-          />
-        </div>
+        <GameResultCard
+          humanWon={session.humanWon}
+          draw={result.draw}
+          elapsedMs={session.elapsedMs}
+          aiLevel={setup.level}
+          humanScore={result.scores[session.humanSeat]}
+          opponentScore={result.scores[1 - session.humanSeat]}
+          ranked={false}
+          onPlayAgain={session.restart}
+          onWatchReplay={() => {
+            try {
+              const replay = replayOf(session.game, {
+                aiLevel: setup.level,
+                humanSeat: session.humanSeat,
+                puzzleId: null,
+              });
+              const url = replayUrl(replay);
+              window.open(url, '_blank');
+            } catch {
+              // Replay encoding failed
+            }
+          }}
+          onSwitchToRanked={() => navigate('/daily?ai=expert')}
+        />
       )}
 
       <Board

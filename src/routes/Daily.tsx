@@ -13,12 +13,11 @@ import { LEVEL_LABELS, type AgentLevel } from '../ai';
 import { getLeaderboard } from '../api/client';
 import { useIdentity } from '../auth';
 import { Board } from '../components/Board';
+import { GameResultCard } from '../components/GameResultCard';
 import { Modal } from '../components/Modal';
 import { RobotAvatar } from '../components/RobotAvatar';
-import { ShareReplay } from '../components/ShareReplay';
 import { encodeReplay } from '../replay/codec';
-import { replayOf } from '../replay/share';
-import { SubmitPanel } from '../components/SubmitPanel';
+import { replayOf, replayUrl } from '../replay/share';
 import { Timer } from '../components/Timer';
 import { useGameStyle } from '../context/GameStyleContext';
 import { HUMAN_SEAT, newDailyGame, puzzleIdFor } from '../daily/puzzle';
@@ -248,38 +247,30 @@ function DailyAttempt({
         <UnrankedBanner level={level} onSwitchToRanked={() => onSelectLevel(RANKED_LEVEL)} />
       )}
       {session.status === 'game-over' && (
-        <SubmitPanel
-          admissible={isRanked(level)}
-          unrankedReason={`Only games against ${rankedLevelList()} are ranked, so this time was not posted to today's board.`}
-          unrankedAction={
-            <button
-              type="button"
-              onClick={() => onSelectLevel(RANKED_LEVEL)}
-              className="mt-2 rounded-lg bg-amber-500 px-3 py-1.5 text-sm font-semibold text-neutral-950 transition hover:bg-amber-400"
-            >
-              Play {LEVEL_LABELS[RANKED_LEVEL]} for the board
-            </button>
-          }
+        <GameResultCard
           humanWon={session.humanWon}
           draw={session.game.result().draw}
           elapsedMs={session.elapsedMs}
-          opponentLabel={opponentLabel}
-          state={submission.state}
-          onRetry={() => void submission.retry()}
-          onDiscard={submission.discard}
+          aiLevel={level}
+          humanScore={session.game.result().scores[HUMAN_SEAT]}
+          opponentScore={session.game.result().scores[1 - HUMAN_SEAT]}
+          submissionState={submission.state}
+          ranked={isRanked(level)}
           onPlayAgain={onPlayAgain}
-        >
-          <ShareReplay
-            game={session.game}
-            aiLevel={level}
-            levelLabel={opponentLabel}
-            humanSeat={HUMAN_SEAT}
-            puzzleId={puzzleId}
-            elapsedMs={session.elapsedMs}
-            rank={submission.state.kind === 'posted' ? submission.state.rank : null}
-            totalEntries={totalEntries}
-          />
-        </SubmitPanel>
+          onWatchReplay={() => {
+            try {
+              const replay = replayOf(session.game, { aiLevel: level, humanSeat: HUMAN_SEAT, puzzleId });
+              const url = replayUrl(replay);
+              window.open(url, '_blank');
+            } catch {
+              // Replay encoding failed
+            }
+          }}
+          onSwitchToRanked={() => onSelectLevel(RANKED_LEVEL)}
+          onRetrySubmit={() => void submission.retry()}
+          onDiscardSubmit={submission.discard}
+          onOpenSignIn={identity.openSignIn}
+        />
       )}
 
       <Board
@@ -394,22 +385,56 @@ function UnrankedBanner({
   level: AgentLevel;
   onSwitchToRanked: () => void;
 }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleShareClick = () => {
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      void navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
   return (
-    <div className="flex w-fit max-w-full flex-wrap items-center gap-2 rounded-full border border-neutral-800 bg-neutral-900/90 px-3.5 py-1.5 text-xs text-neutral-300 shadow-sm backdrop-blur-sm sm:text-sm">
-      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-500/10 text-xs">
-        🏆
-      </span>
-      <span className="font-semibold text-neutral-200">{LEVEL_LABELS[level]} is unranked</span>
-      <span className="text-neutral-500">•</span>
-      <span className="text-neutral-400">
-        Expert, Master &amp; Extreme count toward today&apos;s leaderboard
-      </span>
+    <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="flex w-fit max-w-full flex-wrap items-center gap-2 rounded-full border border-neutral-800 bg-neutral-900/90 px-3.5 py-1.5 text-xs text-neutral-300 shadow-sm backdrop-blur-sm sm:text-sm">
+        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-500/10 text-xs">
+          🏆
+        </span>
+        <span className="font-semibold text-neutral-200">
+          {LEVEL_LABELS[level]} games aren&apos;t ranked
+        </span>
+        <span className="text-neutral-500">•</span>
+        <span className="text-neutral-400">
+          Expert, Master &amp; Extreme count toward today&apos;s leaderboard.
+        </span>
+        <button
+          type="button"
+          onClick={onSwitchToRanked}
+          className="ml-1 inline-flex items-center gap-1 font-semibold text-amber-400 transition hover:text-amber-300 hover:underline"
+        >
+          Play {LEVEL_LABELS[RANKED_LEVEL]} &rarr;
+        </button>
+      </div>
+
       <button
         type="button"
-        onClick={onSwitchToRanked}
-        className="ml-1 inline-flex items-center gap-1 font-semibold text-amber-400 transition hover:text-amber-300 hover:underline"
+        onClick={handleShareClick}
+        title="Share game link"
+        className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-neutral-700 bg-neutral-900/80 px-3 py-1.5 text-xs sm:text-sm font-medium text-neutral-200 shadow-sm transition hover:bg-neutral-800 hover:text-white"
       >
-        Play {LEVEL_LABELS[RANKED_LEVEL]} &rarr;
+        <svg
+          viewBox="0 0 24 24"
+          className="h-3.5 w-3.5 stroke-current"
+          fill="none"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+        </svg>
+        <span>{copied ? 'Link copied!' : 'Share game'}</span>
       </button>
     </div>
   );

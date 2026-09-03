@@ -18,6 +18,7 @@ import { RobotAvatar } from '../components/RobotAvatar';
 import { useGameStyle } from '../context/GameStyleContext';
 import { FIRST_PUZZLE_ID, isPlayablePuzzleId, puzzleIdFor, shiftPuzzleId } from '../daily/puzzle';
 import { Link, useRouter } from '../router';
+import { storage } from '../storage';
 
 /** The boards the Daily is ranked on, strongest first; the first is the default. */
 const RANKED_LEVELS: readonly AgentLevel[] = ['extreme', 'master', 'expert'];
@@ -33,7 +34,14 @@ const isRanked = (level: AgentLevel) => RANKED_LEVELS.includes(level);
 
 function levelFromSearch(search: string): AgentLevel {
   const ai = new URLSearchParams(search).get('ai');
-  return ai && (ALL_LEVELS as readonly string[]).includes(ai) ? (ai as AgentLevel) : RANKED_LEVEL;
+  if (ai && (ALL_LEVELS as readonly string[]).includes(ai)) {
+    return ai as AgentLevel;
+  }
+  const remembered = storage.dailyLevel();
+  if (remembered && (ALL_LEVELS as readonly string[]).includes(remembered) && isRanked(remembered as AgentLevel)) {
+    return remembered as AgentLevel;
+  }
+  return RANKED_LEVEL;
 }
 
 export function LeaderboardPage() {
@@ -54,7 +62,7 @@ export function LeaderboardPage() {
   const go = useCallback(
     (nextDate: string, nextLevel: AgentLevel) => {
       const path = nextDate === today ? '/leaderboard' : `/leaderboard/${nextDate}`;
-      navigate(nextLevel === RANKED_LEVEL ? path : `${path}?ai=${nextLevel}`);
+      navigate(`${path}?ai=${nextLevel}`);
     },
     [navigate, today],
   );
