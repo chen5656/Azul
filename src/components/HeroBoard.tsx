@@ -482,6 +482,7 @@ export function HeroBoard() {
           total += points;
           setScore(total);
           popScore(`+${points}`, `wall-${row}-${col}`, true);
+
           await sleep(SCORE_PAUSE_MS);
         }
 

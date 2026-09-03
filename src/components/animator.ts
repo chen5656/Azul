@@ -86,11 +86,18 @@ export function createAnimator(rootRef: RefObject<HTMLElement | null>, style: Ga
     const a = node.getBoundingClientRect();
     const b = root.getBoundingClientRect();
     if (a.width === 0 && a.height === 0) return null; // In test environments or unrendered state
+    // `getBoundingClientRect()` reports visual pixels after an ancestor's CSS
+    // zoom/transform, while absolutely positioned children of `root` use its
+    // unscaled local coordinate system. Convert the visual delta back to local
+    // pixels so overlays stay attached to their tiles at non-100% display
+    // scales.
+    const scaleX = root.offsetWidth > 0 && b.width > 0 ? b.width / root.offsetWidth : 1;
+    const scaleY = root.offsetHeight > 0 && b.height > 0 ? b.height / root.offsetHeight : 1;
     return {
-      x: a.left - b.left,
-      y: a.top - b.top,
-      width: a.width,
-      height: a.height,
+      x: (a.left - b.left) / scaleX,
+      y: (a.top - b.top) / scaleY,
+      width: a.width / scaleX,
+      height: a.height / scaleY,
     };
   };
 
@@ -619,7 +626,7 @@ export async function animateSettlement(
   await sleep(220);
 
   for (const event of scoredEvents) {
-    const { player, row, col, color, points, horizontal, vertical } = event;
+    const { player, row, col, color, points } = event;
     const fromId = `stage-${player}-${row}-0`;
     const toId = `wall-${player}-${row}-${col}`;
     const spareIds = Array.from({ length: row }, (_, i) => `stage-${player}-${row}-${i + 1}`);
@@ -636,35 +643,6 @@ export async function animateSettlement(
 
     animator.popIn([toId]);
     animator.popScore(`+${points}`, toId, true);
-
-    const neon = NEON_COLORS[color] ?? '#38bdf8';
-
-    // Scoring streak animations for connected runs formed during placement
-    const streaks: Promise<void>[] = [];
-    if (horizontal > 1) {
-      // Find row run extent around col
-      const grid = view.players[player].grid;
-      let startCol = col;
-      while (startCol > 0 && grid[row][startCol - 1]) startCol -= 1;
-      let endCol = col;
-      while (endCol < 4 && grid[row][endCol + 1]) endCol += 1;
-      const rowIds = Array.from({ length: endCol - startCol + 1 }, (_, i) => `wall-${player}-${row}-${startCol + i}`);
-      streaks.push(animator.streakLine(rowIds, { color: neon, ms: 500 }));
-    }
-
-    if (vertical > 1) {
-      const grid = view.players[player].grid;
-      let startRow = row;
-      while (startRow > 0 && grid[startRow - 1][col]) startRow -= 1;
-      let endRow = row;
-      while (endRow < 4 && grid[endRow + 1][col]) endRow += 1;
-      const colIds = Array.from({ length: endRow - startRow + 1 }, (_, i) => `wall-${player}-${startRow + i}-${col}`);
-      streaks.push(animator.streakLine(colIds, { color: neon, ms: 500 }));
-    }
-
-    if (streaks.length > 0) {
-      await Promise.all(streaks);
-    }
 
     await sleep(340);
   }
@@ -696,7 +674,9 @@ export async function animateSettlement(
           const rowIds = Array.from({ length: 5 }, (_, c) => `wall-${player}-${r}-${c}`);
           animator.popScore('+2', `wall-${player}-${r}-2`, true);
           await animator.streakLine(rowIds, { color: '#ffffff', ms: 600 });
-          await sleep(200);
+          view.players[player].score += 2;
+          commit();
+          await sleep(250);
         }
       }
     }
@@ -715,7 +695,9 @@ export async function animateSettlement(
           const colIds = Array.from({ length: 5 }, (_, r) => `wall-${player}-${r}-${c}`);
           animator.popScore('+7', `wall-${player}-2-${c}`, true);
           await animator.streakLine(colIds, { color: '#38bdf8', ms: 650 });
-          await sleep(200);
+          view.players[player].score += 7;
+          commit();
+          await sleep(250);
         }
       }
     }
@@ -735,7 +717,9 @@ export async function animateSettlement(
           const colorIds = Array.from({ length: 5 }, (_, r) => `wall-${player}-${r}-${(color + r) % 5}`);
           animator.popScore('+10', `wall-${player}-2-${(color + 2) % 5}`, true);
           await animator.streakLine(colorIds, { color: NEON_COLORS[color] ?? '#facc15', ms: 750 });
-          await sleep(200);
+          view.players[player].score += 10;
+          commit();
+          await sleep(250);
         }
       }
     }

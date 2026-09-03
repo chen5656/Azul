@@ -32,6 +32,53 @@ describe('Gameplay Animations', () => {
     expect(() => animator.clear()).not.toThrow();
   });
 
+  it('normalizes overlay coordinates when the board is displayed at 85%', async () => {
+    const root = document.createElement('div');
+    const first = document.createElement('div');
+    const second = document.createElement('div');
+    first.dataset.animId = 'wall-0-0-0';
+    second.dataset.animId = 'wall-0-0-1';
+    root.append(first, second);
+
+    Object.defineProperties(root, {
+      offsetWidth: { configurable: true, value: 1000 },
+      offsetHeight: { configurable: true, value: 800 },
+    });
+    root.getBoundingClientRect = () =>
+      ({ left: 100, top: 50, width: 850, height: 680 } as DOMRect);
+    first.getBoundingClientRect = () =>
+      ({ left: 610, top: 220, width: 34, height: 34 } as DOMRect);
+    second.getBoundingClientRect = () =>
+      ({ left: 652.5, top: 220, width: 34, height: 34 } as DOMRect);
+
+    const animations: Array<{ onfinish: null | (() => void) }> = [];
+    const stubAnimate = () => {
+      const animation = { onfinish: null as null | (() => void) };
+      animations.push(animation);
+      return animation as Animation;
+    };
+    const animateDescriptor = Object.getOwnPropertyDescriptor(SVGElement.prototype, 'animate');
+    Object.defineProperty(SVGElement.prototype, 'animate', { configurable: true, value: stubAnimate });
+    try {
+      const animator = createAnimator({ current: root }, 'classic');
+      const done = animator.streakLine(['wall-0-0-0', 'wall-0-0-1']);
+      const path = root.querySelector('path');
+
+      // Visual centers 527px and 569.5px from the root become local centers
+      // 620px and 670px after dividing out the 0.85 display scale.
+      expect(path?.getAttribute('d')).toBe('M 620 220 L 670 220');
+
+      animations.at(-1)?.onfinish?.();
+      await done;
+    } finally {
+      if (animateDescriptor) {
+        Object.defineProperty(SVGElement.prototype, 'animate', animateDescriptor);
+      } else {
+        delete (SVGElement.prototype as unknown as { animate?: typeof stubAnimate }).animate;
+      }
+    }
+  });
+
   it('useGameSession integrates with animator for drafting and settlement', async () => {
     const { result } = renderHook(() =>
       useGameSession({
@@ -70,6 +117,80 @@ describe('Gameplay Animations', () => {
     });
 
     expect(flySpy).toHaveBeenCalled();
+  });
+
+  it('animates end-of-game bonus sequence with incremental score ticks', async () => {
+    const { animateSettlement } = await import('../../src/components/animator');
+    const view = new QuadroGame(42, 0).state;
+    // Set up human board with full row 0, full column 1, full color 2
+    for (let c = 0; c < 5; c += 1) view.players[0].grid[0][c] = true;
+    for (let r = 0; r < 5; r += 1) view.players[0].grid[r][1] = true;
+    for (let r = 0; r < 5; r += 1) view.players[0].grid[r][(2 + r) % 5] = true;
+    view.players[0].score = 40;
+    for (let c = 0; c < 5; c += 1) view.players[1].grid[4][c] = true;
+    view.players[1].score = 30;
+
+    const recordedScores: number[] = [];
+    const streakSpy = vi.fn().mockResolvedValue(undefined);
+    const popScoreSpy = vi.fn();
+    const animator = {
+      flyTile: vi.fn().mockResolvedValue(undefined),
+      popScore: popScoreSpy,
+      fadeOut: vi.fn().mockResolvedValue(undefined),
+      popIn: vi.fn(),
+      streakLine: streakSpy,
+      conceal: vi.fn().mockReturnValue(() => {}),
+      clear: vi.fn(),
+      isEnabled: () => true,
+    };
+
+    const commit = vi.fn().mockImplementation(() => {
+      recordedScores.push(view.players[0].score);
+    });
+
+    const events = [
+      {
+        kind: 'bonus' as const,
+        player: 0,
+        rows: 1,
+        columns: 1,
+        colors: 1,
+        points: 19,
+      },
+      {
+        kind: 'bonus' as const,
+        player: 1,
+        rows: 1,
+        columns: 0,
+        colors: 0,
+        points: 2,
+      },
+    ];
+
+    await animateSettlement(animator, events, view, commit);
+
+    // Order of popScore calls should be +2 (row), +7 (col), +10 (color)
+    expect(popScoreSpy).toHaveBeenNthCalledWith(1, '+2', expect.any(String), true);
+    expect(popScoreSpy).toHaveBeenNthCalledWith(2, '+7', expect.any(String), true);
+    expect(popScoreSpy).toHaveBeenNthCalledWith(3, '+10', expect.any(String), true);
+
+    // Both players' scoring grids receive their own bonus streaks.
+    expect(streakSpy).toHaveBeenCalledTimes(4);
+    expect(streakSpy).toHaveBeenNthCalledWith(
+      1,
+      ['wall-0-0-0', 'wall-0-0-1', 'wall-0-0-2', 'wall-0-0-3', 'wall-0-0-4'],
+      expect.any(Object),
+    );
+    expect(streakSpy).toHaveBeenNthCalledWith(
+      4,
+      ['wall-1-4-0', 'wall-1-4-1', 'wall-1-4-2', 'wall-1-4-3', 'wall-1-4-4'],
+      expect.any(Object),
+    );
+
+    // Check that scores incremented step by step: 40 -> 42 -> 49 -> 59
+    expect(recordedScores).toEqual([42, 49, 59, 59]);
+    expect(view.players[0].score).toBe(59);
+    expect(view.players[1].score).toBe(32);
   });
 });
 
