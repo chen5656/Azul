@@ -15,6 +15,7 @@ import { RobotAvatar } from '../components/RobotAvatar';
 import { SlowLevelNote } from '../components/SlowLevelNote';
 import { useGameStyle } from '../context/GameStyleContext';
 import { useGameSession } from '../game/useGameSession';
+import { practiceHrefFor, resolvePracticeLevel } from '../practice/levels';
 import { storage } from '../storage';
 import { useRouter } from '../router';
 
@@ -38,11 +39,25 @@ interface Setup {
 }
 
 export function Practice() {
+  const { search } = useRouter();
   const [setup, setSetup] = useState<Setup | null>(null);
+
+  // The ⚙ menu switches the opponent by writing `?ai=`; pick it up and restart
+  // the running game at the new difficulty (the key change remounts the board).
+  useEffect(() => {
+    if (!setup) return;
+    const urlLevel = resolvePracticeLevel(search);
+    if (urlLevel !== setup.level) {
+      storage.setPracticeLevel(urlLevel);
+      setSetup({ ...setup, level: urlLevel });
+    }
+  }, [search, setup]);
+
   return setup ? (
-    // Keyed on the seed so a new deal remounts the session with a fresh engine.
+    // Keyed on seed *and* level so a new deal or a new opponent remounts the
+    // session with a fresh engine.
     <PracticeGame
-      key={setup.seed}
+      key={`${setup.seed}:${setup.level}`}
       setup={setup}
       onExit={() => setSetup(null)}
       onNewDeal={(seed) => setSetup({ ...setup, seed })}
@@ -53,11 +68,9 @@ export function Practice() {
 }
 
 function PracticeSetup({ onStart }: { onStart: (setup: Setup) => void }) {
-  const { search } = useRouter();
-  const remembered = storage.practiceLevel() as AgentLevel | null;
-  const [level, setLevel] = useState<AgentLevel>(
-    remembered && LEVELS.includes(remembered) ? remembered : 'easy',
-  );
+  const { search, navigate } = useRouter();
+  const level = resolvePracticeLevel(search);
+  const setLevel = (next: AgentLevel) => navigate(practiceHrefFor(next, search));
   const { style } = useGameStyle();
 
   const seedParam = useMemo(() => {

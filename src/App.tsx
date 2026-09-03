@@ -64,7 +64,7 @@ function Nav() {
     Guide, History, style and scale) sit behind the ⚙ so the bar never wraps.
   */
   return (
-    <nav aria-label="Main" className="flex items-center gap-1">
+    <nav aria-label="Main" className="flex flex-wrap items-center justify-end gap-1">
       {item('/daily', 'Daily')}
       {item('/practice', 'Practice')}
       {item('/leaderboard', 'Leaderboard', <TrophyIcon />)}
@@ -92,7 +92,7 @@ export function App() {
           <Link to="/" className="font-semibold tracking-tight">
             Quadro
           </Link>
-          <div className="flex items-center gap-x-2">
+          <div className="flex flex-wrap items-center justify-end gap-2">
             <Nav />
             <SettingsMenu />
             <AuthControl />

@@ -20,7 +20,7 @@ export function AuthControl() {
       <button
         type="button"
         onClick={identity.openSignIn}
-        className="rounded border border-neutral-700 px-2 py-1 text-sm hover:bg-neutral-800"
+        className="shrink-0 whitespace-nowrap rounded border border-neutral-700 px-3 py-1 text-sm hover:bg-neutral-800"
       >
         Sign in
       </button>
@@ -31,7 +31,7 @@ export function AuthControl() {
     <button
       type="button"
       onClick={identity.openAccount}
-      className="flex items-center gap-2 rounded border border-neutral-700 py-0.5 pl-0.5 pr-2 text-sm hover:bg-neutral-800"
+      className="flex shrink-0 items-center gap-2 whitespace-nowrap rounded border border-neutral-700 py-0.5 pl-0.5 pr-2 text-sm hover:bg-neutral-800"
       aria-label="Your account"
     >
       {identity.imageUrl ? (

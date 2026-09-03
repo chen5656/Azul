@@ -7,20 +7,23 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
-import { LEVEL_LABELS } from '../ai';
-import { DAILY_LEVELS, dailyHrefFor, isRankedLevel } from '../daily/levels';
+import { LEVEL_LABELS, type AgentLevel } from '../ai';
+import { DAILY_LEVELS, dailyHrefFor, isRankedLevel, resolveDailyLevel } from '../daily/levels';
+import { practiceHrefFor, resolvePracticeLevel } from '../practice/levels';
 import { DisplayScaleControl } from './DisplayScaleControl';
 import { GameStyleControl } from './GameStyleControl';
-import { RobotAvatar } from './RobotAvatar';
 import { Link, useRouter } from '../router';
 
 export function SettingsMenu() {
   const [open, setOpen] = useState(false);
-  const { route, search } = useRouter();
-  // Difficulty is a Daily concept and lives in its URL; offering it anywhere
-  // else would navigate you into a game you did not ask for.
+  const { route, search, navigate } = useRouter();
+  // The opponent lives in `?ai=` on both game routes, so anything that can
+  // navigate can change it — here and the board's own opponent chip.
   const onDaily = route === '/daily';
-  const currentLevel = new URLSearchParams(search).get('ai') ?? 'easy';
+  const onPractice = route === '/practice';
+  const showOpponent = onDaily || onPractice;
+  const currentLevel = onDaily ? resolveDailyLevel(search) : resolvePracticeLevel(search);
+  const hrefForLevel = onDaily ? dailyHrefFor : practiceHrefFor;
   const wrapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -65,36 +68,30 @@ export function SettingsMenu() {
           role="menu"
           className="absolute right-0 z-50 mt-2 w-56 rounded-lg border border-neutral-700 bg-neutral-900 p-3 shadow-xl"
         >
-          {onDaily && (
+          {showOpponent && (
             <div className="mb-3 border-b border-neutral-800 pb-3">
-              <p className="mb-1.5 px-1 text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
-                Daily opponent
-              </p>
-              <div className="flex flex-col">
-                {DAILY_LEVELS.map((level) => {
-                  const active = level === currentLevel;
-                  return (
-                    <div key={level} onClick={() => setOpen(false)} className="contents">
-                      <Link
-                        to={dailyHrefFor(level, search)}
-                        className={`flex items-center gap-2 rounded px-1.5 py-1 text-sm ${
-                          active
-                            ? 'bg-neutral-800 font-semibold text-neutral-100'
-                            : 'text-neutral-400 hover:bg-neutral-800 hover:text-neutral-100'
-                        }`}
-                      >
-                        <RobotAvatar level={level} className="h-5 w-5" />
-                        <span>{LEVEL_LABELS[level]}</span>
-                        {isRankedLevel(level) && (
-                          <span className="ml-auto text-[10px] font-medium uppercase tracking-wider text-amber-400">
-                            Ranked
-                          </span>
-                        )}
-                      </Link>
-                    </div>
-                  );
-                })}
-              </div>
+              <label
+                htmlFor="settings-opponent"
+                className="mb-1.5 block px-1 text-[11px] font-semibold uppercase tracking-wider text-neutral-500"
+              >
+                Opponent
+              </label>
+              <select
+                id="settings-opponent"
+                value={currentLevel}
+                onChange={(e) => {
+                  navigate(hrefForLevel(e.target.value as AgentLevel, search));
+                  setOpen(false);
+                }}
+                className="w-full rounded border border-neutral-700 bg-neutral-900 px-2 py-1.5 text-sm text-neutral-200 hover:bg-neutral-800"
+              >
+                {DAILY_LEVELS.map((level) => (
+                  <option key={level} value={level}>
+                    {LEVEL_LABELS[level]}
+                    {onDaily && isRankedLevel(level) ? ' — Ranked' : ''}
+                  </option>
+                ))}
+              </select>
             </div>
           )}
           <div className="flex flex-col gap-2">
