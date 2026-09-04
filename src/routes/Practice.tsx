@@ -181,6 +181,7 @@ function PracticeGame({
   // is not. Restarting the same deal gets a new game, not a rerun of the old.
   const ai = useMemo(() => ({ level: setup.level }), [setup.level]);
   const session = useGameSession({ newGame, ai, timed: false });
+  const { style } = useGameStyle();
   const opponentLabel = LEVEL_LABELS[setup.level];
 
   const topRight = (

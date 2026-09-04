@@ -149,11 +149,64 @@ export function sideValue(
   return value;
 }
 
+export function finalGameScore(board: PlayerBoard, grid: boolean[][], gained: number): number {
+  const penalty = PENALTY_TOTALS[board.penalty_tiles.length];
+  let s = Math.max(0, board.score + gained + penalty);
+  for (const row of grid) {
+    if (row.every(Boolean)) s += BONUS_ROW;
+  }
+  for (let c = 0; c < GRID_SIZE; c += 1) {
+    let full = true;
+    for (let r = 0; r < NUM_ROWS; r += 1) {
+      if (!grid[r][c]) {
+        full = false;
+        break;
+      }
+    }
+    if (full) s += BONUS_COLUMN;
+  }
+  for (let color = 0; color < NUM_COLORS; color += 1) {
+    let full = true;
+    for (let r = 0; r < NUM_ROWS; r += 1) {
+      if (!grid[r][GRID_COL[r][color]]) {
+        full = false;
+        break;
+      }
+    }
+    if (full) s += BONUS_COLOR;
+  }
+  return s;
+}
+
 /** Zero-sum value of `state` from `player`'s seat. */
 export function evaluate(
   state: GameState,
   player: number,
   w: Weights = DEFAULT_WEIGHTS,
 ): number {
+  const myBoard = state.players[player];
+  const theirBoard = state.players[1 - player];
+  const [myGrid, myGained] = settledGrid(myBoard);
+  const [theirGrid, theirGained] = settledGrid(theirBoard);
+
+  const myCompletes = myGrid.some((row) => row.every(Boolean));
+  const theirCompletes = theirGrid.some((row) => row.every(Boolean));
+
+  // Pacing Control: If this round settlement triggers game over
+  if (myCompletes || theirCompletes) {
+    const myFinal = finalGameScore(myBoard, myGrid, myGained);
+    const theirFinal = finalGameScore(theirBoard, theirGrid, theirGained);
+    if (myFinal !== theirFinal) {
+      const diff = myFinal - theirFinal;
+      return (diff > 0 ? 15.0 : -15.0) + diff * 1.5;
+    }
+    const myRows = myGrid.filter((r) => r.every(Boolean)).length;
+    const theirRows = theirGrid.filter((r) => r.every(Boolean)).length;
+    if (myRows !== theirRows) {
+      return myRows > theirRows ? 15.0 : -15.0;
+    }
+    return 0;
+  }
+
   return sideValue(state, player, w) - sideValue(state, 1 - player, w);
 }

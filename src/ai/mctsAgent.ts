@@ -52,6 +52,24 @@ export function terminalReward(state: GameState, player: number): number {
   return 0;
 }
 
+/**
+ * Detects if the game is nearing the end (e.g. Round 4+ or any row within 1-2 tiles of completion).
+ */
+export function isNearEndgame(state: GameState): boolean {
+  if (state.round_num >= 4) return true;
+  for (const player of state.players) {
+    for (let r = 0; r < player.grid.length; r += 1) {
+      let filled = 0;
+      for (let c = 0; c < player.grid[r].length; c += 1) {
+        if (player.grid[r][c]) filled += 1;
+      }
+      if (filled >= 4) return true;
+      if (filled === 3 && player.staging_counts[r] > 0) return true;
+    }
+  }
+  return false;
+}
+
 class Node {
   visits = 0;
   /** summed reward from the root player's view */
@@ -272,8 +290,10 @@ export class MctsAgent implements Agent {
     const root = new Node(player);
     const useClockBudget = this.useClockBudget;
     const deadline = now() + (useClockBudget ? this.timeBudget * 1000 : this.safetyCapMs);
+    const nearEnd = isNearEndgame(state);
+    const boost = nearEnd ? 2.5 : 1.0;
     const targetSteps =
-      this.stepBudget ?? Math.round(extremeSteps(state.round_num) * this.stepScale);
+      this.stepBudget ?? Math.round(extremeSteps(state.round_num) * this.stepScale * boost);
 
     while (useClockBudget ? now() < deadline : this.steps < targetSteps) {
       if (this.maxSimulations !== null && this.simulations >= this.maxSimulations) break;

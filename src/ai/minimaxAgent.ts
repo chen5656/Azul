@@ -35,20 +35,45 @@ export const MINIMAX_DEPTHS = { medium: 2, hard: 3, expert: 4, master: 5 } as co
 export type MinimaxLevel = keyof typeof MINIMAX_DEPTHS;
 
 /**
+ * Progressive widths for `master` by search ply (distance from root):
+ * - Ply 0 (root): Full width (Infinity) so critical blocks/takeovers are never filtered.
+ * - Ply 1: 16
+ * - Ply 2: 14
+ * - Ply 3+: 8
+ */
+export const MASTER_PROGRESSIVE_WIDTHS = [Infinity, 16, 14, 8, 8, 8] as const;
+
+/**
  * Children searched per node.
- *
- * Only `master` narrows. At a branching factor of 30-80 a full-width depth 5
- * costs seconds in the worst positions, so `master` searches the eight
- * best-ordered moves to afford its extra ply; the shallower levels can carry
- * full width and are stronger for it.
- *
- * Narrowing every level was tried (it is what buys a depth guarantee without a
- * clock, and it collapses the cost tail by roughly an order of magnitude) and
- * reverted: at depth 2-4 a beam of 12-20 drops too many of the blocking moves
- * that live low in the move ordering, and the opponent played visibly softer.
- * Full width is the strength; the deep level is the one that pays for depth.
+ * Kept for registry/spec compatibility; Master uses progressive widths.
  */
 export const MINIMAX_WIDTHS: Partial<Record<MinimaxLevel, number>> = { master: 8 };
+
+const TT_EXACT = 0;
+const TT_LOWER = 1;
+const TT_UPPER = 2;
+
+interface TTEntry {
+  depth: number;
+  value: number;
+  flag: number;
+  bestActionId?: number;
+}
+
+function stateKey(state: GameState): string {
+  let k = `${state.current}|`;
+  for (let i = 0; i < 5; i += 1) {
+    const d = state.displays[i];
+    k += `${d[0]},${d[1]},${d[2]},${d[3]},${d[4]};`;
+  }
+  const c = state.center;
+  k += `|${state.center_has_token ? 1 : 0}|${c[0]},${c[1]},${c[2]},${c[3]},${c[4]}|`;
+  for (let p = 0; p < 2; p += 1) {
+    const b = state.players[p];
+    k += `${b.staging_colors.join(',')};${b.staging_counts.join(',')};${b.penalty_tiles.length};${b.has_first_token ? 1 : 0}|`;
+  }
+  return k;
+}
 
 function levelForDepth(depth: number): AgentLevel {
   if (depth <= 2) return 'medium';
@@ -66,6 +91,7 @@ export class MinimaxAgent implements Agent {
   /** Base seed; the RNG itself is derived per position (see `./position`). */
   private readonly seed: number;
   private deadline = Infinity;
+  private readonly tt = new Map<string, TTEntry>();
 
   constructor(
     seed?: number,
@@ -88,19 +114,22 @@ export class MinimaxAgent implements Agent {
   // ---- search ------------------------------------------------------
 
   /**
-   * Children sorted by their one-ply value for the side to move.
-   *
-   * Ordering is what makes alpha-beta pay off at a branching factor of 30-80; it
-   * costs one greedy evaluation per child and saves whole subtrees.
+   * Children sorted by their one-ply value for the side to move,
+   * placing the transposition table's best action first if known.
    */
-  private ordered(state: GameState): Action[] {
+  private ordered(state: GameState, ply = 0, ttActionId?: number): Action[] {
     const mover = state.current;
     const scored = legalActions(state).map(
-      (a) => [actionValue(state, a, mover, this.weights), a] as const,
+      (a) => [a.actionId === ttActionId ? Infinity : actionValue(state, a, mover, this.weights), a] as const,
     );
     scored.sort((x, y) => y[0] - x[0]);
     const ordered = scored.map(([, a]) => a);
-    return Number.isFinite(this.width) ? ordered.slice(0, this.width) : ordered;
+    let limit = this.width;
+    if (this.level === 'master') {
+      const w = MASTER_PROGRESSIVE_WIDTHS[ply];
+      if (w !== undefined) limit = w;
+    }
+    return Number.isFinite(limit) ? ordered.slice(0, limit) : ordered;
   }
 
   /** Value of a round-final node: settle a copy, then evaluate. */
@@ -116,6 +145,7 @@ export class MinimaxAgent implements Agent {
     depth: number,
     alpha: number,
     beta: number,
+    ply = 1,
   ): number {
     if (now() > this.deadline) throw new SearchCapped();
     this.nodes += 1;
@@ -123,25 +153,49 @@ export class MinimaxAgent implements Agent {
     if (state.draftingDone()) return this.leaf(state, player);
     if (depth === 0) return evaluate(state, player, this.weights);
 
+    const key = stateKey(state);
+    const entry = this.tt.get(key);
+    if (entry && entry.depth >= depth) {
+      if (entry.flag === TT_EXACT) return entry.value;
+      if (entry.flag === TT_LOWER && entry.value >= beta) return entry.value;
+      if (entry.flag === TT_UPPER && entry.value <= alpha) return entry.value;
+    }
+
+    const origAlpha = alpha;
     const maximizing = state.current === player;
     let best = maximizing ? -INF : INF;
-    for (const action of this.ordered(state)) {
+    let bestAction: Action | null = null;
+    const actions = this.ordered(state, ply, entry?.bestActionId);
+
+    for (const action of actions) {
       const undo = applyAction(state, action);
       let value: number;
       try {
-        value = this.search(state, player, depth - 1, alpha, beta);
+        value = this.search(state, player, depth - 1, alpha, beta, ply + 1);
       } finally {
         undoAction(state, undo);
       }
       if (maximizing) {
-        if (value > best) best = value;
+        if (value > best) {
+          best = value;
+          bestAction = action;
+        }
         if (best > alpha) alpha = best;
       } else {
-        if (value < best) best = value;
+        if (value < best) {
+          best = value;
+          bestAction = action;
+        }
         if (best < beta) beta = best;
       }
       if (alpha >= beta) break;
     }
+
+    let flag = TT_EXACT;
+    if (best <= origAlpha) flag = TT_UPPER;
+    else if (best >= beta) flag = TT_LOWER;
+    this.tt.set(key, { depth, value: best, flag, bestActionId: bestAction?.actionId });
+
     return best;
   }
 
@@ -161,7 +215,7 @@ export class MinimaxAgent implements Agent {
       const undo = applyAction(state, action);
       let value: number;
       try {
-        value = this.search(state, player, depth - 1, alpha, INF);
+        value = this.search(state, player, depth - 1, alpha, INF, 1);
       } finally {
         undoAction(state, undo);
       }
@@ -185,6 +239,7 @@ export class MinimaxAgent implements Agent {
     this.deadline = now() + this.safetyCapMs;
     this.nodes = 0;
     this.cappedOut = false;
+    this.tt.clear();
     const scratch = state.clone();
     let ordering = this.ordered(scratch);
     // Depth 1 is already answered by the ordering pass, so even a cap tripped
