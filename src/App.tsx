@@ -13,6 +13,7 @@ import { ReplayPage } from './routes/ReplayPage';
 import { Tutorial } from './routes/Tutorial';
 import { Link, useRouter } from './router';
 import { useLayoutMode } from './components/useLayoutMode';
+import { useGameStyle } from './context/GameStyleContext';
 
 /** Routes that are a game surface: on phones and tablets they own the screen. */
 const GAME_ROUTES = new Set(['/tutorial', '/practice', '/daily']);
@@ -56,6 +57,7 @@ function LogoIcon() {
 
 function Nav() {
   const { route } = useRouter();
+  const { style } = useGameStyle();
   const item = (
     to: '/tutorial' | '/daily' | '/practice' | '/leaderboard',
     label: string,
@@ -82,7 +84,7 @@ function Nav() {
     <nav aria-label="Main" className="flex flex-wrap items-center justify-end gap-1">
       {item('/daily', 'Daily')}
       {item('/practice', 'Practice')}
-      {item('/leaderboard', 'Leaderboard', <TrophyIcon />)}
+      {item('/leaderboard', 'Leaderboard', style !== 'focus' ? <TrophyIcon /> : undefined)}
       {item('/tutorial', 'Learn')}
     </nav>
   );
@@ -91,6 +93,7 @@ function Nav() {
 export function App() {
   const { route } = useRouter();
   const attemptRunning = useAttemptRunning();
+  const { style } = useGameStyle();
   /**
    * On a phone or tablet the nav, style/scale pickers and auth control cost a
    * whole band of screen for something you only touch between games. The game
@@ -105,7 +108,7 @@ export function App() {
       <header className="relative z-50 border-b border-neutral-800 bg-neutral-950">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-x-3 px-4 py-3">
           <Link to="/" className="inline-flex items-center gap-2 font-semibold tracking-tight text-neutral-100 hover:text-white transition-colors">
-            <LogoIcon />
+            {style !== 'focus' && <LogoIcon />}
             <span>Quadro</span>
           </Link>
           <div className="flex flex-wrap items-center justify-end gap-2">

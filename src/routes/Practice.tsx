@@ -219,7 +219,7 @@ function PracticeGame({
 
   return (
     <div className="flex w-full flex-col gap-3">
-      {result && (
+      {result && style !== 'focus' && (
         <GameResultCard
           humanWon={session.humanWon}
           draw={result.draw}

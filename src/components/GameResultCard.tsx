@@ -125,13 +125,12 @@ export function GameResultCard({
 
       {/* Main Game Result Card */}
       <div
-        className={`relative overflow-hidden rounded-2xl border px-5 py-6 sm:px-8 sm:py-7 shadow-2xl backdrop-blur-md transition-all ${
-          isWin
-            ? 'border-neutral-800 bg-[#0b1017]/95 text-neutral-100'
-            : isLose
-              ? 'border-neutral-800 bg-[#120a0d]/95 text-neutral-100'
-              : 'border-neutral-800 bg-[#101216]/95 text-neutral-100'
-        }`}
+        className={`relative overflow-hidden rounded-2xl border px-5 py-6 sm:px-8 sm:py-7 shadow-2xl backdrop-blur-md transition-all ${isWin
+          ? 'border-neutral-800 bg-[#0b1017]/95 text-neutral-100'
+          : isLose
+            ? 'border-neutral-800 bg-[#120a0d]/95 text-neutral-100'
+            : 'border-neutral-800 bg-[#101216]/95 text-neutral-100'
+          }`}
       >
         {/* Subtle Ambient Radial Glow */}
         {isWin && (
@@ -168,13 +167,12 @@ export function GameResultCard({
             {/* Top row: Avatar + outcome text */}
             <div className="flex items-center gap-3.5">
               <div
-                className={`relative flex h-14 w-14 sm:h-16 sm:w-16 shrink-0 items-center justify-center rounded-full p-2 ${
-                  isWin
-                    ? 'bg-sky-950/60 ring-2 ring-sky-500/40 shadow-lg shadow-sky-500/20'
-                    : isLose
-                      ? 'bg-rose-950/40 ring-2 ring-rose-500/30'
-                      : 'bg-neutral-800 ring-2 ring-neutral-600'
-                }`}
+                className={`relative flex h-14 w-14 sm:h-16 sm:w-16 shrink-0 items-center justify-center rounded-full p-2 ${isWin
+                  ? 'bg-sky-950/60 ring-2 ring-sky-500/40 shadow-lg shadow-sky-500/20'
+                  : isLose
+                    ? 'bg-rose-950/40 ring-2 ring-rose-500/30'
+                    : 'bg-neutral-800 ring-2 ring-neutral-600'
+                  }`}
               >
                 <RobotAvatar level={aiLevel} className="h-full w-full object-contain" />
               </div>
@@ -206,9 +204,8 @@ export function GameResultCard({
               <div className="flex flex-col items-start">
                 <span className="text-xs font-semibold text-neutral-400">You</span>
                 <span
-                  className={`text-2xl sm:text-3xl font-black font-mono tracking-tight ${
-                    isWin ? 'text-sky-400' : isLose ? 'text-rose-400' : 'text-neutral-200'
-                  }`}
+                  className={`text-2xl sm:text-3xl font-black font-mono tracking-tight ${isWin ? 'text-sky-400' : isLose ? 'text-rose-400' : 'text-neutral-200'
+                    }`}
                 >
                   {humanScore}
                 </span>
@@ -219,9 +216,8 @@ export function GameResultCard({
               <div className="flex flex-col items-start">
                 <span className="text-xs font-semibold text-neutral-400">Opponent</span>
                 <span
-                  className={`text-2xl sm:text-3xl font-black font-mono tracking-tight ${
-                    isWin ? 'text-rose-400' : isLose ? 'text-sky-400' : 'text-neutral-200'
-                  }`}
+                  className={`text-2xl sm:text-3xl font-black font-mono tracking-tight ${isWin ? 'text-rose-400' : isLose ? 'text-sky-400' : 'text-neutral-200'
+                    }`}
                 >
                   {opponentScore}
                 </span>
@@ -232,13 +228,12 @@ export function GameResultCard({
           {/* Center Column: Big Title & Status Details */}
           <div className="flex flex-col items-center justify-center text-center py-2 min-w-0 lg:px-4">
             <div
-              className={`font-black tracking-widest uppercase select-none text-4xl sm:text-5xl lg:text-6xl ${
-                isWin
-                  ? 'bg-gradient-to-b from-sky-100 via-sky-300 to-sky-500 bg-clip-text text-transparent drop-shadow-[0_0_28px_rgba(56,189,248,0.5)]'
-                  : isLose
-                    ? 'bg-gradient-to-b from-rose-100 via-rose-300 to-rose-500 bg-clip-text text-transparent drop-shadow-[0_0_28px_rgba(244,63,94,0.5)]'
-                    : 'bg-gradient-to-b from-neutral-100 via-neutral-300 to-neutral-500 bg-clip-text text-transparent'
-              }`}
+              className={`font-black tracking-widest uppercase select-none text-4xl sm:text-5xl lg:text-6xl ${isWin
+                ? 'bg-gradient-to-b from-sky-100 via-sky-300 to-sky-500 bg-clip-text text-transparent drop-shadow-[0_0_28px_rgba(56,189,248,0.5)]'
+                : isLose
+                  ? 'bg-gradient-to-b from-rose-100 via-rose-300 to-rose-500 bg-clip-text text-transparent drop-shadow-[0_0_28px_rgba(244,63,94,0.5)]'
+                  : 'bg-gradient-to-b from-neutral-100 via-neutral-300 to-neutral-500 bg-clip-text text-transparent'
+                }`}
             >
               {draw ? 'DRAW!' : isWin ? 'YOU WIN!' : 'GAME OVER'}
             </div>
@@ -297,8 +292,6 @@ export function GameResultCard({
 
           {/* Right Column: Actions & Placeholders */}
           <div className="flex flex-col items-stretch lg:items-end justify-center gap-2.5 min-w-0">
-            {/* Top Placeholder Box */}
-            <div className="hidden lg:block h-8 w-44 rounded-lg border border-neutral-800/40 bg-neutral-800/30" />
 
             {/* Watch replay button */}
             {onWatchReplay && (
@@ -322,9 +315,6 @@ export function GameResultCard({
             >
               Play again
             </button>
-
-            {/* Bottom Placeholder Box */}
-            <div className="hidden lg:block h-8 w-44 rounded-lg border border-neutral-800/40 bg-neutral-800/30" />
           </div>
         </div>
       </div>

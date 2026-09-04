@@ -246,7 +246,7 @@ function DailyAttempt({
       {session.status !== 'game-over' && !isRanked(level) && (
         <UnrankedBanner level={level} onSwitchToRanked={() => onSelectLevel(RANKED_LEVEL)} />
       )}
-      {session.status === 'game-over' && (
+      {session.status === 'game-over' && style !== 'focus' && (
         <GameResultCard
           humanWon={session.humanWon}
           draw={session.game.result().draw}

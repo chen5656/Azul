@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useGameStyle } from '../context/GameStyleContext';
 
 /**
  * One-shot celebration over the finished board: the verdict throbs bigger and
@@ -6,6 +7,8 @@ import { useEffect, useMemo, useState } from 'react';
  * authoritative result stays in the StatusLine.
  */
 export function GameOverBurst({ text, tone }: { text: string; tone: 'win' | 'lose' | 'draw' }) {
+  const { style } = useGameStyle();
+  const isFocus = style === 'focus';
   const reduced = useMemo(
     () =>
       typeof window !== 'undefined' &&
@@ -15,7 +18,7 @@ export function GameOverBurst({ text, tone }: { text: string; tone: 'win' | 'los
   const [phase, setPhase] = useState<'grow' | 'boom' | 'done'>('grow');
 
   useEffect(() => {
-    if (reduced) {
+    if (reduced || isFocus) {
       setPhase('done');
       return;
     }
@@ -25,7 +28,7 @@ export function GameOverBurst({ text, tone }: { text: string; tone: 'win' | 'los
       window.clearTimeout(boom);
       window.clearTimeout(done);
     };
-  }, [reduced]);
+  }, [reduced, isFocus]);
 
   const sparks = useMemo(
     () =>
@@ -41,6 +44,21 @@ export function GameOverBurst({ text, tone }: { text: string; tone: 'win' | 'los
       }),
     [],
   );
+
+  if (isFocus) {
+    return (
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center overflow-hidden"
+      >
+        <div className="flex items-center justify-center">
+          <span className="whitespace-nowrap text-lg sm:text-xl font-semibold uppercase tracking-wider text-neutral-400">
+            {text}
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   const color =
     tone === 'win' ? 'text-sky-300' : tone === 'lose' ? 'text-rose-400' : 'text-neutral-200';
