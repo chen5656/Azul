@@ -38,6 +38,22 @@ function TrophyIcon() {
   );
 }
 
+function LogoIcon() {
+  return (
+    <svg
+      viewBox="0 0 32 32"
+      aria-hidden="true"
+      className="h-6 w-6 rounded"
+    >
+      <rect width="32" height="32" rx="6" fill="#171717" />
+      <rect x="5" y="5" width="10" height="10" rx="2" fill="#2f6fd0" />
+      <rect x="17" y="5" width="10" height="10" rx="2" fill="#e8c33a" />
+      <rect x="5" y="17" width="10" height="10" rx="2" fill="#c8402f" />
+      <rect x="17" y="17" width="10" height="10" rx="2" fill="#e9e6dd" />
+    </svg>
+  );
+}
+
 function Nav() {
   const { route } = useRouter();
   const item = (
@@ -88,8 +104,9 @@ export function App() {
       {!immersive && (
       <header className="relative z-50 border-b border-neutral-800 bg-neutral-950">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-x-3 px-4 py-3">
-          <Link to="/" className="font-semibold tracking-tight">
-            Quadro
+          <Link to="/" className="inline-flex items-center gap-2 font-semibold tracking-tight text-neutral-100 hover:text-white transition-colors">
+            <LogoIcon />
+            <span>Quadro</span>
           </Link>
           <div className="flex flex-wrap items-center justify-end gap-2">
             <Nav />
