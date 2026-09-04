@@ -176,6 +176,7 @@ function DailyAttempt({
     if (!done || offered.current) return;
     offered.current = true;
     storage.setLastDailyPlayed(puzzleId);
+    const totalAttempts = storage.incrementDailyAttempts(puzzleId, level);
     // Playable, shareable, replayable — just not ranked. The Worker rejects it
     // too (UNRANKED_LEVEL); not posting keeps the player from seeing an error
     // for something they did nothing wrong to cause.
@@ -199,6 +200,7 @@ function DailyAttempt({
       opponent_score: result.scores[1 - HUMAN_SEAT],
       rounds: result.rounds,
       ai_level: level,
+      attempts: totalAttempts,
       replay,
     });
     // `submission` is rebuilt every render; the completion edge is the trigger.

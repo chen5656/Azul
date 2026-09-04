@@ -115,6 +115,8 @@ export function useRouter(): RouterValue {
 export function Link({
   to,
   className,
+  title,
+  'aria-label': ariaLabel,
   onClick,
   children,
 }: {
@@ -122,6 +124,8 @@ export function Link({
    *  carry a path segment or a fragment. */
   to: string;
   className?: string;
+  title?: string;
+  'aria-label'?: string;
   onClick?: (event: React.MouseEvent<HTMLAnchorElement>) => void;
   children: ReactNode;
 }) {
@@ -130,6 +134,8 @@ export function Link({
     <a
       href={to}
       className={className}
+      title={title}
+      aria-label={ariaLabel}
       onClick={(event) => {
         onClick?.(event);
         if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;

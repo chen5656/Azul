@@ -172,7 +172,7 @@ This project is not affiliated with, endorsed by, or sponsored by Plan B Games, 
 This project is licensed under a custom source-available license.
 
 - **Personal / Non-commercial Use**: You may use, copy, modify, host, and distribute the Software for personal and non-commercial purposes free of charge.
-- **Commercial Use**: If you or a derivative work generates revenue through advertising, subscriptions, purchases, sponsorships, licensing, or other monetization, you must pay the Licensor 20% of Gross Revenue attributable to the Software or derivative work.
+- **Commercial Use**: If you or a derivative work generates revenue through advertising, subscriptions, purchases, sponsorships, licensing, or other monetization, you must pay the Licensor 10% of Gross Revenue attributable to the Software or derivative work.
 - **Derivative Works**: Any derivative work based substantially on this Software remains subject to these commercial-use terms.
 - **Attribution**: Copyright and license notices must remain intact.
 

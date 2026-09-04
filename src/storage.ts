@@ -47,4 +47,17 @@ export const storage = {
   /** Visual style theme: 'focus' | 'normal' | 'classic' */
   gameStyle: () => read('gameStyle'),
   setGameStyle: (style: string) => write('gameStyle', style),
+
+  /** Daily attempts count per puzzle_id and ai_level */
+  dailyAttempts: (puzzleId: string, aiLevel: string): number => {
+    const val = read(`dailyAttempts.${puzzleId}.${aiLevel}`);
+    const num = val ? parseInt(val, 10) : 0;
+    return Number.isFinite(num) && num > 0 ? num : 0;
+  },
+  incrementDailyAttempts: (puzzleId: string, aiLevel: string): number => {
+    const current = storage.dailyAttempts(puzzleId, aiLevel);
+    const next = current + 1;
+    write(`dailyAttempts.${puzzleId}.${aiLevel}`, String(next));
+    return next;
+  },
 };

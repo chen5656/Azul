@@ -20,6 +20,8 @@ export interface LeaderboardEntry {
   elapsed_ms: number;
   final_score: number;
   opponent_score: number;
+  attempts?: number;
+  replay?: string | null;
 }
 
 export interface Leaderboard {
@@ -32,6 +34,8 @@ export interface Leaderboard {
     elapsed_ms: number;
     final_score: number;
     opponent_score: number;
+    attempts?: number;
+    replay?: string | null;
   } | null;
 }
 
@@ -43,6 +47,7 @@ export interface HistoryEntry {
   opponent_score: number;
   margin: number;
   rounds: number;
+  attempts?: number;
   /** The replay code, when the attempt was posted by a client that sends one. */
   replay: string | null;
   verified: boolean;
@@ -71,6 +76,7 @@ export interface ScoreSubmission {
   rounds: number;
   ai_level: string;
   client_version: string;
+  attempts?: number;
   /**
    * The base64url replay code. Sending it lets the Worker re-run the game and
    * mark the row verified; a replay that does not produce the posted score is
@@ -87,6 +93,7 @@ export interface ScoreResult {
   best_elapsed_ms: number;
   best_final_score?: number;
   best_opponent_score?: number;
+  attempts?: number;
   rank: number;
   total_entries: number;
 }

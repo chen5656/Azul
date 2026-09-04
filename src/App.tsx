@@ -82,8 +82,8 @@ function Nav() {
   */
   return (
     <nav aria-label="Main" className="flex flex-wrap items-center justify-end gap-1">
-      {item('/daily', 'Daily')}
-      {item('/practice', 'Practice')}
+      {item('/daily', 'Daily', style !== 'focus' ? <span className="text-xs">📅</span> : undefined)}
+      {item('/practice', 'Practice', style !== 'focus' ? <span className="text-xs">🎯</span> : undefined)}
       {item('/leaderboard', 'Leaderboard', style !== 'focus' ? <TrophyIcon /> : undefined)}
       {item('/tutorial', 'Learn')}
     </nav>

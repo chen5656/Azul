@@ -17,6 +17,8 @@ import { useIdentity } from '../auth';
 import { useGameStyle } from '../context/GameStyleContext';
 import { HumanAvatar } from './RobotAvatar';
 import { formatElapsedSeconds } from './Timer';
+import { REPLAY_PATH } from '../replay/share';
+import { Link } from '../router';
 
 type State =
   | { kind: 'loading' }
@@ -189,10 +191,16 @@ function Body({
                   <th scope="col" className="w-24 px-1 pb-1 text-right">
                     Agent score
                   </th>
+                  <th scope="col" className="w-16 px-1 pb-1 text-right">
+                    Attempts
+                  </th>
                 </>
               )}
               <th scope="col" className="w-16 px-1 pb-1 text-right">
                 Time
+              </th>
+              <th scope="col" className="w-12 px-1 pb-1 text-right">
+                <span className="sr-only">Replay</span>
               </th>
             </tr>
           </thead>
@@ -220,6 +228,11 @@ function Body({
                           You
                         </span>
                       )}
+                      {!full && row.attempts && row.attempts > 1 && (
+                        <span className="text-[10px] text-neutral-500 tabular-nums" title={`${row.attempts} attempts`}>
+                          ({row.attempts}x)
+                        </span>
+                      )}
                     </div>
                   </td>
                   <td className="px-1 py-1.5 text-right">
@@ -233,10 +246,28 @@ function Body({
                       <td className="px-1 py-1.5 text-right tabular-nums text-neutral-400">
                         {row.opponent_score}
                       </td>
+                      <td className="px-1 py-1.5 text-right tabular-nums text-neutral-400">
+                        {row.attempts ?? 1}
+                      </td>
                     </>
                   )}
                   <td className="px-1 py-1.5 text-right font-mono text-xs tabular-nums text-neutral-400">
                     {formatElapsedSeconds(row.elapsed_ms)}
+                  </td>
+                  <td className="px-1 py-1.5 text-right">
+                    {row.replay ? (
+                      <Link
+                        to={`${REPLAY_PATH}#${row.replay}`}
+                        className="inline-flex items-center justify-center rounded bg-neutral-800 px-1.5 py-0.5 text-xs text-neutral-200 hover:bg-sky-600 hover:text-white transition-colors"
+                        title="Watch replay"
+                      >
+                        ▶
+                      </Link>
+                    ) : (
+                      <span className="text-neutral-700 text-xs select-none" title="No replay available">
+                        -
+                      </span>
+                    )}
                   </td>
                 </tr>
               );

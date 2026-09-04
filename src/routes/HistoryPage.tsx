@@ -53,9 +53,16 @@ export function HistoryPage() {
     return (
       <div className="mx-auto max-w-2xl py-10 text-center">
         <h1 className="mb-2 text-xl font-semibold">Your history</h1>
-        <p className="text-sm text-neutral-400">
+        <p className="mb-4 text-sm text-neutral-400">
           Sign in to see the Dailies you have posted — and to rewatch them.
         </p>
+        <button
+          type="button"
+          onClick={identity.openSignIn}
+          className="inline-block rounded-md bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-500"
+        >
+          Sign in
+        </button>
       </div>
     );
   }
@@ -154,6 +161,7 @@ function HistoryRow({ entry }: { entry: HistoryEntry }) {
         </p>
         <p className="text-xs tabular-nums text-neutral-500">
           {formatDuration(entry.elapsed_ms)}
+          {entry.attempts && entry.attempts > 1 && ` · ${entry.attempts} attempts`}
           {entry.rank !== null && ` · #${entry.rank}`}
         </p>
       </div>

@@ -25,6 +25,7 @@ interface HistoryRow {
   final_score: number;
   opponent_score: number;
   rounds: number;
+  attempts: number;
   replay: string | null;
   verified: number;
   created_at: number;
@@ -43,7 +44,7 @@ export async function history(
   // One extra row is fetched to learn whether another page exists.
   const rows = await db
     .prepare(
-      `SELECT puzzle_id, ai_level, elapsed_ms, final_score, opponent_score, rounds,
+      `SELECT puzzle_id, ai_level, elapsed_ms, final_score, opponent_score, rounds, attempts,
               replay, verified, created_at
          FROM scores
         WHERE user_id = ?1
@@ -66,6 +67,7 @@ export async function history(
       opponent_score: row.opponent_score,
       margin: row.final_score - row.opponent_score,
       rounds: row.rounds,
+      attempts: row.attempts ?? 1,
       replay: row.replay,
       verified: row.verified === 1,
       played_at: row.created_at,

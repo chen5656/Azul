@@ -31,6 +31,7 @@ export interface SubmissionPayload {
   rounds: number;
   ai_level: AiLevel;
   client_version: string;
+  attempts?: number;
   /**
    * The base64url replay code (`src/replay/codec.ts`). Optional: clients from
    * before replays existed do not send it. When present it is re-run here and
@@ -56,6 +57,7 @@ function parsePayload(body: unknown): SubmissionPayload {
     isInteger(p.final_score, -10_000, 10_000) &&
     isInteger(p.opponent_score, -10_000, 10_000) &&
     isInteger(p.rounds, 1, 150) &&
+    (p.attempts === undefined || isInteger(p.attempts, 1, 10_000)) &&
     isAiLevel(level) &&
     typeof p.client_version === 'string' &&
     p.client_version.length <= 32 &&
@@ -159,31 +161,34 @@ export async function submitScore(
 
   const existing = await db
     .prepare(
-      'SELECT elapsed_ms, final_score, opponent_score, created_at FROM scores WHERE puzzle_id = ? AND user_id = ? AND ai_level = ?',
+      'SELECT elapsed_ms, final_score, opponent_score, attempts, created_at FROM scores WHERE puzzle_id = ? AND user_id = ? AND ai_level = ?',
     )
     .bind(payload.puzzle_id, session.userId, payload.ai_level)
-    .first<{ elapsed_ms: number; final_score: number; opponent_score: number; created_at: number }>();
+    .first<{ elapsed_ms: number; final_score: number; opponent_score: number; attempts: number; created_at: number }>();
 
   let improved: boolean;
   let bestElapsedMs: number;
   let bestFinalScore: number;
   let bestOpponentScore: number;
+  let attempts: number;
   let createdAt: number;
 
   const payloadDiff = payload.final_score - payload.opponent_score;
+  const submittedAttempts = payload.attempts ?? 1;
 
   if (!existing) {
+    attempts = submittedAttempts;
     await db
       .prepare(
         `INSERT INTO scores (puzzle_id, user_id, display_name, elapsed_ms, final_score,
                              opponent_score, ai_level, rounds, client_version, replay,
-                             verified, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                             verified, attempts, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .bind(
         payload.puzzle_id, session.userId, session.displayName, payload.elapsed_ms,
         payload.final_score, payload.opponent_score, payload.ai_level, payload.rounds,
-        payload.client_version, payload.replay ?? null, verified ? 1 : 0, now, now,
+        payload.client_version, payload.replay ?? null, verified ? 1 : 0, attempts, now, now,
       )
       .run();
     improved = true;
@@ -192,6 +197,7 @@ export async function submitScore(
     bestOpponentScore = payload.opponent_score;
     createdAt = now;
   } else {
+    attempts = Math.max(existing.attempts ?? 1, submittedAttempts);
     const existingDiff = existing.final_score - existing.opponent_score;
     const isBetter =
       payloadDiff > existingDiff ||
@@ -202,13 +208,13 @@ export async function submitScore(
         .prepare(
           `UPDATE scores
               SET display_name = ?, elapsed_ms = ?, final_score = ?, opponent_score = ?,
-                  rounds = ?, client_version = ?, replay = ?, verified = ?, updated_at = ?
+                  rounds = ?, client_version = ?, replay = ?, verified = ?, attempts = ?, updated_at = ?
             WHERE puzzle_id = ? AND user_id = ? AND ai_level = ?`,
         )
         .bind(
           session.displayName, payload.elapsed_ms, payload.final_score, payload.opponent_score,
           payload.rounds, payload.client_version, payload.replay ?? null, verified ? 1 : 0,
-          now, payload.puzzle_id, session.userId, payload.ai_level,
+          attempts, now, payload.puzzle_id, session.userId, payload.ai_level,
         )
         .run();
       improved = true;
@@ -217,6 +223,14 @@ export async function submitScore(
       bestOpponentScore = payload.opponent_score;
       createdAt = existing.created_at;
     } else {
+      await db
+        .prepare(
+          `UPDATE scores
+              SET attempts = ?, updated_at = ?
+            WHERE puzzle_id = ? AND user_id = ? AND ai_level = ?`,
+        )
+        .bind(attempts, now, payload.puzzle_id, session.userId, payload.ai_level)
+        .run();
       improved = false;
       bestElapsedMs = existing.elapsed_ms;
       bestFinalScore = existing.final_score;
@@ -244,6 +258,7 @@ export async function submitScore(
     best_elapsed_ms: bestElapsedMs,
     best_final_score: bestFinalScore,
     best_opponent_score: bestOpponentScore,
+    attempts,
     ai_level: payload.ai_level,
     rank: await rankOf(db, payload.puzzle_id, payload.ai_level, bestDiff, bestElapsedMs, createdAt),
     total_entries: Number(total?.n ?? 0),

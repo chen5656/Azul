@@ -158,9 +158,29 @@ describe('POST /api/scores', () => {
     expect(await fasterSameDiff.json()).toMatchObject({ improved: true, best_elapsed_ms: 400_000 });
 
     const rows = await env.DB.prepare(
-      'SELECT COUNT(*) AS n, MIN(elapsed_ms) AS best, MAX(final_score) AS score FROM scores WHERE user_id = ?',
-    ).bind(session.userId).first<{ n: number; best: number; score: number }>();
-    expect(rows).toMatchObject({ n: 1, best: 400_000, score: 70 });
+      'SELECT COUNT(*) AS n, MIN(elapsed_ms) AS best, MAX(final_score) AS score, MAX(attempts) AS attempts FROM scores WHERE user_id = ?',
+    ).bind(session.userId).first<{ n: number; best: number; score: number; attempts: number }>();
+    expect(rows).toMatchObject({ n: 1, best: 400_000, score: 70, attempts: 1 });
+  });
+
+  it('tracks attempt counts across multiple attempts including worse games', async () => {
+    const session = await signUp();
+    // 1st attempt (loss / worse score)
+    const first = await post({ ...WIN, attempts: 1, final_score: 40, opponent_score: 50 }, session);
+    expect(await first.json()).toMatchObject({ accepted: true, attempts: 1 });
+
+    // 2nd attempt (worse score, not improved, but attempts should increase to 2)
+    const second = await post({ ...WIN, attempts: 2, final_score: 35, opponent_score: 50 }, session);
+    expect(await second.json()).toMatchObject({ accepted: true, improved: false, attempts: 2 });
+
+    // 3rd attempt (improved score, attempts should be 3)
+    const third = await post({ ...WIN, attempts: 3, final_score: 65, opponent_score: 45 }, session);
+    expect(await third.json()).toMatchObject({ accepted: true, improved: true, attempts: 3 });
+
+    const row = await env.DB.prepare('SELECT attempts, final_score FROM scores WHERE user_id = ?')
+      .bind(session.userId)
+      .first<{ attempts: number; final_score: number }>();
+    expect(row).toMatchObject({ attempts: 3, final_score: 65 });
   });
 
   it('rate-limits the 61st submission in an hour (AC-024)', async () => {
@@ -225,9 +245,9 @@ describe('GET /api/leaderboard', () => {
     await seed(rows);
 
     const response = await call(apiRequest('/api/leaderboard?limit=100', { session }));
-    const body = await response.json<{ entries: unknown[]; me: { rank: number; elapsed_ms: number; final_score: number; opponent_score: number } }>();
+    const body = await response.json<{ entries: unknown[]; me: { rank: number; elapsed_ms: number; final_score: number; opponent_score: number; attempts: number; replay: string | null } }>();
     expect(body.entries).toHaveLength(100);
-    expect(body.me).toEqual({ rank: 112, elapsed_ms: 900_000, final_score: 55, opponent_score: 50 });
+    expect(body.me).toEqual({ rank: 112, elapsed_ms: 900_000, final_score: 55, opponent_score: 50, attempts: 1, replay: null });
   });
 
   it('returns an empty board rather than an error (AC-028)', async () => {

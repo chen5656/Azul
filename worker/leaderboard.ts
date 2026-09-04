@@ -38,6 +38,8 @@ export interface LeaderboardRow {
   elapsed_ms: number;
   final_score: number;
   opponent_score: number;
+  attempts: number;
+  replay: string | null;
 }
 
 export async function leaderboard(
@@ -52,7 +54,7 @@ export async function leaderboard(
   const [top, total, mine] = await db.batch<Record<string, unknown>>([
     db
       .prepare(
-        `SELECT display_name, elapsed_ms, final_score, opponent_score
+        `SELECT display_name, elapsed_ms, final_score, opponent_score, attempts, replay
            FROM scores
           WHERE puzzle_id = ? AND ai_level = ?
           ORDER BY (final_score - opponent_score) DESC, elapsed_ms ASC, created_at ASC
@@ -64,7 +66,7 @@ export async function leaderboard(
       .bind(puzzleId, aiLevel),
     db
       .prepare(
-        'SELECT elapsed_ms, final_score, opponent_score, created_at FROM scores WHERE puzzle_id = ? AND ai_level = ? AND user_id = ?',
+        'SELECT elapsed_ms, final_score, opponent_score, attempts, replay, created_at FROM scores WHERE puzzle_id = ? AND ai_level = ? AND user_id = ?',
       )
       .bind(puzzleId, aiLevel, session?.userId ?? ''),
   ]);
@@ -72,10 +74,12 @@ export async function leaderboard(
   const entries = (top.results as unknown as LeaderboardRow[]).map((row, index) => ({
     rank: index + 1,
     ...row,
+    attempts: row.attempts ?? 1,
+    replay: row.replay ?? null,
   }));
 
-  let me: { rank: number; elapsed_ms: number; final_score: number; opponent_score: number } | null = null;
-  const own = (mine.results as unknown as { elapsed_ms: number; final_score: number; opponent_score: number; created_at: number }[])[0];
+  let me: { rank: number; elapsed_ms: number; final_score: number; opponent_score: number; attempts: number; replay: string | null } | null = null;
+  const own = (mine.results as unknown as { elapsed_ms: number; final_score: number; opponent_score: number; attempts: number; replay: string | null; created_at: number }[])[0];
   if (session && own) {
     const diff = own.final_score - own.opponent_score;
     me = {
@@ -83,6 +87,8 @@ export async function leaderboard(
       elapsed_ms: own.elapsed_ms,
       final_score: own.final_score,
       opponent_score: own.opponent_score,
+      attempts: own.attempts ?? 1,
+      replay: own.replay ?? null,
     };
   }
 
