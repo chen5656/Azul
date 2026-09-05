@@ -23,7 +23,6 @@ import { useGameStyle } from '../context/GameStyleContext';
 import { HUMAN_SEAT, newDailyGame, puzzleIdFor } from '../daily/puzzle';
 import {
   DAILY_LEVELS,
-  LEVEL_DESCRIPTIONS,
   RANKED_LEVELS as DAILY_RANKED_LEVELS,
   dailyHrefFor,
   isRankedLevel,
@@ -318,9 +317,6 @@ function DailyAttempt({
                     <div className="flex flex-col gap-0.5">
                       <span className={`text-sm font-semibold ${isSelected ? 'text-sky-300' : 'text-neutral-200'}`}>
                         {LEVEL_LABELS[candidate]}
-                      </span>
-                      <span className="text-xs text-neutral-400">
-                        {LEVEL_DESCRIPTIONS[candidate]}
                       </span>
                       <span
                         className={`text-[11px] font-medium ${
