@@ -1,22 +1,20 @@
 /**
- * Expert level: The Spiteful Blocker (恶霸型 / 极致阻断者).
+ * Hard level: The Greedy Titan (巨贪型 / 贪婪暴君).
  *
  * Distinct persona & blind spot:
- * - Extremely keen on blocking opponent's critical staging completions (especially rows 4 & 5).
- * - Prioritizes denying tiles that opponent needs to complete high rows or endgame bonuses,
- *   even willing to take small floor penalty to do so.
- * - Exploitable: Players can bait it with dummy staging (feinting) to force it into taking
- *   poisonous tiles and wasting its own turns.
- * - Strength: Backed by depth 3 search, beats Hard solidly (75% win rate).
+ * - Insatiably hungry for high points, large tile groups, and filling rows 4 & 5.
+ * - Drastically discounts floor line penalties (only ~25% penalty sensitivity),
+ *   making it very prone to swallowing giant tile dumps when baited.
+ * - Strong baseline: depth 3 search yields very high average points (~34 pts),
+ *   punishing passive play while rewarding intentional trap-setting.
  */
 
 import {
   type Action,
-  NUM_ROWS,
+  PENALTY_DEST,
   type GameState,
   Rng,
   applyAction,
-  canStage,
   legalActions,
   preview,
   settleRound,
@@ -32,8 +30,8 @@ const INF = Infinity;
 
 class SearchCapped extends Error {}
 
-export class ExpertSpitefulAgent implements Agent {
-  readonly level: AgentLevel = 'expert';
+export class HardGreedyTitanAgent implements Agent {
+  readonly level: AgentLevel = 'hard';
   nodes = 0;
   reachedDepth = 0;
   cappedOut = false;
@@ -93,8 +91,8 @@ export class ExpertSpitefulAgent implements Agent {
     this.cappedOut = false;
 
     const scratch = state.clone();
-    const opponent = state.players[1 - player];
-    const evaluated: { action: Action; val: number; spiteBonus: number }[] = [];
+    const board = state.players[player];
+    const evaluated: { action: Action; val: number; greedBonus: number }[] = [];
 
     for (const action of actions) {
       const prev = preview(scratch, action);
@@ -113,35 +111,33 @@ export class ExpertSpitefulAgent implements Agent {
         undoAction(scratch, undo);
       }
 
-      // Spiteful blocker behavior:
-      let spiteBonus = 0;
-      for (let r = 0; r < NUM_ROWS; r += 1) {
-        if (opponent.staging_colors[r] === action.color) {
-          const needed = r + 1 - opponent.staging_counts[r];
-          if (needed > 0 && prev.count >= needed) {
-            // Opponent was about to complete row r with this exact count!
-            spiteBonus += (r + 1) * 2.2;
-          }
-        } else if (opponent.staging_counts[r] === 0 && canStage(opponent, r, action.color)) {
-          if (r >= 3 && prev.count >= 3) {
-            spiteBonus += r * 1.2;
-          }
+      // Greed bonus:
+      let greedBonus = 0;
+      // 1. Completing rows 4 or 5
+      if (action.dest >= 3 && action.dest <= 4) {
+        const needed = action.dest + 1 - board.staging_counts[action.dest];
+        if (prev.count >= needed) {
+          greedBonus += (action.dest + 1) * 2.0;
         }
       }
-
-      // Willing to take a mild floor penalty to spite opponent
-      const realPenaltyDelta = prev.penalty_after - prev.penalty_before;
-      if (spiteBonus > 3 && realPenaltyDelta < 0) {
-        spiteBonus += Math.abs(realPenaltyDelta) * 0.5;
+      // 2. Grabbing large tile clumps
+      if (prev.count >= 3 && action.dest !== PENALTY_DEST) {
+        greedBonus += prev.count * 0.8;
       }
 
-      evaluated.push({ action, val, spiteBonus });
+      // 3. Blind spot: downplay floor penalty risk
+      const realPenaltyDelta = prev.penalty_after - prev.penalty_before;
+      if (realPenaltyDelta < 0) {
+        greedBonus += Math.abs(realPenaltyDelta) * 0.75;
+      }
+
+      evaluated.push({ action, val, greedBonus });
     }
 
-    evaluated.sort((a, b) => (b.val + b.spiteBonus) - (a.val + a.spiteBonus));
-    const bestTotal = evaluated[0].val + evaluated[0].spiteBonus;
+    evaluated.sort((a, b) => (b.val + b.greedBonus) - (a.val + a.greedBonus));
+    const bestTotal = evaluated[0].val + evaluated[0].greedBonus;
 
-    const ties = evaluated.filter((e) => Math.abs(e.val + e.spiteBonus - bestTotal) < 0.2);
+    const ties = evaluated.filter((e) => Math.abs(e.val + e.greedBonus - bestTotal) < 0.2);
     const rng = rngForPosition(this.seed, state, player);
     return choice(rng, ties.map((t) => t.action));
   }

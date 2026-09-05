@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { Action, BLUE, CENTER, GameState, RED, Rng, YELLOW, QuadroGame } from '../../src/engine';
-import { ExpertRuleAgent } from '../../src/ai/expertAgent';
+import { BLUE, GameState, RED, Rng, QuadroGame } from '../../src/engine';
+import { MasterHybridAgent } from '../../src/ai/masterAgent';
 
-describe('ExpertRuleAgent (Scheme A)', () => {
+describe('MasterHybridAgent', () => {
   it('prioritizes completing Row 5 over Row 4 when both can be completed this round', () => {
     const state = new GameState(new Rng(42));
     state.center = [0, 0, 0, 0, 0];
@@ -21,7 +21,7 @@ describe('ExpertRuleAgent (Scheme A)', () => {
     state.players[0].staging_colors[3] = RED;
     state.players[0].staging_counts[3] = 3;
 
-    const agent = new ExpertRuleAgent(100);
+    const agent = new MasterHybridAgent(100);
     const chosen = agent.choose(state, 0);
 
     // Both can be completed, so Row 5 (dest 4) takes priority over Row 4 (dest 3)
@@ -48,7 +48,7 @@ describe('ExpertRuleAgent (Scheme A)', () => {
     state.players[0].staging_colors[2] = RED;
     state.players[0].staging_counts[2] = 2;
 
-    const agent = new ExpertRuleAgent(100);
+    const agent = new MasterHybridAgent(100);
     const chosen = agent.choose(state, 0);
 
     // Row 3 must be completed rather than putting a lonely tile into Row 5
@@ -77,7 +77,7 @@ describe('ExpertRuleAgent (Scheme A)', () => {
     state.players[0].staging_colors[2] = RED;
     state.players[0].staging_counts[2] = 2;
 
-    const agent = new ExpertRuleAgent(100);
+    const agent = new MasterHybridAgent(100);
     const chosen = agent.choose(state, 0);
 
     // RED completes a full column (+7 bonus), out-prioritizing regular row 5
@@ -87,8 +87,8 @@ describe('ExpertRuleAgent (Scheme A)', () => {
 
   it('guarantees determinism for identical seed and state', () => {
     const game = new QuadroGame(123);
-    const agentA = new ExpertRuleAgent(777);
-    const agentB = new ExpertRuleAgent(777);
+    const agentA = new MasterHybridAgent(777);
+    const agentB = new MasterHybridAgent(777);
 
     const moveA = agentA.choose(game.state, 0);
     const moveB = agentB.choose(game.state, 0);

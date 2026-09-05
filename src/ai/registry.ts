@@ -8,8 +8,10 @@
 
 import { type Agent, type AgentLevel, LEVELS } from './base';
 import { AI_SAFETY_CAP_MS } from './budget';
-import { ExpertRuleAgent } from './expertAgent';
+import { ExpertSpitefulAgent } from './expertAgent';
 import { EASY_EPSILON, GreedyAgent } from './greedyAgent';
+import { HardGreedyTitanAgent } from './hardAgent';
+import { MasterHybridAgent } from './masterAgent';
 import { MctsAgent } from './mctsAgent';
 import { MINIMAX_DEPTHS, MINIMAX_WIDTHS, MinimaxAgent } from './minimaxAgent';
 
@@ -45,8 +47,6 @@ export function makeAgent(
     case 'easy':
       return new GreedyAgent(seed, EASY_EPSILON);
     case 'medium':
-    case 'hard':
-    case 'master':
       return new MinimaxAgent(
         seed,
         MINIMAX_DEPTHS[level],
@@ -55,8 +55,12 @@ export function makeAgent(
         level,
         MINIMAX_WIDTHS[level] ?? Infinity,
       );
+    case 'hard':
+      return new HardGreedyTitanAgent(seed, budget.safetyCapMs);
     case 'expert':
-      return new ExpertRuleAgent(seed, budget.safetyCapMs);
+      return new ExpertSpitefulAgent(seed, budget.safetyCapMs);
+    case 'master':
+      return new MasterHybridAgent(seed, budget.safetyCapMs);
     case 'extreme':
       return new MctsAgent({
         seed,
