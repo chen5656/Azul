@@ -2,6 +2,7 @@ export * from './base';
 export * from './budget';
 export * from './clock';
 export * from './evaluate';
+export * from './expertAgent';
 export * from './greedyAgent';
 export * from './minimaxAgent';
 export * from './mctsAgent';
