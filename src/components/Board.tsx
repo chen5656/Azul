@@ -401,15 +401,15 @@ export function Board({
           {isOpponentTurn
             ? `${opponentLabel}'s turn`
             : session.selection
-              ? 'Place Tiles'
+              ? 'Stage Tokens'
               : 'Your turn'}
         </h3>
         <p className="text-[11px] text-neutral-400">
           {isOpponentTurn
             ? `${opponentLabel} is thinking…`
             : session.selection
-              ? 'Choose a staging row on your board or the floor line.'
-              : 'Pick a tile from a factory or from the center.'}
+              ? 'Choose a context line on your board or the hallucination line.'
+              : 'Pick tokens from an attention node or the buffer.'}
         </p>
       </div>
     ),

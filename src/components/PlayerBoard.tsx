@@ -96,8 +96,8 @@ export function PlayerBoard({
             data-tutorial-target={interactive ? `row-${row}` : undefined}
             disabled={!ok}
             onClick={() => place(row)}
-            aria-label={`Staging row ${row + 1}${p ? `, places ${p.placed} tiles` : ''}`}
-            title={p ? `${p.placed} on the row, ${p.overflow} to the penalty row` : undefined}
+            aria-label={`Context line ${row + 1}${p ? `, places ${p.placed} tokens` : ''}`}
+            title={p ? `${p.placed} in context, ${p.overflow} to hallucination` : undefined}
             className={`flex justify-end gap-1 rounded-md px-1 py-0.5 transition-all ${
               !isFocus && ok && !session.hideHints
                 ? 'bg-sky-900/50 ring-2 ring-sky-400 shadow-sm hover:bg-sky-800/70'
@@ -132,7 +132,7 @@ export function PlayerBoard({
       className={`flex flex-col gap-1.5 rounded-lg border border-neutral-700/40 bg-neutral-950/40 p-1.5 ${
         lit('wall') ? 'ring-2 ring-sky-400' : ''
       }`}
-      aria-label="Grid"
+      aria-label="Memory"
     >
       {Array.from({ length: NUM_ROWS }, (_, row) => (
         <div key={row} className="flex gap-1">
@@ -164,7 +164,7 @@ export function PlayerBoard({
       data-tutorial-target={interactive ? 'floor' : undefined}
       disabled={!drop(PENALTY_DEST)}
       onClick={() => place(PENALTY_DEST)}
-      aria-label="Penalty row — discard the whole group here"
+      aria-label="Hallucination line — discard excess tokens here"
       className={`azul-penalty-row flex items-center justify-between gap-1 rounded-lg border border-neutral-700/50 bg-neutral-950/40 p-1.5 transition-all ${
         isStacked ? 'min-w-0 shrink' : 'mt-2 sm:mt-2.5 w-full'
       } ${

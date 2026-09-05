@@ -51,7 +51,7 @@ describe('animator lifetime', () => {
     await user.click(screen.getAllByRole('button', { name: /^Take \d/ })[0]);
     const myBoard = screen.getByRole('region', { name: 'You' });
     const target = within(myBoard)
-      .getAllByRole('button', { name: /Staging row/ })
+      .getAllByRole('button', { name: /Context line/ })
       .find((row) => !row.hasAttribute('disabled'))!;
     await user.click(target);
     await waitFor(() =>

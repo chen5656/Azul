@@ -96,12 +96,12 @@ describe('board interaction', () => {
   it('requires a source before any destination is enabled (§9.2)', async () => {
     await startPractice();
     const myBoard = screen.getByRole('region', { name: 'You' });
-    const rows = within(myBoard).getAllByRole('button', { name: /Staging row/ });
+    const rows = within(myBoard).getAllByRole('button', { name: /Context line/ });
     expect(rows.every((row) => row.hasAttribute('disabled'))).toBe(true);
 
     const source = screen.getAllByRole('button', { name: /^Take \d/ })[0];
     await userEvent.click(source);
-    expect(within(myBoard).getAllByRole('button', { name: /Staging row/ }).some((r) => !r.hasAttribute('disabled'))).toBe(true);
+    expect(within(myBoard).getAllByRole('button', { name: /Context line/ }).some((r) => !r.hasAttribute('disabled'))).toBe(true);
   });
 
   it('never enables an illegal destination', async () => {
@@ -109,7 +109,7 @@ describe('board interaction', () => {
     // The opponent's board is never a destination.
     const theirBoard = screen.getByRole('region', { name: 'Easy' });
     await userEvent.click(screen.getAllByRole('button', { name: /^Take \d/ })[0]);
-    for (const row of within(theirBoard).getAllByRole('button', { name: /Staging row/ })) {
+    for (const row of within(theirBoard).getAllByRole('button', { name: /Context line/ })) {
       expect(row).toBeDisabled();
     }
   });
@@ -128,7 +128,7 @@ describe('board interaction', () => {
     await user.click(screen.getAllByRole('button', { name: /^Take \d/ })[0]);
     const myBoard = screen.getByRole('region', { name: 'You' });
     const target = within(myBoard)
-      .getAllByRole('button', { name: /Staging row/ })
+      .getAllByRole('button', { name: /Context line/ })
       .find((row) => !row.hasAttribute('disabled'))!;
     await user.click(target);
     await waitFor(() =>
@@ -145,9 +145,9 @@ describe('board interaction', () => {
     );
     const theirBoard = screen.getByRole('region', { name: 'Easy' });
     const staged = within(theirBoard)
-      .getAllByRole('button', { name: /Staging row/ })
+      .getAllByRole('button', { name: /Context line/ })
       .some((row) => row.textContent !== '');
-    const penalised = within(theirBoard).getByRole('button', { name: /Penalty row/ });
+    const penalised = within(theirBoard).getByRole('button', { name: /Hallucination line/ });
     expect(staged || penalised.textContent !== '-1-1-2-2-2-3-3').toBe(true);
   });
 
@@ -163,7 +163,7 @@ describe('board interaction', () => {
     await user.click(screen.getAllByRole('button', { name: /^Take \d/ })[0]);
     const myBoard = screen.getByRole('region', { name: 'You' });
     const target = within(myBoard)
-      .getAllByRole('button', { name: /Staging row/ })
+      .getAllByRole('button', { name: /Context line/ })
       .find((row) => !row.hasAttribute('disabled'))!;
     await user.click(target);
 

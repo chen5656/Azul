@@ -17,13 +17,12 @@ export function Home() {
       {/* ---- Hero ---------------------------------------------------- */}
       <section className="grid items-center gap-8 py-8 sm:py-12 lg:grid-cols-2">
         <div>
-          <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Quadro</h1>
+          <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">MirrorLink</h1>
           <p className="mt-3 text-xl text-neutral-200 sm:text-2xl">
-            A fast tile-drafting strategy game, one-on-one against an AI opponent.
+            A fast-paced consciousness duel, one-on-one against a synthetic AI twin.
           </p>
           <p className="mt-3 max-w-prose leading-relaxed text-neutral-400">
-            Draft tiles from factories, build your wall, and block what your rival needs.
-            Easy to learn, hard to master.
+            Extract memory tokens from attention nodes, align thoughts in your context, anchor permanent memory, and resist hallucination overload.
           </p>
 
           <div className="mt-6 flex flex-wrap gap-3">
@@ -39,6 +38,12 @@ export function Home() {
             >
               Practice vs AI
             </Link>
+            <a
+              href="/guide/story"
+              className="rounded-lg border border-sky-800/60 bg-sky-950/30 px-5 py-2.5 font-semibold text-sky-300 transition hover:border-sky-500 hover:text-sky-100"
+            >
+              Read the Story
+            </a>
           </div>
 
           <p className="mt-4 text-xs text-neutral-500">
@@ -58,43 +63,47 @@ export function Home() {
           <div className="rounded-xl border border-neutral-800 bg-neutral-900/40 p-4">
             <div className="flex items-center gap-2 font-semibold text-sky-400">
               <span className="flex h-6 w-6 items-center justify-center rounded-full bg-sky-500/10 text-xs font-bold text-sky-400">1</span>
-              Draft
+              Focus Attention
             </div>
             <p className="mt-1.5 text-sm text-neutral-400 leading-relaxed">
-              Take all tiles of one color from a factory. Leftovers drop to the center pool.
+              Take all tokens of one color from an attention node. Leftovers drift into the central buffer.
             </p>
           </div>
 
           <div className="rounded-xl border border-neutral-800 bg-neutral-900/40 p-4">
             <div className="flex items-center gap-2 font-semibold text-amber-400">
               <span className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-500/10 text-xs font-bold text-amber-400">2</span>
-              Build
+              Align & Remember
             </div>
             <p className="mt-1.5 text-sm text-neutral-400 leading-relaxed">
-              Complete pattern lines to settle tiles onto your 5×5 wall and score combos.
+              Complete context lines to permanently etch tokens onto your 5×5 memory grid and score connected clusters.
             </p>
           </div>
 
           <div className="rounded-xl border border-neutral-800 bg-neutral-900/40 p-4">
             <div className="flex items-center gap-2 font-semibold text-rose-400">
               <span className="flex h-6 w-6 items-center justify-center rounded-full bg-rose-500/10 text-xs font-bold text-rose-400">3</span>
-              Block
+              Intercept & Overload
             </div>
             <p className="mt-1.5 text-sm text-neutral-400 leading-relaxed">
-              Deny colors your opponent desperately needs, or force them to overflow.
+              Intercept memories the AI needs, or flood the buffer to force catastrophic hallucination penalties.
             </p>
           </div>
         </div>
       </section>
 
-      {/* ---- What is Quadro (Compact & SEO-friendly) ----------------- */}
+      {/* ---- What is MirrorLink (Compact & SEO-friendly) ----------------- */}
       <section className="border-t border-neutral-800/80 py-8">
         <div className="max-w-prose text-sm leading-relaxed text-neutral-400">
           <p>
-            Like abstract tile-placement board games such as <em>Azul</em>? Quadro gives you
-            the same rich tactical depth in quick head-to-head browser matches against distinct AI personalities.{' '}
+            An original consciousness duel inspired by classic tile-drafting mechanics like <em>Azul</em>. MirrorLink gives you
+            deep tactical tension against six neural AI architectures in fast head-to-head browser matches.{' '}
+            <a href="/guide/story" className="text-sky-400 underline hover:text-sky-300">
+              Read the lore
+            </a>{' '}
+            or{' '}
             <a href="/guide/games-like-azul" className="text-sky-400 underline hover:text-sky-300">
-              Compare Quadro to Azul
+              compare MirrorLink to Azul
             </a>
             .
           </p>
@@ -108,6 +117,7 @@ export function Home() {
         </h2>
         <ul className="mt-2.5 flex flex-wrap gap-x-5 gap-y-2 text-xs">
           {[
+            ['/guide/story', 'The Story (Lore)'],
             ['/guide/rules', 'Rules of play'],
             ['/guide/scoring', 'Scoring system'],
             ['/guide/strategy', 'Strategy guide'],

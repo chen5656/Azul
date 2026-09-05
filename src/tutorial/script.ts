@@ -3,12 +3,12 @@
  *
  * The whole lesson is deterministic. Seed 7 deals the opening below, the
  * opponent is the greedy agent (synchronous, seeded, <5ms), and the learner's
- * six moves are fixed — so every line of coaching text can name concrete tiles
+ * six moves are fixed — so every line of coaching text can name concrete tokens
  * and concrete numbers and still be true. `test/ui/tutorial-script.test.ts`
  * replays the whole script against the engine to keep it that way.
  *
  * Round 1 of seed 7:
- *   F1: BB K W   F2: Y RRR   F3: B Y R K   F4: B Y R K   F5: YY R W
+ *   A1: BB K W   A2: Y RRR   A3: B Y R K   A4: B Y R K   A5: YY R W
  */
 
 import { CENTER, GREEN, RED, WHITE, YELLOW } from '../engine';
@@ -28,8 +28,8 @@ export const TUTORIAL_OPPONENT_SEED = 4;
 export const OPPONENT_LABEL = 'Coach';
 
 /**
- * What to ring on the board while a step is open. `source` indexes a factory
- * (0..4) or the center; `row` a staging row; `floor` the penalty row.
+ * What to ring on the board while a step is open. `source` indexes an attention
+ * node (0..4) or the buffer; `row` a context line; `floor` the hallucination row.
  */
 export type Spotlight =
   | { kind: 'source'; index: number }
@@ -68,136 +68,136 @@ export type Step = TalkStep | MoveStep;
 export const STEPS: Step[] = [
   {
     kind: 'talk',
-    title: 'The table',
+    title: 'The neural interface',
     body: [
-      'Five factories hold four tiles each, and the center starts empty. Everything you can see is everything there is — no hidden hands, no hidden bag order.',
-      'Your board is on the left below, the opponent’s on the right. You will play one full round together, then read the score.',
+      'Five attention nodes hold four memory tokens each, and the buffer starts empty. Everything you can see is everything there is — no hidden hands, no hidden data.',
+      'Your consciousness board is on the left below, the AI opponent’s on the right. You will play one full round together, then read the score.',
     ],
     spotlight: { kind: 'source', index: 1 },
   },
   {
     kind: 'move',
-    title: 'Take a whole color',
+    title: 'Focus on a whole frequency',
     source: 1,
     color: RED,
     dest: 2,
     pick: [
-      'A turn is always the same two clicks: take, then place.',
-      'You never take one tile — you take every tile of one color from one factory. Factory 2 holds three reds. Click them.',
+      'A turn is always the same two clicks: focus, then align.',
+      'You never take a single token — you extract every token of one color from an attention node. Attention 2 holds three reds. Click them.',
     ],
     place: [
-      'Now pick a home for them. The five rows on the left of your board are pattern lines, holding 1, 2, 3, 4 and 5 tiles.',
-      'Three reds fit row 3 exactly. Click row 3.',
+      'Now pick a home for them. The five rows on the left of your board are context lines, holding 1, 2, 3, 4 and 5 tokens.',
+      'Three reds fit context line 3 exactly. Click row 3.',
     ],
     after: [
-      'Row 3 is full — at the end of the round it will move onto your wall and score.',
-      'Look at the center. The yellow you left in factory 2 slid there, and so did the green and white the opponent left behind in factory 1 — a factory empties completely the moment anyone takes from it.',
+      'Context line 3 is full — at the end of the round it will crystallize into permanent memory and score.',
+      'Look at the buffer. The yellow you left in Attention 2 slid there, and so did the green and white the AI left behind in Attention 1 — an attention node clears completely the moment anyone draws from it.',
     ],
   },
   {
     kind: 'move',
-    title: 'The center, and the token',
+    title: 'The buffer and initiative',
     source: CENTER,
     color: YELLOW,
     dest: 1,
     pick: [
-      'The center is a sixth source, and it grows all round as players spill leftovers into it.',
-      'Take the yellow from the center.',
+      'The buffer is a sixth source, and it grows all round as unattended tokens drift into it.',
+      'Take the yellow token from the buffer.',
     ],
     place: [
-      'Put it on row 2. One of the two slots fills; the row stays open for another yellow later.',
+      'Put it on context line 2. One of the two slots fills; the row stays open for another yellow later.',
     ],
     after: [
-      'You also picked up the “1” marker — the first player to take from the center each round always does.',
-      'It cost you a slot on your floor line, worth −1 point. In exchange you lead the next round, which is worth having when one color is running short.',
+      'You also picked up the initiative (“1”) marker — the first to draw from the buffer each round always does.',
+      'It costs one slot on your hallucination line, inflicting a −1 penalty. In exchange you lead the next round, which is vital when a memory color is running short.',
     ],
   },
   {
     kind: 'move',
-    title: 'Overflow',
+    title: 'Cognitive overflow',
     source: 4,
     color: YELLOW,
     dest: 1,
     pick: [
-      'Factory 5 has two yellows and row 2 has one free slot. You must still take both.',
-      'Take the yellows from factory 5.',
+      'Attention 5 has two yellows and context line 2 has one free slot. You must still take both.',
+      'Take the yellows from Attention 5.',
     ],
     place: [
-      'Place them on row 2. Watch what the row does with the tile it cannot hold.',
+      'Place them on context line 2. Watch what happens to the token your context cannot hold.',
     ],
     after: [
-      'One yellow completed row 2. The other had nowhere to go and dropped onto the floor line, which now reads −2.',
-      'This is the trade you make all game: a completed line is worth points, and overflow is worth negative points. Here it was worth it — row 2 will score, and the floor resets every round.',
+      'One yellow completed context line 2. The other had nowhere to go and dropped onto your hallucination line, which now reads −2.',
+      'This is the trade you make all game: a completed line crystallizes into memory, while overflow causes hallucination penalties. Here it was worth it — line 2 will score, and hallucinations reset every round.',
     ],
   },
   {
     kind: 'move',
-    title: 'Lines can wait',
+    title: 'Context lines can wait',
     source: CENTER,
     color: WHITE,
     dest: 4,
-    pick: ['Take the two whites out of the center.'],
+    pick: ['Take the two whites out of the buffer.'],
     place: [
-      'Send them to row 5, which holds five. Two of five is fine — an unfinished line is not a penalty, it just sits there.',
+      'Send them to context line 5, which holds five tokens. Two of five is fine — an unfinished line is not penalized, it just waits.',
     ],
     after: [
-      'Row 5 keeps its two whites into the next round, and only whites may be added to it until it settles.',
-      'That is the long game: wide rows take several rounds to fill, and the opponent can see you need whites.',
+      'Line 5 keeps its two whites into the next round, and only whites may be added to it until it settles.',
+      'That is the long game: wide context lines take several rounds to align, and the AI can see you need whites.',
     ],
   },
   {
     kind: 'move',
-    title: 'Feeding the center',
+    title: 'Feeding the buffer',
     source: 2,
     color: GREEN,
     dest: 3,
-    pick: ['Factory 3 is the last one with tiles. Take its green tile.'],
-    place: ['Row 4 is empty and holds four. Start it with the green.'],
+    pick: ['Attention 3 is the last node with tokens. Take its green token.'],
+    place: ['Context line 4 is empty and holds four. Start it with the green.'],
     after: [
-      'One green to you, and the blue, yellow and red you left behind all poured into the center — where the opponent immediately helped itself.',
-      'Taking a single tile off a full factory hands the other three to your opponent. Sometimes that is the price; sometimes it is the reason to take a different factory.',
+      'One green to you, and the blue, yellow and red you left behind all poured into the buffer — where the AI immediately helped itself.',
+      'Taking a single token off a full attention node hands the other three to your opponent in the buffer. Sometimes that is the price; sometimes it is the reason to focus elsewhere.',
     ],
   },
   {
     kind: 'move',
-    title: 'The last tiles',
+    title: 'The final tokens',
     source: CENTER,
     color: YELLOW,
     dest: 0,
     pick: [
-      'Two tiles are left in the whole round, one yellow and one red. When they are gone the round settles.',
-      'Take the yellow.',
+      'Two tokens are left in the whole round, one yellow and one red. When they are gone the round settles.',
+      'Take the yellow token.',
     ],
-    place: ['Row 1 holds exactly one tile. The yellow completes it.'],
+    place: ['Context line 1 holds exactly one token. The yellow completes it.'],
     after: [
-      'The round ended: every completed line moved onto your wall, and the floor line charged you for what it held.',
-      'You finished three lines and still trail 1–3. The −2 floor ate most of your round. That is the lesson worth keeping.',
+      'The round ended: every completed context line crystallized into your memory grid, and the hallucination line penalized you for what it held.',
+      'You finished three lines and still trail 1–3. The −2 hallucination ate most of your round score. That is the lesson worth keeping.',
     ],
   },
   {
     kind: 'talk',
-    title: 'How the wall scores',
+    title: 'How memory scores',
     spotlight: { kind: 'wall' },
     body: [
-      'A settled tile scores 1 on its own. But it scores the length of every unbroken run it joins — horizontal, vertical, or both — so tiles placed next to your existing tiles are worth far more than tiles placed in empty space.',
-      'You settled three lines into three separate corners of your wall: 1 + 1 + 1 = 3, then −2 for the floor. The opponent settled only two lines but stacked them in one column, so its second tile scored 2 instead of 1 — 3 points from less drafting.',
-      'Each color sits in a fixed column on every row, which is why a pattern line can only ever settle in one place — and why a row that already holds a color refuses more of it.',
+      'A crystallized token scores 1 on its own. But it scores the length of every unbroken cluster it joins — horizontal, vertical, or both — so tokens placed adjacent to existing memory nodes are worth far more.',
+      'You settled three lines into three separate corners of your memory: 1 + 1 + 1 = 3, then −2 for hallucinations. The AI settled only two lines but stacked them in one column, scoring 2 instead of 1 on the second token.',
+      'Each color sits in a fixed column on every row, which is why a context line can only settle into one place — and why a row that already holds a color refuses more of it.',
     ],
   },
   {
     kind: 'talk',
-    title: 'How the game ends',
+    title: 'Convergence and endgame',
     body: [
-      'The game ends the moment anyone completes a full horizontal row on their wall. Then the bonuses land: +2 for each complete row, +7 for each complete column, +10 for collecting all five tiles of one color.',
-      'A single column is worth more than three completed rows of drafting, so the endgame is usually a race to set up bonuses rather than to fill lines fast.',
+      'The duel ends the moment either side completes a full horizontal row in memory. Then convergence bonuses land: +2 for each complete row, +7 for each complete column, +10 for collecting all five tokens of one color.',
+      'A single column is worth more than three completed rows of drafting, so the endgame is usually a race for column bonuses rather than fast row fills.',
     ],
   },
   {
     kind: 'talk',
     title: 'That’s the game',
     body: [
-      'Take a color, place it, live with the overflow, and count the floor line before you commit.',
-      'Practice is untimed and unrecorded, against any of four opponents. The Daily is one deal shared by everybody, scored on your winning margin.',
+      'Focus attention, align your context, manage hallucinations, and calculate penalties before you commit.',
+      'Practice is untimed and unrecorded, against any AI difficulty. The Daily Challenge is one shared puzzle for everyone, scored on your winning margin.',
     ],
   },
 ];

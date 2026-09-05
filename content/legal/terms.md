@@ -1,10 +1,10 @@
 ---
 title: Terms of Service
-description: The terms for using Quadro — a free browser game with a daily leaderboard.
+description: The terms for using MirrorLink — a free browser game with a daily leaderboard.
 updated: 2026-09-02
 ---
 
-Quadro is a free browser game at [acgame.win](https://acgame.win). By playing it
+MirrorLink is a free browser game at [acgame.win](https://acgame.win). By playing it
 or creating an account, you agree to what follows. If you do not, please do not
 use the site.
 
@@ -15,7 +15,7 @@ the game comes with no warranty and no uptime guarantee. It may be unavailable,
 may lose data, may change, and may be discontinued. Nothing here creates an
 obligation to keep it running.
 
-To the extent the law allows, Quadro's operator is not liable for any loss
+To the extent the law allows, MirrorLink's operator is not liable for any loss
 arising from your use of the site.
 
 ## Your account

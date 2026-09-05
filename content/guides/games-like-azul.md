@@ -1,47 +1,45 @@
 ---
-title: Games like Azul — Quadro is a free daily one you can play in your browser
-description: Looking for a game like Azul to play online? Quadro is a free tile-drafting strategy game against an AI opponent — here is what it keeps, what it changes, and where it is genuinely different.
-updated: 2026-08-31
+title: Games like Azul — MirrorLink is a free daily browser-based duel
+description: Looking for a game like Azul to play online? MirrorLink is a free token-drafting strategy game against an AI adversary — here is what it keeps, what it reimagines, and where it is genuinely different.
+updated: 2026-09-05
 ---
 
-If you have played *Azul* and gone looking for something with the same feel — draft a color, watch what you leave behind, place it somewhere it will score later — the honest answer is that most of what comes up is either the physical game, an app you have to buy, or a lobby where you wait for three strangers to join.
+If you have played *Azul* and gone looking for something with the same cerebral feel — draft a color, watch what you leave behind, align it somewhere it will score later — most alternatives are either the physical board game, paid app store ports, or multiplayer lobbies with long turn timers.
 
-Quadro is the version of that itch you can scratch in a browser tab, alone, in about five minutes.
+MirrorLink reimagines that classic drafting mechanic into an intense 1-on-1 consciousness duel between human and AI that you can play directly in your browser in five minutes.
 
-## What Quadro keeps
+## What MirrorLink retains
 
-The core loop is the one you already know.
+The core strategic drafting loop is intact:
 
-- **Factory drafting.** Five factories, four tiles each. You take *every* tile of one color from one factory, and the rest fall into the center for whoever moves next.
-- **Pattern lines.** Tiles are staged on lines of one to five before they settle. A line only settles when it is full, and a line can only ever hold one color.
-- **A scoring wall.** Each settled tile scores for the horizontal and vertical run it joins, so tiles placed next to your existing ones are worth several times an isolated one.
-- **A floor line.** Tiles you take but cannot place cost you points. Overdrafting is punished, which is what makes a "safe" draft a real decision.
-- **Endgame bonuses** for completed rows, completed columns, and all five of a color.
+- **Attention drafting.** Five attention nodes holding four tokens each. You take *every* token of one color from one source, and unattended tokens spill into the central buffer for the next move.
+- **Context lines.** Tokens are aligned on staging rows of one to five before crystallizing into permanent memory. A row only settles when fully filled, and can only hold one color at a time.
+- **A 5×5 memory grid.** Each crystallized token scores for the horizontal and vertical clusters it joins, meaning tokens placed adjacent to existing memory nodes multiply in value.
+- **Hallucination penalties.** Tokens you take but cannot hold in active context cause hallucinations and negative score penalties. Overdrafting is penalized, making defensive hate-drafts a crucial tactical weapon.
+- **Endgame bonuses** for completed horizontal memory rows, complete columns, and all five frequencies of a color.
 
-If that is the part of Azul you like, it is intact. See [the rules](/guide/rules) and [how scoring works](/guide/scoring) for the exact numbers.
+See [the rules](/guide/rules) and [how scoring works](/guide/scoring) for the full breakdown.
 
-## What Quadro changes
+## What MirrorLink transforms
 
-Three things, and they are the reason it exists rather than being a clone.
+Three fundamental shifts set MirrorLink apart:
 
-**It is one-on-one against an AI, not a table of four.** Two seats, no lobby, no waiting, no turn timer running while someone thinks. Six opponents from Easy to Extreme run [in your browser](/guide/difficulty) rather than on a server, which is also why Practice works with no network at all.
+**1. A deep sci-fi narrative: Human vs. Synthetic AI Twin.**
+Instead of laying ceramic tiles, you are engaged in a battle for human consciousness. The [story](/guide/story) frames every move: you extract memory tokens, defend your identity, and flood the AI's buffer to force hallucination collapse.
 
-**There is a daily deal.** Every player in the world gets the same factories in the same order on the same day. That turns a game of chance-and-skill into something closer to a puzzle: you are not really playing the AI, you are playing everyone else who faced the same deal.
+**2. 1-on-1 instant play with six local AI architectures.**
+Two seats, zero lobby wait, zero lag. Six difficulty levels — from stochastic greedy to full Monte Carlo Tree Search (MCTS) — run directly inside your browser web worker. Practice works completely offline.
 
-**You are scored on margin, not on points.** Your result is your final score minus the opponent's. A 62 against Extreme and a 62 against Easy are not the same achievement, so each opponent has its own board and they are never mixed. It rewards pressing an advantage rather than quietly building a tidy wall.
+**3. Daily shared puzzle scored on margin.**
+Every player across the globe receives the exact same attention deal each day. You are ranked on your **score margin** over the AI.
 
-## What Quadro is not
+## What MirrorLink is not
 
-It is not *Azul*, and it does not pretend to be. Quadro is an original implementation of the tile-drafting genre that *Azul* popularised. It is not affiliated with, licensed by, or endorsed by that game or its publisher, and the two do not share components, artwork, or the exact scoring table. If you want *Azul* specifically, buy *Azul* — it is a very good board game and this is not a substitute for it.
-
-What Quadro is: a free, no-account, plays-offline daily version of a decision you already enjoy making.
-
-## Other things people try
-
-For completeness, the games that usually come up alongside Azul in this search are *Sagrada*, *Calico*, *Cascadia* and *Reef* — all tile- or dice-placement games with a pattern-building payoff. Most have a digital edition; most are paid, and most are asynchronous multiplayer rather than something you can finish in one sitting on a phone at a bus stop. Quadro is aimed squarely at that last gap.
+MirrorLink is an original browser-based strategic game inspired by the drafting genre that *Azul* popularized. It is not affiliated with, licensed by, or endorsed by *Azul* or its publisher.
 
 ## Try it
 
+- [Read the Story](/guide/story) — the Mirror Link Protocol lore.
 - [Play today's daily challenge](/daily) — same deal for everyone, ranked by margin.
-- [Practice](/practice) — any opponent, any deal, untimed, nothing recorded.
-- [Learn to play](/tutorial) — a two-minute guided round if the loop above is new to you.
+- [Practice](/practice) — any opponent, any deal, untimed, works offline.
+- [Learn to play](/tutorial) — a two-minute guided round on the neural board.

@@ -1,17 +1,17 @@
 ---
 title: Privacy Policy
-description: What Quadro stores, why, where it lives, how long it stays, and how to delete it.
+description: What MirrorLink stores, why, where it lives, how long it stays, and how to delete it.
 updated: 2026-09-02
 ---
 
-Quadro is a browser game at [acgame.win](https://acgame.win). This page describes
+MirrorLink is a browser game at [acgame.win](https://acgame.win). This page describes
 exactly what the game stores about you. It is written against what the code
 actually does, not against what a generic policy template says.
 
 Two things worth stating up front, because they are unusual enough to be worth
 knowing:
 
-- **There is no analytics, no advertising, and no third-party tracking.** No Google Analytics, no pixels, no ad network, no session recording. The only network requests the page makes are to Quadro's own API.
+- **There is no analytics, no advertising, and no third-party tracking.** No Google Analytics, no pixels, no ad network, no session recording. The only network requests the page makes are to MirrorLink's own API.
 - **You can play the entire game without an account.** Learn, Practice and the Daily all work signed out. Signing in gates exactly one thing: putting a time on the public leaderboard.
 
 ## What is stored, and why
@@ -94,7 +94,7 @@ the address on the account.
 
 ## Cookies
 
-Quadro sets one cookie, and only after you sign in: an `HttpOnly` session
+MirrorLink sets one cookie, and only after you sign in: an `HttpOnly` session
 cookie, on `acgame.win` only, marked `SameSite=Lax` and `Secure`. It is what
 keeps you signed in. There are no advertising cookies and no third-party
 cookies.
@@ -105,7 +105,7 @@ any API response.
 
 ## Children
 
-Quadro is not directed at children under 13 and does not knowingly collect
+MirrorLink is not directed at children under 13 and does not knowingly collect
 information from them.
 
 ## Changes

@@ -7,10 +7,10 @@
  */
 
 export const ORIGIN = 'https://acgame.win';
-export const SITE_NAME = 'Quadro';
+export const SITE_NAME = 'MirrorLink';
 export const OG_IMAGE = '/og.png';
 export const OG_IMAGE_ALT =
-  'Quadro — a daily tile-drafting puzzle played against an AI opponent.';
+  'MirrorLink — a human vs AI consciousness & memory duel.';
 export const TWITTER_CARD = 'summary_large_image';
 
 /**
@@ -22,35 +22,36 @@ export const TWITTER_CARD = 'summary_large_image';
 export const APP_ROUTES = [
   {
     path: '/',
-    title: 'Quadro — a free tile-drafting strategy game you play in your browser',
+    title: 'MirrorLink — human mind vs AI duel over memory and consciousness',
     description:
-      'A free tile-drafting strategy game against an AI opponent. Draft tiles, build your wall, block your opponent. One shared deal every day, ranked by winning margin. No download, no sign-in, works offline.',
+      'A strategic duel between human consciousness and a synthetic replica. Extract tokens from attention nodes, anchor your memory, resist hallucination. Free, no sign-in, works offline.',
     prose: {
-      h1: 'Quadro',
+      h1: 'MirrorLink',
       lead:
-        'A fast tile-drafting strategy game, one-on-one against an AI opponent. Draft colored tiles from the factories, stage them on your pattern lines, settle them onto your wall — and take the colors your opponent needs before they can. Free, no download, plays in your browser. One deal a day, the same for everyone, scored on your winning margin.',
+        'A fast-paced consciousness duel against an AI opponent. Extract memory tokens from shared attention nodes, align them in your context lines, and etch them into permanent memory — before the synthetic replica steals your identity. Free, no download, plays in your browser. One deal a day, the same for everyone, scored on your winning margin.',
       links: [
         ['/daily', 'Daily Challenge — one deal for everyone, scored on margin'],
         ['/practice', 'Practice — any opponent, any deal, untimed'],
-        ['/tutorial', 'Learn to play — a guided round on the real board'],
+        ['/tutorial', 'Learn to play — a guided round on the neural board'],
         ['/leaderboard', "Leaderboard — today's board, one per opponent"],
+        ['/guide/story', 'The Story — The Mirror Link Protocol'],
         ['/guide/rules', 'The rules'],
         ['/guide/scoring', 'How scoring works'],
         ['/guide/strategy', 'Strategy guide'],
-        ['/guide/games-like-azul', 'Games like Azul — how Quadro compares'],
-        ['/guide', 'All the rules, scoring and strategy guides'],
+        ['/guide/games-like-azul', 'Games like Azul — how MirrorLink compares'],
+        ['/guide', 'All the lore, rules, scoring and strategy guides'],
       ],
     },
   },
   {
     path: '/daily',
-    title: 'Daily Challenge — Quadro',
+    title: 'Daily Challenge — MirrorLink',
     description:
-      "Today's Quadro deal, identical for every player. Pick your opponent difficulty, maximize your score margin, and take the lead on the daily board.",
+      "Today's MirrorLink deal, identical for every player. Pick your opponent difficulty, maximize your score margin, and take the lead on the daily board.",
     prose: {
       h1: 'Daily Challenge',
       lead:
-        'One deal a day, dealt from a shared seed so every player faces the same factories in the same order. Choose one of six AI opponents, play the game out, and your winning margin goes on that opponent’s board. One recorded attempt per opponent per day.',
+        'One deal a day, dealt from a shared seed so every player faces the same attention nodes in the same order. Choose one of six AI opponents, play the game out, and your winning margin goes on that opponent’s board. One recorded attempt per opponent per day.',
       links: [
         ['/leaderboard', "See today's leaderboard"],
         ['/guide/rules', 'Read the rules first'],
@@ -59,14 +60,15 @@ export const APP_ROUTES = [
   },
   {
     path: '/practice',
-    title: 'Practice — Quadro',
+    title: 'Practice — MirrorLink',
     description:
-      'Play Quadro untimed against any of six AI opponents, on any deal. Nothing is recorded, and it works offline.',
+      'Play MirrorLink untimed against any of six AI opponents, on any deal. Nothing is recorded, and it works offline.',
     prose: {
       h1: 'Practice',
       lead:
         'Any opponent, any deal, untimed and unrecorded. Practice runs entirely in your browser and keeps working with no network once the page has been loaded.',
       links: [
+        ['/guide/story', 'The Story — The Mirror Link Protocol'],
         ['/guide/strategy', 'Strategy guide'],
         ['/guide/difficulty', 'What the six opponents actually do'],
       ],
@@ -74,14 +76,15 @@ export const APP_ROUTES = [
   },
   {
     path: '/tutorial',
-    title: 'Learn to play Quadro — a guided round',
+    title: 'Learn to play MirrorLink — a guided round',
     description:
-      'A two-minute scripted round on the real board: drafting, pattern lines, the floor line, and how the wall scores. No sign-in, nothing recorded.',
+      'A two-minute scripted round: attention drafting, context lines, hallucination overload, and how permanent memory scores. No sign-in, nothing recorded.',
     prose: {
       h1: 'Learn to play',
       lead:
-        'A scripted round on the real board walks you through the two clicks of a turn, why overflow costs points, and how a settled tile scores the runs it joins. About two minutes, nothing timed or recorded.',
+        'A scripted round on the real neural board walks you through the two clicks of a turn, why overflow causes hallucinations, and how crystallized memory scores connected nodes. About two minutes, nothing timed or recorded.',
       links: [
+        ['/guide/story', 'The Story — The Mirror Link Protocol'],
         ['/guide/rules', 'The full written rules'],
         ['/guide/scoring', 'How scoring works'],
       ],
@@ -89,9 +92,9 @@ export const APP_ROUTES = [
   },
   {
     path: '/leaderboard',
-    title: 'Leaderboard — Quadro Daily',
+    title: 'Leaderboard — MirrorLink Daily',
     description:
-      "Today's Quadro leaderboard, with a separate board for each of the six AI opponents. Ranked by score margin, then by time.",
+      "Today's MirrorLink leaderboard, with a separate board for each of the six AI opponents. Ranked by score margin, then by time.",
     prose: {
       h1: 'Leaderboard',
       lead:
@@ -107,6 +110,7 @@ export const APP_ROUTES = [
 /** Guide slugs, in nav and sitemap order. Files live in `content/guides/`. */
 export const GUIDES = [
   'index',
+  'story',
   'rules',
   'scoring',
   'strategy',

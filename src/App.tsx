@@ -109,7 +109,7 @@ export function App() {
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-x-3 px-4 py-3">
           <Link to="/" className="inline-flex items-center gap-2 font-semibold tracking-tight text-neutral-100 hover:text-white transition-colors">
             {style !== 'focus' && <LogoIcon />}
-            <span>Quadro</span>
+            <span>MirrorLink</span>
           </Link>
           <div className="flex flex-wrap items-center justify-end gap-2">
             <Nav />
@@ -145,7 +145,7 @@ export function App() {
       {!immersive && (
         <footer className="mt-8 border-t border-neutral-800">
           <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-4 gap-y-1 px-4 py-4 text-xs text-neutral-500">
-            <span>Quadro — a free daily tile-drafting puzzle.</span>
+            <span>MirrorLink — human vs AI consciousness & memory duel.</span>
             <a href="/guide" className="hover:text-neutral-300">
               Guide
             </a>

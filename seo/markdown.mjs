@@ -115,6 +115,26 @@ export function renderMarkdown(body) {
       continue;
     }
 
+    if (line.startsWith('```')) {
+      const codeLines = [];
+      i += 1;
+      while (i < lines.length && !lines[i].startsWith('```')) {
+        codeLines.push(escapeHtml(lines[i]));
+        i += 1;
+      }
+      if (i < lines.length && lines[i].startsWith('```')) {
+        i += 1;
+      }
+      out.push(`<pre><code>${codeLines.join('\n')}</code></pre>`);
+      continue;
+    }
+
+    if (/^---+\s*$/.test(line.trim())) {
+      out.push('<hr />');
+      i += 1;
+      continue;
+    }
+
     if (line.startsWith('> ')) {
       const quote = [];
       while (i < lines.length && lines[i].startsWith('> ')) {
@@ -130,6 +150,8 @@ export function renderMarkdown(body) {
     while (
       i < lines.length &&
       lines[i].trim() &&
+      !lines[i].startsWith('```') &&
+      !/^---+\s*$/.test(lines[i].trim()) &&
       !/^(#{2,4}\s|>\s|\||\s*[-*]\s|\s*\d+\.\s)/.test(lines[i])
     ) {
       para.push(lines[i].trim());

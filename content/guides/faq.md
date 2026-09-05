@@ -1,21 +1,21 @@
 ---
-title: Quadro FAQ
-description: Answers to the common questions — cost, sign-in, offline play, the daily reset, how the leaderboard ranks, and how to delete your scores.
-updated: 2026-08-30
+title: MirrorLink FAQ
+description: Answers to common questions — cost, sign-in, offline play, daily reset, how the leaderboard ranks, and game mechanics.
+updated: 2026-09-05
 faq: true
 ---
 
-## Is Quadro free?
+## Is MirrorLink free?
 
-Yes. Quadro is free to play. There is no paid tier and no in-game purchase.
+Yes. MirrorLink is completely free to play. There is no paid tier, no ads, and no in-game purchase.
 
 ## Do I need an account?
 
-Only to post a score. [Practice](/practice), [Learn to play](/tutorial), and reading the [leaderboard](/leaderboard) all work signed out. You need to sign in only when you want your [Daily](/daily) result recorded on a board, because a board without identities cannot be ranked honestly.
+Only to post a score. [Practice](/practice), [Learn to play](/tutorial), the [Story lore](/guide/story), and reading the [leaderboard](/leaderboard) all work signed out. You need to sign in only when you want your [Daily](/daily) result recorded on a leaderboard.
 
 ## How often does the daily puzzle change?
 
-Once a day, at midnight New York time. Every player in the world gets the same deal for that day, dealt from a shared seed, so the same factories appear in the same order for everyone.
+Once a day, at midnight New York time. Every player in the world gets the same deal for that day, dealt from a shared seed, so the exact same attention nodes appear in the same order for everyone.
 
 ## How many attempts do I get?
 
@@ -23,28 +23,28 @@ One recorded attempt per opponent per day. Because each of the six AI opponents 
 
 ## How is the leaderboard ranked?
 
-By **score margin** — your final score minus your opponent's — highest first. Ties are broken by elapsed time, and then by who submitted first. Margin rather than raw score is what makes results comparable, since beating a strong opponent narrowly is a different thing from beating a weak one by a mile. See [how scoring works](/guide/scoring) for the detail.
+By **score margin** — your final score minus the AI opponent's — highest first. Ties are broken by elapsed time, and then by submission timestamp. Margin rather than raw score is what makes results comparable. See [how scoring works](/guide/scoring) for the details.
 
 ## Why does each difficulty have a separate board?
 
-Because the opponents are not comparable. A margin against Extreme and a margin against Easy measure different things, and mixing them into one table would rank the players who picked the weakest opponent at the top. [The six opponents](/guide/difficulty) explains what each one does.
+Because the AI architectures are fundamentally different. A margin against Extreme (MCTS) and a margin against Easy measure different things, and mixing them into one table would misrepresent the achievement. [The six opponents](/guide/difficulty) explains what each one does.
 
 ## Can I play offline?
 
-Yes. Practice runs entirely in your browser — the AI opponent included — so once the page has loaded it keeps working with no network. Quadro is installable as an app on phones and desktops. The Daily needs a connection to fetch the day's deal and to submit a result.
+Yes. Practice runs entirely in your browser — the AI engine included — so once the page has loaded it keeps working with no network. MirrorLink is installable as a PWA app on mobile and desktop. The Daily needs a network connection to fetch the seed and record scores.
 
 ## Is this the board game Azul?
 
-No. Quadro is an original implementation of the tile-drafting genre that *Azul* popularised, and is not affiliated with or endorsed by that game's publisher. The rules here are our own; read them on [the rules page](/guide/rules).
+No. MirrorLink is an original browser-based strategic duel inspired by classic drafting mechanics and reimagined through the narrative of AI consciousness and memory. Read more in [Games like Azul](/guide/games-like-azul).
 
 ## Does the AI cheat?
 
-No. It sees exactly what you see. Quadro is a game of complete information — no hidden hands, no hidden bag order — so there is nothing for either side to hide. The opponent's strength comes from search depth, not from extra information.
+No. It sees exactly what you see. MirrorLink is a game of complete information — no hidden hands, no hidden bag order — so there is nothing for either side to hide. The AI's strength comes purely from algorithmic search depth and tree simulations.
 
 ## How do I delete my scores?
 
-Signing in gives you a delete option that removes every score you have posted. Separately, all leaderboard rows are automatically purged after 90 days.
+Signing in gives you an account control option that removes every score you have posted. Separately, all leaderboard rows are automatically purged after 90 days.
 
-## What can I play if I have never played a tile-drafting game?
+## What should I play if I am completely new?
 
-Start with [Learn to play](/tutorial). It is a scripted round on the real board, about two minutes, and it teaches the two clicks of a turn, the floor line, and how the wall scores.
+Start with [The Story](/guide/story) to understand the consciousness duel, then jump into [Learn to play](/tutorial) — a two-minute interactive round on the neural board covering attention, buffer, context lines, hallucinations, and memory scoring.

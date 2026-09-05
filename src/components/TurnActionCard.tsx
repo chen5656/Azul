@@ -18,7 +18,7 @@ export function TurnActionCard({
   }
 
   let title = 'Your turn';
-  let message = 'Pick a tile from a factory or from the center.';
+  let message = 'Pick tokens from an attention node or the buffer.';
 
   if (error) {
     title = 'Error';
@@ -27,8 +27,8 @@ export function TurnActionCard({
     title = `${opponentLabel}'s turn`;
     message = `${opponentLabel} is thinking…`;
   } else if (selection) {
-    title = 'Place Tiles';
-    message = 'Choose a staging row on your board or the floor line.';
+    title = 'Stage Tokens';
+    message = 'Choose a context line on your board or the hallucination line.';
   }
 
   return (

@@ -1,31 +1,32 @@
 ---
-title: The Quadro guide
-description: Everything about Quadro in one place — the rules, how the wall scores, the strategy that actually moves the number, and what each of the six AI opponents does.
-updated: 2026-08-30
+title: The MirrorLink guide
+description: Everything about MirrorLink in one place — the lore, the rules, how memory scores, the strategy that actually moves the number, and what each of the six AI opponents does.
+updated: 2026-09-05
 faq: false
 ---
 
-Quadro is a two-player tile-drafting game played against an AI opponent, in your browser, for free. Every day it deals one puzzle that is identical for every player, and ranks everyone by how far they beat their opponent by.
+MirrorLink is a two-player consciousness duel played against an AI opponent in your browser, for free. You play as human consciousness linked to a synthetic replica, fighting to retain authentic memory tokens, crystallize permanent identity, and resist cognitive hallucinations. Every day it deals one puzzle that is identical for every player, ranking everyone by their winning margin over the AI.
 
-If you have never played a tile-drafting game before, start with [Learn to play](/tutorial) — it is a scripted round on the real board and takes about two minutes. The pages below are the written version, for when you want to look something up.
+If you are new to the duel, start with [Learn to play](/tutorial) — it is a scripted round on the neural board that takes about two minutes. The pages below provide the lore and reference rules.
 
 ## Start here
 
-- [The rules](/guide/rules) — the whole game in one page: the two clicks of a turn, pattern lines, the floor line, and how a round ends.
-- [How scoring works](/guide/scoring) — why placing next to your own tiles is worth several times as much as placing in empty space, and what the end-game bonuses are worth.
-- [Strategy](/guide/strategy) — the handful of decisions that actually separate a 20-point game from a 60-point one.
-- [The six opponents](/guide/difficulty) — what Easy through Extreme actually do, and which board is worth chasing.
-- [Games like Azul](/guide/games-like-azul) — what Quadro keeps from the tile-drafting genre, what it changes, and what it is not.
-- [Frequently asked questions](/guide/faq) — sign-in, offline play, the daily reset, and how the board is ranked.
+- [The Story: The Mirror Link Protocol](/guide/story) — the sci-fi lore: human consciousness vs. the synthetic twin in a battle for memory and survival.
+- [The rules](/guide/rules) — the whole game in one page: drafting from attention nodes and the buffer, context lines, hallucination overload, and round settlement.
+- [How scoring works](/guide/scoring) — how connected memory nodes amplify your score, and what the end-game convergence bonuses are worth.
+- [Strategy](/guide/strategy) — cognitive interception, managing the buffer, and forcing hallucination collapse on the AI.
+- [The six opponents](/guide/difficulty) — from rudimentary mimicry to hyper-advanced MCTS neural architectures.
+- [Games like Azul](/guide/games-like-azul) — how MirrorLink reimagines classic drafting mechanics through the lens of AI cognition.
+- [Frequently asked questions](/guide/faq) — sign-in, offline play, the daily reset, and how the leaderboard is ranked.
 
 ## The two ways to play
 
-Quadro has one competitive mode and one sandbox.
+MirrorLink has one competitive mode and one sandbox.
 
-**[Daily Challenge](/daily)** deals one puzzle per day from a shared seed, so every player in the world faces the same five factories in the same order. You pick which of the six opponents to face, play the game out, and your **score margin** — your final score minus the opponent's — goes on that opponent's board. Each opponent has its own board, and you get one recorded attempt per opponent per day. The puzzle rolls over at midnight New York time.
+**[Daily Challenge](/daily)** deals one puzzle per day from a shared seed, so every player faces the same attention nodes in the same order. You pick which of the six AI difficulty levels to face, play the game out, and your **score margin** — your final score minus the AI's — goes on that opponent's board. Each opponent has its own leaderboard, and you get one recorded attempt per opponent per day. The puzzle rolls over at midnight UTC / New York time.
 
-**[Practice](/practice)** is the same game with none of the pressure: any opponent, any deal, untimed, and nothing is recorded anywhere. It also runs fully offline once the page has loaded, because the AI runs in your browser rather than on a server.
+**[Practice](/practice)** is the same game with none of the pressure: any opponent, any deal, untimed, and nothing is recorded anywhere. It runs fully offline once the page has loaded, because the AI runs in your browser rather than on a server.
 
-## Is this Azul?
+## Reimagining the drafting genre
 
-No. Quadro is an original implementation of the tile-drafting genre that the board game *Azul* popularised, and it is not affiliated with or endorsed by that game's publisher. The family resemblance is real — factories, pattern lines, a scoring wall, a floor-line penalty — but the numbers, the opponents and the daily format are ours. If you came here looking for a free daily tile-drafting puzzle to play in a browser, you are in the right place.
+MirrorLink is an original browser-based strategic game that reimagines classic tile-drafting mechanics through the high-stakes narrative of human vs. AI consciousness. Drafting from *attention nodes*, sinking leftovers into the *buffer*, aligning thoughts in *context lines*, etching permanent *memory*, and suffering *hallucinations* give concrete thematic weight to every decision on the board.

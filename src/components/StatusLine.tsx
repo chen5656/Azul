@@ -47,9 +47,9 @@ export function StatusLine({ session, opponentLabel }: { session: Session; oppon
           {opponentLabel} is thinking…
         </>
       ) : session.selection ? (
-        'Now choose where the tiles go.'
+        'Now choose which context line to stage the tokens.'
       ) : (
-        'Your turn — pick a color from a factory or the center.'
+        'Your turn — pick tokens from an attention node or the buffer.'
       )}
       {aiMode === 'main-thread' && (
         <span className="text-xs text-amber-300">

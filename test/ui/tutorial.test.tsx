@@ -95,14 +95,14 @@ describe('the tutorial page', () => {
     expect(screen.getByText(step.title)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled();
 
-    // Exactly one group is takeable: three reds out of factory 2.
+    // Exactly one group is takeable: three reds out of attention 2.
     const take = onlyEnabled(/^Take /);
-    expect(take).toHaveAccessibleName('Take 3 red from Factory 2');
+    expect(take).toHaveAccessibleName('Take 3 red from Attention 2');
     await user.click(take);
 
     // And exactly one destination: row 3.
-    const row = onlyEnabled(/^Staging row/);
-    expect(row).toHaveAccessibleName(/^Staging row 3/);
+    const row = onlyEnabled(/^Context line/);
+    expect(row).toHaveAccessibleName(/^Context line 3/);
     await user.click(row);
 
     // The opponent answers on a timer, and only then may the learner move on.
@@ -110,7 +110,7 @@ describe('the tutorial page', () => {
       () => expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled(),
       { timeout: 4000 },
     );
-    expect(screen.getByText(/Row 3 is full/)).toBeInTheDocument();
+    expect(screen.getByText(/Context line 3 is full/)).toBeInTheDocument();
   });
 
   it('walks the whole lesson and lands on the play links', async () => {
@@ -123,7 +123,7 @@ describe('the tutorial page', () => {
         // exactly one destination is live, so the walkthrough never needs to
         // know which one — it just clicks whatever is enabled.
         await user.click(onlyEnabled(/^Take /));
-        await user.click(onlyEnabled(/^(Staging row|Penalty row)/));
+        await user.click(onlyEnabled(/^(Context line|Hallucination line)/));
         await waitFor(
           () => expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled(),
           { timeout: 4000 },

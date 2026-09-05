@@ -4,7 +4,7 @@ import type { Session } from '../game/useGameSession';
 import { FirstToken, Tile } from './Tile';
 
 function sourceLabel(source: number): string {
-  return source === CENTER ? 'Center' : `Factory ${source + 1}`;
+  return source === CENTER ? 'Buffer' : `Attention ${source + 1}`;
 }
 
 /**

@@ -50,23 +50,24 @@ export function jsonLd(data) {
 
 const GUIDE_CSS = `
 *,*::before,*::after{box-sizing:border-box}
-:root{color-scheme:dark;--bg:#0a0a0a;--panel:#131316;--line:#292929;--fg:#f5f5f5;--muted:#a3a3a3;--dim:#737373;--accent:#38bdf8}
+:root{color-scheme:dark;--bg:#0a0a0a;--panel:#131316;--line:#262626;--fg:#f5f5f5;--muted:#a3a3a3;--dim:#737373;--accent:#38bdf8}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--fg);-webkit-font-smoothing:antialiased;
   font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-  font-size:17px;line-height:1.65}
+  font-size:17px;line-height:1.65;min-height:100dvh;display:flex;flex-direction:column}
 a{color:var(--accent);text-decoration:none}
 a:hover{text-decoration:underline}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.site-header{border-bottom:1px solid var(--line)}
-.bar{max-width:64rem;margin:0 auto;padding:.75rem 1rem;display:flex;flex-wrap:wrap;
-  align-items:center;justify-content:space-between;gap:.5rem .75rem}
-.brand{color:var(--fg);font-weight:600;letter-spacing:-.01em}
-.site-nav{display:flex;flex-wrap:wrap;gap:.25rem}
-.site-nav a{color:var(--muted);font-size:.875rem;padding:.25rem .5rem;border-radius:.25rem}
-.site-nav a:hover{color:var(--fg);text-decoration:none}
-.site-nav a[aria-current="page"]{background:#262626;color:var(--fg)}
-main{max-width:44rem;margin:0 auto;padding:2rem 1rem 4rem}
+.site-header{border-bottom:1px solid #262626;background:#0a0a0a;position:relative;z-index:50}
+.site-header .bar{max-width:80rem;margin:0 auto;padding:.75rem 1rem;display:flex;flex-wrap:wrap;
+  align-items:center;justify-content:space-between;gap:.75rem}
+.brand{color:#f5f5f5;font-weight:600;letter-spacing:-.025em;display:inline-flex;align-items:center;gap:.5rem;text-decoration:none}
+.brand:hover{color:#fff;text-decoration:none}
+.site-nav{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:.25rem}
+.site-nav a{display:inline-flex;align-items:center;gap:.375rem;color:#a3a3a3;font-size:.875rem;padding:.25rem .5rem;border-radius:.25rem;text-decoration:none}
+.site-nav a:hover{color:#f5f5f5;text-decoration:none}
+.site-nav a[aria-current="page"]{background:#262626;color:#f5f5f5}
+main{max-width:44rem;margin:0 auto;padding:2rem 1rem 4rem;width:100%;flex:1}
 .crumbs{font-size:.8125rem;color:var(--dim);margin:0 0 1rem}
 h1{font-size:2rem;line-height:1.2;letter-spacing:-.02em;margin:0 0 .5rem}
 h2{font-size:1.35rem;line-height:1.3;letter-spacing:-.01em;margin:2.25rem 0 .5rem;
@@ -78,6 +79,10 @@ li{margin:.3rem 0}
 .lead{color:var(--muted);font-size:1.075rem;margin-bottom:1.5rem}
 code{background:#1f1f22;border:1px solid var(--line);border-radius:.25rem;
   padding:.05em .35em;font-size:.875em}
+pre{background:#131316;border:1px solid var(--line);border-radius:.5rem;
+  padding:.85rem 1rem;overflow-x:auto;margin:1.25rem 0;font-size:.875rem;line-height:1.5}
+pre code{background:transparent;border:0;padding:0;font-size:inherit;display:block;white-space:pre}
+hr{border:0;border-top:1px solid var(--line);margin:2rem 0}
 blockquote{margin:1.25rem 0;padding:.75rem 1rem;border-left:3px solid var(--accent);
   background:rgba(56,189,248,.07);border-radius:0 .5rem .5rem 0;color:var(--muted)}
 blockquote p{margin:0}
@@ -99,24 +104,43 @@ th{background:var(--panel);font-weight:600}
   border-top:1px solid var(--line)}
 .next a{border:1px solid var(--line);border-radius:.5rem;padding:.45rem .75rem;font-size:.9375rem}
 .meta{color:var(--dim);font-size:.8125rem;margin-top:2rem}
-footer{border-top:1px solid var(--line);color:var(--dim);font-size:.8125rem}
-footer .bar{justify-content:center;padding:1.25rem 1rem}
+.site-footer{margin-top:2rem;border-top:1px solid #262626}
+.site-footer .bar{max-width:80rem;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;gap:1rem .25rem;padding:1rem;font-size:.75rem;color:#737373}
+.site-footer a{color:#737373;text-decoration:none;margin-left:.75rem}
+.site-footer a:hover{color:#d4d4d4;text-decoration:none}
 `.trim();
 
-/** The nav shared by every guide page. Plain links — no JS on these pages. */
+const LOGO_ICON_SVG = `<svg viewBox="0 0 32 32" aria-hidden="true" style="width:1.5rem;height:1.5rem;border-radius:.375rem;display:inline-block;vertical-align:middle">
+  <rect width="32" height="32" rx="6" fill="#171717" />
+  <rect x="5" y="5" width="10" height="10" rx="2" fill="#2f6fd0" />
+  <rect x="17" y="5" width="10" height="10" rx="2" fill="#e8c33a" />
+  <rect x="5" y="17" width="10" height="10" rx="2" fill="#c8402f" />
+  <rect x="17" y="17" width="10" height="10" rx="2" fill="#e9e6dd" />
+</svg>`;
+
+const TROPHY_ICON_SVG = `<svg viewBox="0 0 24 24" aria-hidden="true" style="width:1rem;height:1rem;stroke:currentColor;color:#fbbf24;display:inline-block;vertical-align:middle" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+  <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+  <path d="M4 22h16" />
+  <path d="M10 14.66V17c0 .55-.45 1-1 1H7v4h10v-4h-2c-.55 0-1-.45-1-1v-2.34" />
+  <path d="M6 4h12v7a6 6 0 0 1-12 0V4z" />
+</svg>`;
+
+/** The nav shared by every guide page. Plain links — matches App.tsx navigation. */
 function nav(currentPath) {
   const items = [
-    ['/', 'Home'],
-    ['/tutorial', 'Learn'],
-    ['/daily', 'Daily'],
-    ['/practice', 'Practice'],
-    ['/leaderboard', 'Leaderboard'],
-    ['/guide', 'Guide'],
+    ['/daily', 'Daily', '<span style="font-size:.75rem">📅</span>'],
+    ['/practice', 'Practice', '<span style="font-size:.75rem">🎯</span>'],
+    ['/leaderboard', 'Leaderboard', TROPHY_ICON_SVG],
+    ['/tutorial', 'Learn', ''],
+    ['/guide', 'Guide', ''],
   ];
   const links = items
-    .map(([href, label]) => {
-      const current = href === currentPath ? ' aria-current="page"' : '';
-      return `<a href="${href}"${current}>${label}</a>`;
+    .map(([href, label, icon]) => {
+      const current = href === currentPath || (href === '/guide' && currentPath.startsWith('/guide'))
+        ? ' aria-current="page"'
+        : '';
+      return `<a href="${href}"${current}>${icon ? `${icon} ` : ''}${label}</a>`;
     })
     .join('');
   return `<nav class="site-nav" aria-label="Main">${links}</nav>`;
@@ -145,7 +169,10 @@ export function guidePage({ path, title, description, headings, html, updated, s
   <body>
     <header class="site-header">
       <div class="bar">
-        <a class="brand" href="/">${SITE_NAME}</a>
+        <a class="brand" href="/">
+          ${LOGO_ICON_SVG}
+          <span>${SITE_NAME}</span>
+        </a>
         ${nav(path)}
       </div>
     </header>
@@ -159,7 +186,14 @@ export function guidePage({ path, title, description, headings, html, updated, s
       ${html}
       <p class="meta">Last updated ${escapeHtml(updated)}.</p>
     </main>
-    <footer><div class="bar">${SITE_NAME} — a free daily tile-drafting puzzle.</div></footer>
+    <footer class="site-footer">
+      <div class="bar">
+        <span>${SITE_NAME} — human vs AI consciousness & memory duel.</span>
+        <a href="/guide">Guide</a>
+        <a href="/privacy">Privacy</a>
+        <a href="/terms">Terms</a>
+      </div>
+    </footer>
   </body>
 </html>
 `;

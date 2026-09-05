@@ -1,72 +1,73 @@
 ---
-title: Quadro rules — how to play
-description: The complete rules of Quadro in one page: drafting from factories and the center, pattern lines, the floor-line penalty, how a round settles, and when the game ends.
-updated: 2026-08-30
+title: MirrorLink rules — how to play
+description: The complete rules of MirrorLink in one page: drafting tokens from attention nodes and the buffer, context lines, hallucination overload, how memory settles, and when the game ends.
+updated: 2026-09-05
 ---
 
-Quadro is a game of complete information. Five factories, a center pile, and two player boards — everything you can see is everything there is. There are no hidden hands and no hidden bag order.
+MirrorLink is a game of complete information. Five attention nodes, a central buffer, and two consciousness boards — everything you can see is everything there is. There are no hidden hands and no hidden bag order.
 
-## The table
+## The interface
 
-Each round begins with **five factories holding four tiles each**, and an empty **center**. Tiles come in five colors: blue, yellow, red, green and white. Every tile also carries its initial, so you never have to rely on color alone to read the board.
+Each round begins with **five attention nodes holding four tokens each**, and an empty **buffer**. Tokens come in five cognitive frequencies: blue (sorrow), yellow (sunlight), red (passion), green (stillness) and white (clarity). Every token also carries its initial letter, so you never have to rely on color alone to read the board.
 
-Your board sits on the left, your opponent's on the right. Each board has three parts:
+Your neural interface sits on the left, your AI opponent's on the right. Each board has three parts:
 
-- **Five pattern lines** on the left, holding 1, 2, 3, 4 and 5 tiles from top to bottom. This is staging — tiles wait here until the round settles.
-- **The wall** on the right, a 5×5 grid. This is where points come from. Every color has a fixed column on every row.
-- **The floor line** underneath, which holds tiles you could not place. It only ever costs you points.
+- **Five context lines** on the left, holding 1, 2, 3, 4 and 5 tokens from top to bottom. This is staging — tokens are held and aligned here until the round settles.
+- **The memory** on the right, a 5×5 grid. This is where permanent identity and points come from. Every color has a fixed column on every row.
+- **The hallucination line** underneath, which holds excess tokens you could not place. It represents cognitive overload and costs you points.
 
 ## A turn is two clicks
 
 Every turn, without exception:
 
-1. **Take.** Pick one color from one source. You take **every tile of that color** from that source — never one tile, never a mix. The source can be a factory or the center.
-2. **Place.** Send the tiles you just took to one pattern line, or to the floor.
+1. **Take.** Focus on one color from one source. You take **every token of that color** from that source — never one token, never a mix. The source can be an attention node or the buffer.
+2. **Place.** Send the tokens you just took to one context line, or directly to hallucination.
 
-When you take from a **factory**, every tile you did not take slides into the center. A factory empties completely the moment anyone draws from it, so taking a single tile off a full factory hands the other three to your opponent. That is often the real cost of a move.
+When you take from an **attention node**, every token you did not take slides into the **buffer**. An attention node empties completely the moment either consciousness draws from it, so taking a single token off a full attention node hands the other three to your opponent via the buffer. That is often the real cost of a move.
 
-The **center** is a sixth source and it grows all round as both players spill leftovers into it.
+The **buffer** is a sixth source and it grows all round as both sides spill unattended tokens into it.
 
-## The first-player marker
+## The initiative marker
 
-The first player to take from the center in a round also picks up the **"1" marker**. It costs one slot on your floor line — worth −1 point — and in exchange you lead the next round. That is worth having when a color is running short and you want first claim on it.
+The first player to draw from the buffer in a round also takes the **initiative ("1") marker**. It costs one slot on your hallucination line — inflicting a −1 point neural penalty — but in exchange you lead the next round. That initiative is vital when a crucial memory token is running short.
 
-## Pattern lines
+## Context lines
 
-A pattern line can only ever hold one color, and it settles into exactly one square on your wall — the square in that row's column for that color. Two consequences follow:
+A context line can only ever hold one color at a time, and once filled, it settles into exactly one square in your permanent memory — the square in that row's designated column for that color. Two fundamental rules follow:
 
-- A pattern line that already holds red refuses any other color.
-- If your wall already has red in that row, that row will not accept red at all.
+- A context line that already holds red refuses any other color.
+- If your memory already has red in that row, that row will not accept red at all.
 
-A partly-filled line is **not** a penalty. It simply waits, keeping its tiles into the next round, and only that color may be added until it settles. Wide rows take several rounds to fill — and your opponent can see exactly what you are waiting for.
+A partly-filled line is **not** penalized at the end of a round. It simply waits, keeping its tokens into the next cycle, and only that color may be added until it settles. Wide rows take several rounds to fill — and your AI opponent can see exactly what you are waiting for.
 
-## Overflow and the floor line
+## Overflow and hallucination
 
-You must always take every tile of the color you picked, even when the line you want has fewer free slots than you have tiles. The extras drop onto the **floor line**, and each one costs you points.
+You must always take every token of the color you picked, even when the context line you want has fewer free slots than you have tokens. The extra tokens drop onto the **hallucination line**, and each one costs you points.
 
-This is the trade you make all game: a completed line is worth points, and overflow is worth negative points. Taking two tiles for a one-slot line is often still correct — a completed line that scores 4 easily pays for a −1 floor. The floor line clears at the end of every round, so a penalty never follows you past the round you took it in.
+This is the trade you make all game: a completed context line crystallizes into points, while overflow triggers negative hallucination penalties. Taking two tokens for a one-slot line is often still correct — a completed line that scores 4 points easily outweighs a −1 hallucination. The hallucination line clears at the end of every round, so a penalty never follows you past the round you took it in.
 
 ## How a round settles
 
-The round ends when the last tile leaves the factories and the center. Then, in order:
+The round ends when the last token leaves the attention nodes and the buffer. Then, in order:
 
-1. Every **completed** pattern line moves one tile onto the wall, in its color's column, and scores immediately (see [how scoring works](/guide/scoring)). The rest of that line is discarded.
-2. Incomplete lines stay exactly as they are, into the next round.
-3. The floor line is charged and cleared.
-4. New factories are dealt, and whoever holds the "1" marker leads.
+1. Every **completed** context line moves one token into permanent memory, in its color's column, and scores immediately (see [how scoring works](/guide/scoring)). The rest of that line is discarded.
+2. Incomplete context lines stay exactly as they are, carrying over into the next round.
+3. The hallucination line is penalized and cleared.
+4. New attention nodes are dealt, and whoever holds the initiative marker leads.
 
 ## How the game ends
 
-The game ends the moment **either player completes a full horizontal row** on their wall. That round is played out and settled as normal, then the end-game bonuses land:
+The game ends the moment **either player completes a full horizontal row** in their memory grid. That round is played out and settled as normal, then the end-game convergence bonuses land:
 
-- **+2** for each complete horizontal row
-- **+7** for each complete vertical column
-- **+10** for each color you have all five of
+- **+2** for each complete horizontal row in memory
+- **+7** for each complete vertical column in memory
+- **+10** for each color frequency you have all five of
 
-A single column is worth more than three completed rows of drafting, which is why the endgame is usually a race to set up bonuses rather than to fill lines quickly. Note that the player who ends the game is not necessarily the player who benefits from ending it.
+A single column bonus is worth more than three completed rows of drafting, which is why the endgame is usually a race to set up bonuses rather than to fill lines quickly. Note that the player who ends the game is not necessarily the player who wins it.
 
 ## What to do next
 
+- [The Story: The Mirror Link Protocol](/guide/story) — read the lore behind the consciousness duel.
 - [Learn to play](/tutorial) walks through one real round, move by move, in about two minutes.
-- [How scoring works](/guide/scoring) is the page that changes how you play.
-- [Practice](/practice) is untimed and unrecorded, against any opponent.
+- [How scoring works](/guide/scoring) explains how memory clustering multiplies your score.
+- [Practice](/practice) is untimed and unrecorded, against any AI opponent.
